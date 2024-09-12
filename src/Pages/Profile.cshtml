@@ -1,0 +1,80 @@
+@page
+@model ProfileModel
+@{
+    ViewData["Title"] = "Profile page";
+}
+
+<div class="d-flex flex-column justify-content-center align-items-center">
+
+    <h1 class="display-4"> Your Profile </h1>
+
+    <div class="d-flex flex-column justify-content-around w-50">
+
+        <table class="table table-dark border">
+            @foreach (var entry in Model.attributes)
+            {
+                if (!Model.excludedProperties.Contains(@entry.Name))
+                {
+                    <tr class="border d-flex align-items-center">
+                        <th class="border-0">@entry.Name.Replace('_', ' '):</th>
+                        <td class="border-0 ms-auto">
+                            @{
+                                var userProperty = Model.User_?.GetType().GetProperty(entry.Name)?.GetValue(Model.User_);
+
+                                if (userProperty != null)
+                                {
+                                    @userProperty
+                                }
+                                else
+                                {
+                                    if (entry.Name == "SessionId")
+                                    {
+                                        <button asp-area="" asp-page="" class="btn btn-success"> Create a session </button>
+                                    }
+                                    else
+                                    {
+                                        @("N/A")
+                                    }
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </table>
+
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmModal"> Delete
+            Account </button>
+
+
+        <div class="modal fade" id="confirmModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete your account?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form method="post">
+                        <div class="modal-body">
+                            <p>Are you sure?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Abort</button>
+                            <button asp-page-handler="DeleteAccount" class="btn btn-success"
+                                data-bs-dismiss="modal">Yes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+
+
+
+</script>

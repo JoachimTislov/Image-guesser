@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Image-guesser", "src\Image-guesser.csproj", "{B53A8642-1C79-43F7-A2C5-EA5894C15568}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{6783BB54-E67C-46AF-81F5-056A86D0E286}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B53A8642-1C79-43F7-A2C5-EA5894C15568}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B53A8642-1C79-43F7-A2C5-EA5894C15568}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B53A8642-1C79-43F7-A2C5-EA5894C15568}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B53A8642-1C79-43F7-A2C5-EA5894C15568}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6783BB54-E67C-46AF-81F5-056A86D0E286}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6783BB54-E67C-46AF-81F5-056A86D0E286}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6783BB54-E67C-46AF-81F5-056A86D0E286}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6783BB54-E67C-46AF-81F5-056A86D0E286}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0151EFC8-F95C-401F-A290-C01ACE6A447A}
+	EndGlobalSection
+EndGlobal

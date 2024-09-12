@@ -1,0 +1,21 @@
+﻿@page "/"
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+
+        <p> Welcome to the Image Guesser lobby </p>
+
+    }
+    else
+    {
+
+        <h1 class="display-4">Welcome</h1>
+        <p>Image Guesser is about guessing the name of an image while only viewing parts of the image.</p>
+
+    }
+</div>
