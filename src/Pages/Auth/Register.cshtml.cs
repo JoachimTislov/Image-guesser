@@ -8,10 +8,9 @@ namespace Image_guesser.Pages.Auth;
 
 public class RegisterModel(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<RegisterModel> logger) : PageModel
 {
-    private readonly ILogger<RegisterModel> _logger = logger;
-
-    private readonly UserManager<User> _userManager = userManager;
-    private readonly SignInManager<User> _signInManager = signInManager;
+    private readonly ILogger<RegisterModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+    private readonly SignInManager<User> _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
 
     [BindProperty]
     [Required(ErrorMessage = "Username is required")]

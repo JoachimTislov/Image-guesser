@@ -7,16 +7,11 @@ namespace Image_guesser.Pages;
 
 public class ProfileModel(ILogger<ProfileModel> logger, UserManager<User> userManager, SignInManager<User> signInManager) : PageModel
 {
-    private readonly ILogger<ProfileModel> _logger = logger;
-
-    private readonly UserManager<User> _userManager = userManager;
-
-    private readonly SignInManager<User> _signInManager = signInManager;
-
+    private readonly ILogger<ProfileModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+    private readonly SignInManager<User> _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     public User? User_;
-
     public System.Reflection.PropertyInfo[] attributes = [];
-
     public string[] excludedProperties = [
         "NormalizedEmail",
         "NormalizedUserName",

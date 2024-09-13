@@ -1,20 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using Image_guesser.Core.Domain.UserContext;
-using Image_guesser.Core.Domain.UserContext.Pipelines;
-using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Image_guesser.Pages.Auth;
 
-public class LoginModel(IMediator mediator, ILogger<LoginModel> logger, SignInManager<User> signInManager) : PageModel
+public class LoginModel(UserManager<User> userManager, ILogger<LoginModel> logger, SignInManager<User> signInManager) : PageModel
 {
-    private readonly ILogger<LoginModel> _logger = logger;
-
-    private readonly IMediator _mediator = mediator;
-
-    private readonly SignInManager<User> _signInManager = signInManager;
+    private readonly ILogger<LoginModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+    private readonly SignInManager<User> _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
 
     [Required(ErrorMessage = "Username is required")]
     [BindProperty]
@@ -59,8 +55,7 @@ public class LoginModel(IMediator mediator, ILogger<LoginModel> logger, SignInMa
         {
             _logger.LogInformation("Sign in issues: {sigInResult}", signInResult);
 
-            var user = await _mediator.Send(new GetUserByUsername.Request(Username));
-
+            var user = await _userManager.FindByNameAsync(Username);
 
             if (user != null)
             {

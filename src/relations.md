@@ -60,15 +60,18 @@ flowchart TD
 
 ### UserContext
 
+Inherits from identityUser
+
 ```mermaid
 classDiagram
     direction LR
     class User {
         <<Aggregate root>>
-        + Id
-        + UserName
-        + Password
+        + Email
         + SessionId
+        + Played Games
+        + Correct Guesses
+        + Points
     }
 ```
 
@@ -95,6 +98,7 @@ classDiagram
         + ChosenImageName
         + SessionStatus
         + AddUser()
+        + RemoveUser()
     }
     class Options {
         <<ValueObject>>

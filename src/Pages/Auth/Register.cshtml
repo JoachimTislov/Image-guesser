@@ -4,11 +4,10 @@
     ViewData["Title"] = "Register page";
 }
 
-
 <div class="d-flex justify-content-center align-items-center">
     <div class="AuthBox">
         <h1> Register </h1>
-        <form method="POST">
+        <form method="post">
             @if (!string.IsNullOrEmpty(Model.RegisterErrorMessage))
             {
                 <div class="alert alert-danger alert-dismissible fade show mb-1" role="alert">
@@ -52,7 +51,7 @@
                 <span asp-validation-for="Repeat_Password" class="text-danger"></span>
             </div>
             <div class="d-flex mt-2">
-                <a asp-area="" asp-page="/Auth/Login">
+                <a class="ms-auto" asp-area="" asp-page="/Auth/Login">
                     Login
                 </a>
             </div>
