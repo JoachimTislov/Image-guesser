@@ -17,7 +17,7 @@ public class UpdateGuesserStats
             var guesser = await _mediator.Send(new GetGuesserById.Request(request.Guesser.Id), cancellationToken);
             var game = await _mediator.Send(new GetGameById.Request(request.GameId), cancellationToken);
 
-            if (game.GameStatus == GameStatus.Finished)
+            if (game.IsGameOver())
             {
                 guesser.Points = request.Guesser.Points;
                 guesser.TimeSpan = request.Speed;

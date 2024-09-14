@@ -1,9 +1,8 @@
-using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Infrastructure;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Core.Domain.SessionContext.Pipelines;
+namespace Image_guesser.Core.Domain.SessionContext.Pipelines;
 
 public class GetAllSessions
 {
@@ -15,7 +14,7 @@ public class GetAllSessions
 
         public async Task<List<Session>> Handle(Request request, CancellationToken cancellationToken)
         {
-            var sessions = await _db.Sessions.OrderByDescending(s => s.CreationTime).ToListAsync(cancellationToken: cancellationToken);
+            var sessions = await _db.Sessions.OrderByDescending(s => s.TimeOfCreation).ToListAsync(cancellationToken: cancellationToken);
             return sessions;
         }
     }

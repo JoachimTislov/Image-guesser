@@ -18,7 +18,7 @@ public class Session : BaseEntity
     public Guid ChosenOracle { get; set; }
     public List<User> SessionUsers { get; set; } = [];
     public Options Options { get; set; } = new();
-    public DateTime CreationTime { get; set; } = DateTime.Now;
+    public DateTime TimeOfCreation { get; set; } = DateTime.Now;
     public string ImageIdentifier { get; set; } = string.Empty;
     public string ChosenImageName { get; set; } = string.Empty;
     public SessionStatus SessionStatus { get; set; } = SessionStatus.Lobby;

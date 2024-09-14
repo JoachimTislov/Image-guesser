@@ -33,18 +33,16 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
         .IsRequired(false)
         .HasConversion(
             v => JsonConvert.SerializeObject(v.NumbersForImagePieces),
-            v => new RandomNumbersAI()
-            {
-                NumbersForImagePieces = JsonConvert.DeserializeObject<int[]>(v)
-            });
+            v => JsonConvert.DeserializeObject<RandomNumbersAI>(v) ?? new RandomNumbersAI());
 
         modelBuilder.Entity<GenericOracle<User>>()
             .Property(o => o.Oracle)
             .IsRequired(false)
-            .HasColumnName("UserInfo")
+            .HasColumnName("User")
             .HasConversion(
             v => JsonConvert.SerializeObject(v),
             v => JsonConvert.DeserializeObject<User>(v) ?? new User());
+
 
         base.OnModelCreating(modelBuilder);
     }

@@ -14,7 +14,7 @@ public class GameFinishedHandler(IMediator mediator, ImageGameContext db) : INot
     {
         var game = await _mediator.Send(new GetGameById.Request(notification.GameId), cancellationToken);
 
-        game.GameStatus = GameStatus.Finished;
+        game.GameOver();
 
         _db.Games.Update(game);
         await _db.SaveChangesAsync(cancellationToken);

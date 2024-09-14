@@ -14,7 +14,7 @@ public class PlayerGuessedCorrectlyHandler(IMediator mediator) : INotificationHa
 
         game.Events.Add(new GameFinished(notification.GameId));
 
-        var speed = DateTime.Now - game.Timer;
+        var speed = DateTime.Now - game.TimeOfCreation;
         var guesser = await _mediator.Send(new GetGuesserById.Request(notification.GuesserId), cancellationToken);
 
         await _mediator.Send(new UpdateGuesserStats.Request(game.Id, guesser, speed), cancellationToken);

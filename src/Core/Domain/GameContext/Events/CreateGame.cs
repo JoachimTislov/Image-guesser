@@ -12,7 +12,7 @@ public record CreateGame : BaseDomainEvent
         Oracle = session.ChosenOracle;
         Users = session.SessionUsers;
         Options = session.Options;
-        ImageIdentifier = session.ImageIdentifier ?? "RandomImage";
+        ImageIdentifier = session.ImageIdentifier == string.Empty ? "RandomImage" : session.ImageIdentifier;
     }
 
     public Guid SessionId { get; }

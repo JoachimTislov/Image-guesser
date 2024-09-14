@@ -11,21 +11,19 @@ public class Game : BaseEntity
         Guid sessionId,
         List<User> users,
         string gameMode,
-        int numberOfGames,
         Guid oracleId,
         bool oracleIsAI
     )
     {
-        Id = Guid.NewGuid(); // Initialize Id if needed
+        Id = Guid.NewGuid();
         SessionId = sessionId;
         GameMode = gameMode;
-        NumberOfGames = numberOfGames;
         OracleId = oracleId;
         OracleIsAI = oracleIsAI;
 
         foreach (var user in users)
         {
-            var guesser = new Guesser(user.UserName!, Guid.NewGuid());
+            var guesser = new Guesser(user.UserName!, Id);
             Guessers.Add(guesser);
         }
     }
@@ -35,9 +33,24 @@ public class Game : BaseEntity
     public Guid OracleId { get; set; }
     public List<Guesser> Guessers { get; set; } = [];
     public string GameMode { get; set; } = string.Empty;
-    public int NumberOfGames { get; set; }
     public bool OracleIsAI { get; set; }
-    public GameStatus GameStatus { get; set; } = GameStatus.Started;
-    public DateTime Timer { get; set; } = DateTime.Now;
+    private GameStatus GameStatus = GameStatus.Started;
+    public DateTime TimeOfCreation { get; set; } = DateTime.Now;
 
+    public void GameOver()
+    {
+        GameStatus = GameStatus.Finished;
+    }
+
+    public bool IsGameOver()
+    {
+        if (GameStatus == GameStatus.Finished)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }

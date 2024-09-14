@@ -158,6 +158,8 @@ classDiagram
         + OracleIsAI
         + GameStatus
         + Timer
+        + GameOver()
+        + IsGameOver()
     }
     class Guesser {
         + Id

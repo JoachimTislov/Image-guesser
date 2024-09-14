@@ -26,7 +26,7 @@ public class PlayerGuessedHandler(IMediator mediator, ImageGameContext db) : INo
             //Calculating amount of unrevealed tiles
             var points = Image.PieceCount - Oracle.NumberOfTilesRevealed;
 
-            game.Events.Add(new PlayerGuessedCorrectly(points, game.Id, Guid.Parse(notification.GuesserId), game.GameMode, game.NumberOfGames));
+            game.Events.Add(new PlayerGuessedCorrectly(points, game.Id, Guid.Parse(notification.GuesserId), game.GameMode));
         }
         else
         {

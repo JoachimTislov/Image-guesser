@@ -25,7 +25,7 @@ public class CreateGameHandler(IMediator mediator,
                      numberOfRounds, chosenOracle,
                      notification.Options.GameMode.ToString());
 
-        var game = new Game(notification.SessionId, notification.Users, notification.Options.GameMode.ToString(), numberOfRounds, OracleId, notification.Options.UseAI);
+        var game = new Game(notification.SessionId, notification.Users, notification.Options.GameMode.ToString(), OracleId, notification.Options.UseAI);
 
         var result = await _mediator.Send(new AddGame.Request(game), cancellationToken);
 
