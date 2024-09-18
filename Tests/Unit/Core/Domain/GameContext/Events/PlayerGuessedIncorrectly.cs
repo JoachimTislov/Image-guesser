@@ -1,8 +1,8 @@
 using Image_guesser.Core.Domain.GameContext.Events;
 
-namespace Tests.Core.Domain.GameContext.Events;
+namespace Tests.Unit.Core.Domain.GameContext.Events;
 
-public class PlayerGuessedIncorrectlyPlayerGuessedCorrectlyTests
+public class PlayerGuessedIncorrectlyTests
 {
     [Fact]
     public void ConstructorWithSession_ShouldAssignValues()

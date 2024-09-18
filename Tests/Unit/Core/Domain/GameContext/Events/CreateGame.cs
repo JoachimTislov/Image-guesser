@@ -2,7 +2,7 @@
 using Image_guesser.Core.Domain.GameContext.Events;
 using Image_guesser.Core.Domain.SessionContext;
 
-namespace Tests.Core.Domain.GameContext.Events;
+namespace Tests.Unit.Core.Domain.GameContext.Events;
 
 public class CreateGameTests
 {

@@ -1,8 +1,6 @@
-
 using Image_guesser.Core.Domain.ImageContext;
-using SixLabors.ImageSharp;
 
-namespace Tests.Core.Domain.ImageContext;
+namespace Tests.Unit.Core.Domain.ImageContext;
 
 public class ImageDataTests
 {

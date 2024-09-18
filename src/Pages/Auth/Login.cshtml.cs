@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Image_guesser.Pages.Auth;
 
-public class LoginModel(UserManager<User> userManager, ILogger<LoginModel> logger, SignInManager<User> signInManager) : PageModel
+public class LoginModel(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<LoginModel> logger) : PageModel
 {
     private readonly ILogger<LoginModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
@@ -38,7 +38,7 @@ public class LoginModel(UserManager<User> userManager, ILogger<LoginModel> logge
 
                 foreach (var error in errors)
                 {
-                    _logger.LogError("ModelState error for key '{key}': {error.ErrorMessage}", key, error.ErrorMessage);
+                    _logger.LogError("ModelState error: {error.ErrorMessage}", error.ErrorMessage);
                 }
             }
             return Page();
@@ -53,20 +53,11 @@ public class LoginModel(UserManager<User> userManager, ILogger<LoginModel> logge
         }
         else
         {
-            _logger.LogInformation("Sign in issues: {sigInResult}", signInResult);
-
             var user = await _userManager.FindByNameAsync(Username);
 
             if (user != null)
             {
-                if (!user.EmailConfirmed)
-                {
-                    LoginErrorMessage = "Please confirm your email";
-                }
-                else
-                {
-                    LoginErrorMessage = "Wrong password";
-                }
+                LoginErrorMessage = "Wrong password";
             }
             else
             {

@@ -1,6 +1,6 @@
 using Image_guesser.Core.Domain.UserContext;
 
-namespace Tests.Core.Domain.UserContext;
+namespace Tests.Unit.Core.Domain.UserContext;
 
 public class UserTests
 {

@@ -1,7 +1,7 @@
 
 using Image_guesser.Core.Domain.OracleContext;
 
-namespace Tests.Core.Domain.OracleContext;
+namespace Tests.Unit.Core.Domain.OracleContext;
 
 public class BaseOracleTests
 {

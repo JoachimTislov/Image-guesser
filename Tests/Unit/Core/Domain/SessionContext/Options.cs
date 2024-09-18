@@ -1,6 +1,6 @@
 using Image_guesser.Core.Domain.SessionContext;
 
-namespace Tests.Core.Domain.SessionContext;
+namespace Tests.Unit.Core.Domain.SessionContext;
 
 public class OptionsTests
 {

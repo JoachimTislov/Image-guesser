@@ -30,6 +30,8 @@ public class CreateGameHandler(IMediator mediator,
         var result = await _mediator.Send(new AddGame.Request(game), cancellationToken);
 
         if (result.Success)
+        {
             await _hubContext.Clients.Group(result.CreatedGame.SessionId.ToString()).RedirectToLink($"/Game/{result.CreatedGame.Id}");
+        }
     }
 }

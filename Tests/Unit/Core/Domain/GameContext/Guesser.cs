@@ -1,6 +1,6 @@
 using Image_guesser.Core.Domain.GameContext;
 
-namespace Tests.Core.Domain.GameContext;
+namespace Tests.Unit.Core.Domain.GameContext;
 
 public class GuesserTests
 {
