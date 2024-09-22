@@ -1,21 +1,21 @@
 using Image_guesser.Core.Domain.OracleContext.Events;
-using Image_guesser.Core.Domain.OracleContext.Pipelines;
-using Image_guesser.Infrastructure;
+using Image_guesser.Core.Domain.OracleContext.Services;
+using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.OracleContext.Handlers;
 
-public class OracleRevealedATileHandler(IMediator mediator, ImageGameContext db) : INotificationHandler<OracleRevealedATile>
+public class OracleRevealedATileHandler(IRepository repository, IOracleService oracleService) : INotificationHandler<OracleRevealedATile>
 {
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-    private readonly ImageGameContext _db = db ?? throw new ArgumentNullException(nameof(db));
+    private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
+    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(oracleService));
 
     public async Task Handle(OracleRevealedATile notification, CancellationToken cancellationToken)
     {
-        var oracle = await _mediator.Send(new GetBaseOracleById.Request(notification.OracleId), cancellationToken);
-        oracle.NumberOfTilesRevealed++;
+        var oracle = await _oracleService.GetBaseOracleById(notification.OracleId);
 
-        _db.Oracles.Update(oracle);
-        await _db.SaveChangesAsync(cancellationToken);
+        oracle.IncrementTiles();
+
+        await _repository.Update(oracle);
     }
 }

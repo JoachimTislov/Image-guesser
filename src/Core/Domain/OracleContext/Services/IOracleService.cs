@@ -1,4 +1,5 @@
 
+using Image_guesser.Core.Domain.OracleContext.Responses;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
 
@@ -6,12 +7,16 @@ namespace Image_guesser.Core.Domain.OracleContext.Services
 {
     public interface IOracleService
     {
-        RandomNumbersAI CreateRandomNumbersAI(int PieceCountPerImage);
-
-        Task<Guid> CreateOracle(bool OracleIsAI, string ImageIdentifier,
-                        int NumberOfRounds, User ChosenOracle, string GameMode);
-
-        public record Response(bool IsGuessCorrect, string WinnerText);
-        Task<Response> CheckGuess(string Guess, string ImageIdentifier, User User, Session Session);
+        Task<Oracle<AI>> CreateAIOracle(string ImageIdentifier, AI_Type AI_Type);
+        Oracle<User> CreateUserOracle(User ChosenOracle);
+        Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class;
+        Task<BaseOracle> GetBaseOracleById(Guid Id);
+        Task<Check_Guess_Response> CheckGuess(
+            string Guess,
+            string ImageIdentifier,
+            string Username,
+            Guid ChosenOracle,
+            GameMode GameMode
+        );
     }
 }

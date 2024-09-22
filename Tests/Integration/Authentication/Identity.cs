@@ -15,9 +15,8 @@ public class IdentityTests : IClassFixture<CustomWebApplicationFactory<Program>>
     private readonly UserManager<User> _UserManager;
     private readonly SignInManager<User> _SignInManager;
     private readonly HttpContext _HttpContext;
-
+    private readonly ImageGameContext _db;
     private readonly string Username = "TestUser";
-    private readonly string Password = "Test@Password";
     private readonly User User;
 
     public IdentityTests(CustomWebApplicationFactory<Program> fixture)
@@ -28,16 +27,21 @@ public class IdentityTests : IClassFixture<CustomWebApplicationFactory<Program>>
         _SignInManager = fixture.Services.GetRequiredService<SignInManager<User>>();
         _HttpContext = fixture.Services.GetRequiredService<IHttpContextAccessor>().HttpContext!;
 
-        User = new() { UserName = Username };
+        _db = fixture.Services.GetRequiredService<ImageGameContext>();
+        _db.Database.EnsureCreated();
 
-        var db = fixture.Services.GetRequiredService<ImageGameContext>();
-        db.Database.EnsureCreatedAsync().Wait();
+        User = new()
+        {
+            UserName = Username
+        };
     }
 
     [Fact]
-    public async Task CreateLoginAndDeleteUser()
+    public async Task CreateUser_SignInWithOutPassword_CheckSignInStatus_SimulateSignOut_SignInWithPassword_And_DeleteUser()
     {
-        var createUser = await _UserManager.CreateAsync(User, Password);
+        var password = "TestPassword@123";
+
+        var createUser = await _UserManager.CreateAsync(User, password);
         Assert.True(createUser.Succeeded);
 
         await _SignInManager.SignInAsync(User, isPersistent: false);
@@ -54,11 +58,35 @@ public class IdentityTests : IClassFixture<CustomWebApplicationFactory<Program>>
         // Simulating signing out without redirecting -- https://stackoverflow.com/questions/4050925/page-user-identity-isauthenticated-still-true-after-formsauthentication-signout
         _HttpContext.User = new GenericPrincipal(new GenericIdentity(string.Empty), null);
 
-        var loginUser = await _SignInManager.PasswordSignInAsync(Username, Password, isPersistent: false, lockoutOnFailure: false);
+        var loginUser = await _SignInManager.PasswordSignInAsync(Username, password, isPersistent: false, lockoutOnFailure: false);
         Assert.True(loginUser.Succeeded);
         Assert.True(_HttpContext.User.Identity!.IsAuthenticated);
 
         var deleteUser = await _UserManager.DeleteAsync(User);
         Assert.True(deleteUser.Succeeded);
+    }
+
+    [Theory]
+    [InlineData("CorrectPassword@123", true, null)]
+    [InlineData("NoDigitPassword@", false, "PasswordRequiresDigit")]
+    [InlineData("short1@", false, "PasswordTooShort")]
+    [InlineData("noupper1@", false, "PasswordRequiresUpper")]
+    [InlineData("NOLOWER1@", false, "PasswordRequiresLower")]
+    [InlineData("NoSpecialChar123", false, "PasswordRequiresNonAlphanumeric")]
+    public async Task CheckIfPasswordValidationWorksCorrectly(string password, bool expectedResult, string? expectedError)
+    {
+        var createUser = await _UserManager.CreateAsync(User, password);
+        Assert.Equal(expectedResult, createUser.Succeeded);
+
+        if (expectedError != null && !expectedResult)
+        {
+            Assert.Contains(createUser.Errors, error => error.Code == expectedError);
+        }
+        else
+        {
+            // Deleting user with valid password
+            var deleteUser = await _UserManager.DeleteAsync(User);
+            Assert.True(deleteUser.Succeeded);
+        }
     }
 }

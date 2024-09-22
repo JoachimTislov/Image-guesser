@@ -4,9 +4,13 @@ namespace Image_guesser.Core.Domain.GameContext.Events;
 
 public record GameFinished : BaseDomainEvent
 {
-    public GameFinished(Guid gameId)
+    public GameFinished(BaseGame game, Guid guesserId, int points)
     {
-        GameId = gameId;
+        Game = game;
+        GuesserId = guesserId;
+        Points = points;
     }
-    public Guid GameId { get; }
+    public BaseGame Game { get; }
+    public Guid GuesserId { get; }
+    public int Points { get; }
 }

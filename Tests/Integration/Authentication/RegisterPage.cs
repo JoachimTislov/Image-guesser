@@ -33,7 +33,7 @@ public class RegisterTests
 
         var result = await _registerPageModel.OnPostAsync();
 
-        Assert.Equal("Passwords does not match", _registerPageModel.RegisterErrorMessage);
+        Assert.Equal("Passwords do not match", _registerPageModel.RegisterErrorMessage);
         Assert.IsAssignableFrom<IActionResult>(result);
     }
 

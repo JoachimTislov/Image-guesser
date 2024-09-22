@@ -26,9 +26,9 @@ public class ForceLeaveUserFromSession
 
             if (userConnection != null) await _hubContext.Groups.RemoveFromGroupAsync(userConnection, request.Session.Id.ToString(), cancellationToken);
 
-            if (request.Session.ChosenOracle == request.User.Id)
+            if (request.Session.ChosenOracleId == request.User.Id)
             {
-                request.Session.ChosenOracle = request.Session.SessionHostId;
+                request.Session.ChosenOracleId = request.Session.SessionHostId;
             }
 
             if (request.Session.SessionUsers.Count == 1 && request.Session.SessionHostId == request.User.Id)

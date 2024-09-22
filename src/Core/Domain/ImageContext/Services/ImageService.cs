@@ -1,11 +1,36 @@
+using Image_guesser.Core.Domain.ImageContext.Repositories;
+using Image_guesser.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace Image_guesser.Core.Domain.ImageContext.Services;
 
-public class ImageService(IWebHostEnvironment hostingEnvironment) : IImageService
+public class ImageService(IWebHostEnvironment hostingEnvironment, IImageRepository imageRepository) : IImageService
 {
     private readonly IWebHostEnvironment _hostingEnvironment = hostingEnvironment ?? throw new ArgumentNullException(nameof(hostingEnvironment));
+    private readonly IImageRepository _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
+
+    public async Task<ImageRecord> GetImageRecordById(string ImageIdentifier)
+    {
+        ImageRecord ImageRecord = await _imageRepository.GetImageRecordById(ImageIdentifier);
+
+        // I don't know what this does
+        ImageRecord.Link = ImageRecord.Link.Replace("\\", Path.DirectorySeparatorChar.ToString());
+        ImageRecord.FolderWithImagePiecesLink = ImageRecord.FolderWithImagePiecesLink.Replace("\\", Path.DirectorySeparatorChar.ToString());
+
+        return ImageRecord;
+    }
+
+    public async Task<int> GetImagePieceCountById(string ImageIdentifier)
+    {
+        return await _imageRepository.GetImagePieceCountById(ImageIdentifier);
+    }
+
+    public void AddImageRecord(ImageRecord ImageRecord)
+    {
+        _imageRepository.AddImageRecord(ImageRecord);
+    }
 
     public List<string> GetFileNameOfImagePieces(string imageIdentifier)
     {
@@ -21,10 +46,10 @@ public class ImageService(IWebHostEnvironment hostingEnvironment) : IImageServic
         return filteredFileNames;
     }
 
-    private readonly List<(string ImageId, List<(int X, int Y)> Coordinates)> _imageCoordinates = [];
-
     public List<(string ImageId, List<(int X, int Y)> Coordinates)> GetCoordinatesForImagePieces(string imagePiecesFolderPath, List<string> ImagePieceList)
     {
+        List<(string ImageId, List<(int X, int Y)> Coordinates)> _imageCoordinates = [];
+
         if (Directory.Exists(imagePiecesFolderPath))
         {
             foreach (var image in ImagePieceList)
@@ -42,7 +67,7 @@ public class ImageService(IWebHostEnvironment hostingEnvironment) : IImageServic
         }
     }
 
-    public List<(int X, int Y)> GetNonTransparentPixelCoordinates(string imagePiecePath)
+    private static List<(int X, int Y)> GetNonTransparentPixelCoordinates(string imagePiecePath)
     {
         List<(int X, int Y)> nonTransparentPixels = [];
 

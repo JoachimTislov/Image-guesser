@@ -98,9 +98,9 @@ public class GameHub(IConnectionMappingService connectionMappingService, UserMan
 
         var session = await _mediator.Send(new GetSessionById.Request(sessionGuid));
 
-        if (session != null && user != null && session.ChosenOracle == user.Id)
+        if (session != null && user != null && session.ChosenOracleId == user.Id)
         {
-            session.ChosenOracle = session.SessionHostId;
+            session.ChosenOracleId = session.SessionHostId;
         }
 
         if (user != null && userConnection != null)
@@ -156,12 +156,13 @@ public class GameHub(IConnectionMappingService connectionMappingService, UserMan
             await Clients.Group(sessionId).ReceiveGuess(guess, user.UserName);
 
         //This sets of an event that Oracle will handle 
-        await _mediator.Publish(new PlayerGuessed(guess, guesserId, gameId));
+        await _mediator.Publish(new PlayerGuessed(Guid.Parse(sessionId), guess, guesserId, Guid.Parse(gameId)));
 
         var session = await _mediator.Send(new GetSessionById.Request(Guid.Parse(sessionId)));
-        if (user != null && session != null)
+
+        if (user != null && user.UserName != null && session != null)
         {
-            var Response = await _oracleService.CheckGuess(guess, imageIdentifier, user, session);
+            var Response = await _oracleService.CheckGuess(guess, imageIdentifier, user.UserName, session.ChosenOracleId, session.Options.GameMode);
             if (Response.IsGuessCorrect) await Clients.Group(sessionId).CorrectGuess(Response.WinnerText, guess);
         }
     }
@@ -175,7 +176,6 @@ public class GameHub(IConnectionMappingService connectionMappingService, UserMan
     {
         await Clients.Group(sessionId).ShowPiece(pieceId);
     }
-
 
     // Used in multiplayer AI games, where the leader reveals the next piece for everyone
     public async Task ShowNextPieceForAllPlayers(string sessionId)

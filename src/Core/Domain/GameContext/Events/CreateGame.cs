@@ -9,14 +9,14 @@ public record CreateGame : BaseDomainEvent
     public CreateGame(Session session)
     {
         SessionId = session.Id;
-        Oracle = session.ChosenOracle;
+        ChosenOracleId = session.ChosenOracleId;
         Users = session.SessionUsers;
         Options = session.Options;
-        ImageIdentifier = session.ImageIdentifier == string.Empty ? "RandomImage" : session.ImageIdentifier;
+        ImageIdentifier = session.ImageIdentifier;
     }
 
     public Guid SessionId { get; }
-    public Guid? Oracle { get; }
+    public Guid ChosenOracleId { get; }
     public List<User> Users { get; }
     public Options Options { get; }
     public string ImageIdentifier { get; }

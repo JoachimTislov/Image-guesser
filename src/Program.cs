@@ -6,40 +6,43 @@ using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Services;
-using Image_guesser.Core.Domain.OracleContext.Pipelines;
-using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.SignalRContext.Hubs;
 using Image_guesser.SharedKernel;
+using Image_guesser.Core.Domain.GameContext.Services;
+using Image_guesser.Core.Domain.OracleContext.Repositories;
+using Image_guesser.Core.Domain.ImageContext.Repositories;
+using Image_guesser.Infrastructure.GenericRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMediatR(typeof(Program));
+var services = builder.Services;
+
+services.AddMediatR(typeof(Program));
 
 // Add DI to builders
-builder.Services.AddTransient<IOracleService, OracleService>();
-builder.Services.AddTransient<ISessionService, SessionService>();
-builder.Services.AddTransient<IImageService, ImageService>();
+services.AddTransient<IOracleService, OracleService>();
+services.AddTransient<IGameService, GameService>();
+services.AddTransient<ISessionService, SessionService>();
+services.AddTransient<IAI_Repository, AI_Repository>();
 
-builder.Services.AddSingleton<IConnectionMappingService, ConnectionMappingService>();
+services.AddTransient<IImageRepository, ImageRepository>();
+services.AddTransient<IImageService, ImageService>();
 
-// Add generic DI to builders
-builder.Services.AddTransient<IRequestHandler<AddOracle<User>.Request, Guid>, AddOracle<User>.Handler>();
-builder.Services.AddTransient<IRequestHandler<AddOracle<RandomNumbersAI>.Request, Guid>, AddOracle<RandomNumbersAI>.Handler>();
+services.AddScoped<IRepository, Repository>();
 
-builder.Services.AddTransient(typeof(IRequestHandler<GetOracleById<User>.Request, GenericOracle<User>>), typeof(GetOracleById<User>.Handler));
-builder.Services.AddTransient(typeof(IRequestHandler<GetOracleById<RandomNumbersAI>.Request, GenericOracle<RandomNumbersAI>>), typeof(GetOracleById<RandomNumbersAI>.Handler));
+services.AddSingleton<IConnectionMappingService, ConnectionMappingService>();
 
 // Configure DbContext with SQLite
-builder.Services.AddDbContext<ImageGameContext>(options =>
+services.AddDbContext<ImageGameContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure Identity with the User entity
-builder.Services.AddDefaultIdentity<User>(IdentityOptionsConfiguration.ConfigureIdentityOptions)
+services.AddDefaultIdentity<User>(IdentityOptionsConfiguration.ConfigureIdentityOptions)
     .AddEntityFrameworkStores<ImageGameContext>();
 
 // Add Razor Pages and SignalR
-builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+services.AddRazorPages();
+services.AddSignalR();
 
 var app = builder.Build();
 

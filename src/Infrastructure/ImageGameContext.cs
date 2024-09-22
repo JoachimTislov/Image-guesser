@@ -6,43 +6,48 @@ using Image_guesser.Core.Domain.UserContext;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
 namespace Image_guesser.Infrastructure;
 
 public class ImageGameContext(DbContextOptions<ImageGameContext> options) : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
 {
-    public DbSet<Session> Sessions { get; set; } = null!;
-    public DbSet<Game> Games { get; set; } = null!;
-    public DbSet<Guesser> Guessers { get; set; } = null!;
-    public DbSet<BaseOracle> Oracles { get; set; } = null!;
-    public DbSet<ImageData> ImageRecords { get; set; } = null!;
+    public DbSet<AI> AIs { get; set; }
+    public DbSet<Session> Sessions { get; set; }
+    public DbSet<BaseGame> Games { get; set; }
+    public DbSet<BaseOracle> Oracles { get; set; }
+    public DbSet<Guesser> Guessers { get; set; }
+    public DbSet<ImageRecord> ImageRecords { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Creates a TPH type hierarchy for the Oracle table
+        // Creates a TPH type hierarchy for the Games table
+        modelBuilder.Entity<BaseGame>()
+            .HasDiscriminator<string>("Oracle")
+            .HasValue<Game<User>>("User")
+            .HasValue<Game<AI>>("AI");
+
+        // Creates a TPH type hierarchy for the Oracles table
         modelBuilder.Entity<BaseOracle>()
-            .HasDiscriminator<string>("OracleType")
-            .HasValue<GenericOracle<User>>("User")
-            .HasValue<GenericOracle<RandomNumbersAI>>("RandomNumbersAI");
+            .HasDiscriminator<string>("Oracle")
+            .HasValue<Oracle<User>>("User")
+            .HasValue<Oracle<AI>>("AI");
 
-        //Json converter for the different types of Oracles
-        //Needed to store the data in the Oracle table
-        modelBuilder.Entity<GenericOracle<RandomNumbersAI>>()
-        .Property(o => o.Oracle)
-        .HasColumnName("RandomNumbersAI")
-        .IsRequired(false)
-        .HasConversion(
-            v => JsonConvert.SerializeObject(v.NumbersForImagePieces),
-            v => JsonConvert.DeserializeObject<RandomNumbersAI>(v) ?? new RandomNumbersAI());
+        // Configure the foreign key for Oracle<User>
+        modelBuilder.Entity<Oracle<User>>()
+            .HasOne(o => o.Entity)
+            .WithMany()
+            .HasForeignKey("UserId")
+            .HasConstraintName("FK_Oracle_User")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<GenericOracle<User>>()
-            .Property(o => o.Oracle)
-            .IsRequired(false)
-            .HasColumnName("User")
-            .HasConversion(
-            v => JsonConvert.SerializeObject(v),
-            v => JsonConvert.DeserializeObject<User>(v) ?? new User());
-
+        // Configure the foreign key for Oracle<AI>
+        modelBuilder.Entity<Oracle<AI>>()
+            .HasOne(o => o.Entity)
+            .WithMany()
+            .HasForeignKey("AI_Id")
+            .HasConstraintName("FK_Oracle_AI")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
 
         base.OnModelCreating(modelBuilder);
     }

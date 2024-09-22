@@ -28,14 +28,13 @@ public class BaseOracleTests
     }
 
     [Fact]
-    public void Properties_ShouldAllowUpdates()
+    public void Properties_ShouldIncrement()
     {
         var number = 1;
-        var baseOracle = new BaseOracle()
-        {
-            TotalGuesses = number,
-            NumberOfTilesRevealed = number,
-        };
+        var baseOracle = new BaseOracle();
+
+        baseOracle.IncrementGuesses();
+        baseOracle.IncrementTiles();
 
         Assert.Equal(number, baseOracle.TotalGuesses);
         Assert.Equal(number, baseOracle.NumberOfTilesRevealed);

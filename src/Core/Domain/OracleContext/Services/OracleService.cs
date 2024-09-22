@@ -1,102 +1,69 @@
-using Image_guesser.Core.Domain.ImageContext.Pipelines;
-using Image_guesser.Core.Domain.OracleContext.Pipelines;
+using Image_guesser.Core.Domain.ImageContext.Services;
+using Image_guesser.Core.Domain.OracleContext.Repositories;
+using Image_guesser.Core.Domain.OracleContext.Responses;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
-using MediatR;
-using Microsoft.AspNetCore.Identity;
-using static Image_guesser.Core.Domain.OracleContext.Services.IOracleService;
+using Image_guesser.Infrastructure;
+using Image_guesser.Infrastructure.GenericRepository;
+using Microsoft.EntityFrameworkCore;
 
 namespace Image_guesser.Core.Domain.OracleContext.Services;
 
-public class OracleService(IMediator mediator, UserManager<User> userManager) : IOracleService
+public class OracleService(IAI_Repository AI_Repository, IImageService imageService, ImageGameContext db, IRepository repository) : IOracleService
 {
+    private readonly IAI_Repository _AI_Repository = AI_Repository ?? throw new ArgumentNullException(nameof(AI_Repository));
+    private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
+    private readonly ImageGameContext _db = db ?? throw new ArgumentNullException(nameof(db));
+    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-    private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-
-    /*This method generates an array of random numbers,  
-    where each number in the row represents a piece of that image.*/
-
-    // This type of "AI" determines which order the tiles are revealed 
-    // We can run the function again, and get a new array or new "AI" 
-
-    public RandomNumbersAI CreateRandomNumbersAI(int ImagePieceCount)
+    public async Task<Oracle<AI>> CreateAIOracle(string imageIdentifier, AI_Type AI_Type)
     {
-        // Enumerates the numbers from 1 to the number of image pieces/tiles in the image
-        // Creates an array of the numbers
-        int[] ArrayOfNumbers = Enumerable.Range(1, ImagePieceCount).ToArray();
+        var ImagePieceCount = await _imageService.GetImagePieceCountById(imageIdentifier);
 
-        // Shuffles the array of numbers
-        var MixedArray = ShuffleArray(ArrayOfNumbers);
+        AI AI = AI_Type switch
+        {
+            AI_Type.Random => _AI_Repository.CreateRandomNumbersAI(ImagePieceCount),
+            _ => _AI_Repository.CreateRandomNumbersAI(ImagePieceCount)
+        };
 
-        RandomNumbersAI OracleAI = new(MixedArray);
-
-        return OracleAI;
+        return new Oracle<AI>(AI);
     }
 
-    // Creates a random object
-    readonly Random random = new();
-
-    //  Fisher-Yates shuffle algorithm
-    public int[] ShuffleArray(int[] ArrayOfNumbers)
+    public Oracle<User> CreateUserOracle(User ChosenOracle)
     {
-        int LengthOfArray = ArrayOfNumbers.Length;
-
-        while (LengthOfArray > 1)
-        {
-            int randomNumber = random.Next(LengthOfArray--);
-
-            // Swaps the numbers in the array
-            (ArrayOfNumbers[randomNumber], ArrayOfNumbers[LengthOfArray]) = (ArrayOfNumbers[LengthOfArray], ArrayOfNumbers[randomNumber]);
-        }
-        return ArrayOfNumbers;
+        return new Oracle<User>(ChosenOracle);
     }
 
-    public async Task<Guid> CreateOracle(bool OracleIsAI, string imageIdentifier,
-                                int NumberOfRounds, User ChosenOracle, string GameMode)
+    public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class
     {
-        var ImageData = imageIdentifier == "RandomImage"
-                    ? await _mediator.Send(new GetRandomImage.Request())
-                    : await _mediator.Send(new GetImageDataByIdentifier.Request(imageIdentifier));
-
-        var ImageIdentifier = ImageData.Identifier;
-        var PieceCount = ImageData.PieceCount;
-
-        switch (OracleIsAI)
-        {
-            case true:
-                var oracleAI = CreateRandomNumbersAI(PieceCount);
-                return await _mediator.Send(new AddOracle<RandomNumbersAI>.Request(oracleAI, ImageIdentifier));
-
-            case false:
-                return await _mediator.Send(new AddOracle<User>.Request(ChosenOracle, ImageIdentifier));
-        }
+        return await _db.Oracles
+            .Where(o => o.Id == Id)
+            .OfType<Oracle<T>>()
+            .SingleOrDefaultAsync() ?? throw new Exception($"Oracle, with type: {typeof(T)} and Id: {Id} not found");
     }
 
-    public async Task<Response> CheckGuess(string Guess, string ImageIdentifier, User User, Session Session)
+    public async Task<BaseOracle> GetBaseOracleById(Guid Id)
     {
-        var imageData = await _mediator.Send(new GetImageDataByIdentifier.Request(ImageIdentifier));
+        return await _db.Oracles.Where(o => o.Id == Id).SingleOrDefaultAsync() ?? throw new Exception("Oracle not found");
+    }
 
-        var winnerText = "Congratulations: ";
+    public async Task<Check_Guess_Response> CheckGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode gameMode)
+    {
+        var ImageRecord = await _imageService.GetImageRecordById(ImageIdentifier);
 
-        if (Guess.Equals(imageData.Name, StringComparison.CurrentCultureIgnoreCase))
+        var winnerText = $"Congratulations: {Username}";
+
+        if (Guess.Equals(ImageRecord.Name, StringComparison.CurrentCultureIgnoreCase))
         {
-            if (User != null)
-                winnerText += User.UserName;
-
-            if (Session != null)
+            if (gameMode == GameMode.Duo)
             {
-                var ChosenOracleId = Session.ChosenOracle;
-                if (Session.Options.GameMode == GameMode.Duo)
-                {
-                    var oracle = await _userManager.FindByIdAsync(ChosenOracleId.ToString());
-                    if (oracle != null) winnerText += " and " + oracle.UserName;
-                }
+                User ChosenOracle = await _repository.GetById<User>(ChosenOracleId);
+                winnerText += $" and {ChosenOracle.UserName}";
             }
 
-            return new Response(true, winnerText);
+            return new Check_Guess_Response(true, winnerText);
         }
 
-        return new Response(false, "Wrong");
+        return new Check_Guess_Response(false, string.Empty);
     }
 }

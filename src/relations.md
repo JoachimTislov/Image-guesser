@@ -14,7 +14,7 @@ flowchart TD
 
     Session -.CloseLobby.-> UserContext
     Session -.StartGame.-> IGameService
-    Session -.GetImageData.-> ImageData
+    Session -.GetImageRecord.-> ImageRecord
     Session -.GetImagePieces.-> IImageService
     Session -.UpdateStatistics.-> StatisticsContext
 
@@ -23,7 +23,7 @@ flowchart TD
 
     subgraph ImageContext 
         IImageService
-        ImageData 
+        ImageRecord 
     end
     
     Session -.LeaveSession.-> ISessionService
@@ -130,7 +130,7 @@ classDiagram
         GetFileNameOfImagePieces()
         GetCoordinatesForImagePieces()
     }
-    class ImageData {
+    class ImageRecord {
         <<Aggregate root>>
         + Id
         + Name
@@ -139,7 +139,7 @@ classDiagram
         + FolderWithImagePiecesLink
         + PieceCount
     }
-    IImageService --> ImageData 
+    IImageService --> ImageRecord 
 ```
 
 ### Game Context

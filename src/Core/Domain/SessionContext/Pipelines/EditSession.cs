@@ -1,3 +1,5 @@
+using Image_guesser.Core.Domain.ImageContext.Services;
+using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Infrastructure;
 using MediatR;
 
@@ -11,14 +13,15 @@ public class EditSession
         int LobbySize,
         GameMode GameMode,
         bool RandomPictureMode,
-        bool RandomOracle,
+        bool RandomUserOracle,
         bool UseAI,
         string ImageIdentifier,
-        string NewOracle,
+        User NewOracle,
         string ChosenImageName) : IRequest<Session?>;
 
-    public class Handler(ImageGameContext db, IMediator mediator) : IRequestHandler<Request, Session?>
+    public class Handler(IImageService imageService, ImageGameContext db, IMediator mediator) : IRequestHandler<Request, Session?>
     {
+        private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
         private readonly ImageGameContext _db = db ?? throw new ArgumentNullException(nameof(db));
         private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
 
@@ -31,6 +34,8 @@ public class EditSession
 
                 // Temporarily store the old gameMode so that in case of a mismatch between player count and lobby size we can restore the old gameMode
                 var OldGameMode = session.Options.GameMode;
+
+                // Updating GameMode
                 session.Options.GameMode = request.GameMode;
 
                 // Switch to ensure that the count of players is in correlation with the gameMode selected
@@ -52,7 +57,7 @@ public class EditSession
                             break;
                         }
                         session.Options.LobbySize = 2;
-                        session.ChosenOracle = session.SessionHostId;
+                        session.ChosenOracleId = session.SessionHostId;
                         break;
                     case GameMode.FreeForAll:
                         if (session.SessionUsers.Count > request.LobbySize)
@@ -61,38 +66,34 @@ public class EditSession
                             break;
                         }
                         session.Options.LobbySize = request.LobbySize;
-                        session.ChosenOracle = session.SessionHostId;
+                        session.ChosenOracleId = session.SessionHostId;
                         break;
                 }
 
                 // ----- Options -----
                 session.Options.NumberOfRounds = request.NumberOfRounds;
                 session.Options.RandomPictureMode = request.RandomPictureMode;
-                session.Options.RandomOracle = request.RandomOracle;
+                session.Options.RandomUserOracle = request.RandomUserOracle;
                 session.Options.UseAI = request.UseAI;
 
                 // ----- Oracle Logic -----
-                if (request.NewOracle != null) session.ChosenOracle = Guid.Parse(request.NewOracle);
+                if (request.NewOracle != null)
+                {
+                    session.ChosenOracleId = request.NewOracle.Id;
+                }
 
                 // ----- Image Logic -----
-                if (!request.RandomPictureMode)
-                {
-                    session.ImageIdentifier = request.ImageIdentifier;
-                }
-                else
-                {
-                    session.ImageIdentifier = string.Empty;
-                }
+                session.ImageIdentifier = !request.RandomPictureMode ? request.ImageIdentifier : string.Empty;
 
                 if (session.ImageIdentifier != null)
                 {
-                    // var imageData = await _mediator.Send(new GetImageDataByIdentifier.Request(session.ImageIdentifier), cancellationToken);
-
-                    // session.ChosenImageName = imageData.Name;
+                    var ImageRecord = await _imageService.GetImageRecordById(session.ImageIdentifier);
+                    session.ChosenImageName = ImageRecord.Name;
                 }
 
+                _db.Update(session);
+                await _db.SaveChangesAsync(cancellationToken);
             }
-            await _db.SaveChangesAsync(cancellationToken);
 
             return session;
         }

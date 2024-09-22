@@ -6,19 +6,14 @@ namespace Tests.Unit.Core.Domain.OracleContext;
 public class RandomNumbersAITests
 {
     [Fact]
-    public void EmptyConstructor_ShouldHaveInitializedValues()
-    {
-        var randomNumbersAI = new RandomNumbersAI();
-
-        Assert.Empty(randomNumbersAI.NumbersForImagePieces);
-    }
-
-    [Fact]
     public void Constructor_WithNumberArray_ShouldAssignValues()
     {
-        var randomNumbersAI = new RandomNumbersAI([1, 2, 3]);
+        int[] numbersForImagePieces = [1, 2, 3];
+        AI_Type AIrandomType = AI_Type.Random;
+        var randomNumbersAI = new AI(numbersForImagePieces, AIrandomType);
 
-        Assert.NotEmpty(randomNumbersAI.NumbersForImagePieces);
+        Assert.Equal(numbersForImagePieces, randomNumbersAI.NumbersForImagePieces);
+        Assert.Equal(AIrandomType, randomNumbersAI.AI_Type);
     }
 
 }

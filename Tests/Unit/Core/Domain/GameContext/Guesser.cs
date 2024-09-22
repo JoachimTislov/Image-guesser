@@ -34,10 +34,11 @@ public class GuesserTests
         var guesser = new Guesser(name, gameId)
         {
             Points = number,
-            Guesses = number,
-            WrongGuessCounter = number,
             TimeSpan = TimeSpan.FromMinutes(number)
         };
+
+        guesser.IncrementGuesses();
+        guesser.IncrementWrongGuessCounter();
 
         Assert.Equal(number, guesser.Points);
         Assert.Equal(number, guesser.Guesses);

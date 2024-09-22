@@ -1,22 +1,27 @@
 using Image_guesser.Core.Domain.GameContext.Events;
-using Image_guesser.Core.Domain.GameContext.Pipelines;
+using Image_guesser.Core.Domain.GameContext.Services;
 using Image_guesser.Infrastructure;
+using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.GameContext.Handlers;
 
-public class GameFinishedHandler(IMediator mediator, ImageGameContext db) : INotificationHandler<GameFinished>
+public class GameFinishedHandler(IGameService gameService, IRepository repository) : INotificationHandler<GameFinished>
 {
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-    private readonly ImageGameContext _db = db ?? throw new ArgumentNullException(nameof(db));
+    private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
+    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
     public async Task Handle(GameFinished notification, CancellationToken cancellationToken)
     {
-        var game = await _mediator.Send(new GetGameById.Request(notification.GameId), cancellationToken);
+        Guesser guesser = await _gameService.GetGuesserById(notification.GuesserId);
+        TimeSpan speed = DateTime.Now - notification.Game.TimeOfCreation;
 
-        game.GameOver();
+        guesser.TimeSpan = speed;
+        guesser.Points = notification.Points;
+        await _repository.Update(guesser);
 
-        _db.Games.Update(game);
-        await _db.SaveChangesAsync(cancellationToken);
+        notification.Game.GameOver();
+
+        await _repository.Update(notification.Game);
     }
 }

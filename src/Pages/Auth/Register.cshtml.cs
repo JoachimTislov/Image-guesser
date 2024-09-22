@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Image_guesser.Core.Domain.UserContext;
+using Image_guesser.SharedKernel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -14,17 +15,14 @@ public class RegisterModel(UserManager<User> userManager, SignInManager<User> si
 
     [BindProperty]
     [Required(ErrorMessage = "Username is required")]
-    [StringLength(15, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 5)]
     public string Username { get; set; } = string.Empty;
 
     [BindProperty]
     [Required(ErrorMessage = "Password is required")]
-    [StringLength(30, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 8)]
     public string Password { get; set; } = string.Empty;
 
     [BindProperty]
     [Required(ErrorMessage = "Repeat Password is required")]
-    [StringLength(30, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 8)]
     public string Repeat_Password { get; set; } = string.Empty;
 
     public string RegisterErrorMessage { get; set; } = string.Empty;
@@ -37,7 +35,7 @@ public class RegisterModel(UserManager<User> userManager, SignInManager<User> si
         {
             if (Password != Repeat_Password)
             {
-                RegisterErrorMessage = "Passwords does not match";
+                RegisterErrorMessage = "Passwords do not match";
                 return Page();
             }
 

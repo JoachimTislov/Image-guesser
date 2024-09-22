@@ -2,11 +2,11 @@ using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Core.Domain.ImageContext;
 
-public class ImageData : BaseEntity
+public class ImageRecord : BaseEntity
 {
-    public ImageData() { }
+    public ImageRecord() { }
 
-    public ImageData(string name, string identifier, string link, string folderWithImagePiecesLink, int pieceCount)
+    public ImageRecord(string name, string identifier, string link, string folderWithImagePiecesLink, int pieceCount)
     {
         Name = name;
         Identifier = identifier;

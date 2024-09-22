@@ -7,13 +7,14 @@ public static class IdentityOptionsConfiguration
 {
     public static void ConfigureIdentityOptions(IdentityOptions options)
     {
+        var PasswordRequirements = new PasswordRequirements();
         // Password settings.
-        options.Password.RequireDigit = false;
-        options.Password.RequireLowercase = false;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
-        options.Password.RequiredLength = 8;
-        options.Password.RequiredUniqueChars = 0;
+        options.Password.RequireDigit = PasswordRequirements.RequireDigit;
+        options.Password.RequireLowercase = PasswordRequirements.RequireLowercase;
+        options.Password.RequireNonAlphanumeric = PasswordRequirements.RequireNonAlphanumeric;
+        options.Password.RequireUppercase = PasswordRequirements.RequireUppercase;
+        options.Password.RequiredLength = PasswordRequirements.MinLength;
+        options.Password.RequiredUniqueChars = PasswordRequirements.MinLength;
 
         // SignIn settings
         options.SignIn.RequireConfirmedEmail = false;

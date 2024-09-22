@@ -1,34 +1,33 @@
 using Image_guesser.Core.Domain.GameContext.Events;
-using Image_guesser.Core.Domain.GameContext.Pipelines;
+using Image_guesser.Core.Domain.GameContext.Services;
+using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.GameContext.Handlers;
 
-public class PlayerGuessedIncorrectlyHandler(IMediator mediator) : INotificationHandler<PlayerGuessedIncorrectly>
+public class PlayerGuessedIncorrectlyHandler(IGameService gameService, IRepository repository) : INotificationHandler<PlayerGuessedIncorrectly>
 {
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+    private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
+    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
     public async Task Handle(PlayerGuessedIncorrectly notification, CancellationToken cancellationToken)
     {
-        var guesser = await _mediator.Send(new GetGuesserById.Request(notification.GuesserId), cancellationToken);
+        var guesser = await _gameService.GetGuesserById(notification.GuesserId);
 
-        guesser.Guesses++;
-
-        if (guesser.WrongGuessCounter == 3)
+        if (guesser.ReachedMaxWrongGuess())
         {
-            // Oracles Turn
+            // Oracles Turn, how should it be handled in multiplayer game ? 
             // await _mediator.Publish(new OraclesTurn(notification.GameId), cancellationToken);
 
-            // This might be written too soon
-            guesser.WrongGuessCounter = 0;
+            guesser.ResetWrongGuesses();
         }
         else
         {
-            guesser.WrongGuessCounter++;
+            guesser.IncrementWrongGuessCounter();
         }
 
-        await _mediator.Send(new UpdateGuesserStats.Request(
-        notification.GameId, guesser, guesser.TimeSpan),
-        cancellationToken);
+        guesser.IncrementGuesses();
+
+        await _repository.Update(guesser);
     }
 }

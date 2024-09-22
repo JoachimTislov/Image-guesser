@@ -14,12 +14,10 @@ public class LoginModel(UserManager<User> userManager, SignInManager<User> signI
 
     [Required(ErrorMessage = "Username is required")]
     [BindProperty]
-    [StringLength(15, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 5)]
     public string Username { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Password is required")]
     [BindProperty]
-    [StringLength(30, ErrorMessage = "{0} length must be between {2} and {1}.", MinimumLength = 8)]
     public string Password { get; set; } = string.Empty;
 
     [BindProperty]

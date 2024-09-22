@@ -13,7 +13,7 @@ public class OptionsTests
         Assert.Equal(1, Options.LobbySize);
         Assert.Equal(GameMode.SinglePlayer, Options.GameMode);
         Assert.True(Options.RandomPictureMode);
-        Assert.False(Options.RandomOracle);
+        Assert.False(Options.RandomUserOracle);
         Assert.True(Options.UseAI);
 
     }
@@ -28,7 +28,7 @@ public class OptionsTests
             LobbySize = number,
             GameMode = GameMode.Duo,
             RandomPictureMode = false,
-            RandomOracle = true,
+            RandomUserOracle = true,
             UseAI = false,
         };
 
@@ -36,7 +36,7 @@ public class OptionsTests
         Assert.Equal(number, Options.LobbySize);
         Assert.Equal(GameMode.Duo, Options.GameMode);
         Assert.False(Options.RandomPictureMode);
-        Assert.True(Options.RandomOracle);
+        Assert.True(Options.RandomUserOracle);
         Assert.False(Options.UseAI);
 
     }

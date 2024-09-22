@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Image_guesser.Infrastructure
+namespace Image_guesser.Migrations
 {
     [DbContext(typeof(ImageGameContext))]
     partial class ImageGameContextModelSnapshot : ModelSnapshot
@@ -17,7 +17,7 @@ namespace Image_guesser.Infrastructure
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
 
-            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Game", b =>
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.BaseGame", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -27,33 +27,33 @@ namespace Image_guesser.Infrastructure
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("GameStatus")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NumberOfGames")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("OracleId")
+                    b.Property<string>("Oracle")
+                        .IsRequired()
+                        .HasMaxLength(8)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("OracleIsAI")
-                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("SessionId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Timer")
+                    b.Property<DateTime>("TimeOfCreation")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Games");
+
+                    b.HasDiscriminator<string>("Oracle").HasValue("BaseGame");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guesser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("BaseGameId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("GameId")
@@ -77,12 +77,12 @@ namespace Image_guesser.Infrastructure
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId");
+                    b.HasIndex("BaseGameId");
 
                     b.ToTable("Guessers");
                 });
 
-            modelBuilder.Entity("Image_guesser.Core.Domain.ImageContext.ImageData", b =>
+            modelBuilder.Entity("Image_guesser.Core.Domain.ImageContext.ImageRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -112,6 +112,24 @@ namespace Image_guesser.Infrastructure
                     b.ToTable("ImageRecords");
                 });
 
+            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.AI", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AI_Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NumbersForImagePieces")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AIs");
+                });
+
             modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.BaseOracle", b =>
                 {
                     b.Property<Guid>("Id")
@@ -125,9 +143,9 @@ namespace Image_guesser.Infrastructure
                     b.Property<int>("NumberOfTilesRevealed")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("OracleType")
+                    b.Property<string>("Oracle")
                         .IsRequired()
-                        .HasMaxLength(21)
+                        .HasMaxLength(13)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("TotalGuesses")
@@ -137,7 +155,7 @@ namespace Image_guesser.Infrastructure
 
                     b.ToTable("Oracles");
 
-                    b.HasDiscriminator<string>("OracleType").HasValue("BaseOracle");
+                    b.HasDiscriminator<string>("Oracle").HasValue("BaseOracle");
 
                     b.UseTphMappingStrategy();
                 });
@@ -152,10 +170,7 @@ namespace Image_guesser.Infrastructure
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ChosenOracle")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreationTime")
+                    b.Property<Guid>("ChosenOracleId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageIdentifier")
@@ -167,6 +182,9 @@ namespace Image_guesser.Infrastructure
 
                     b.Property<int>("SessionStatus")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("TimeOfCreation")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -382,35 +400,49 @@ namespace Image_guesser.Infrastructure
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.GenericOracle<Image_guesser.Core.Domain.OracleContext.RandomNumbersAI>", b =>
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Game<Image_guesser.Core.Domain.OracleContext.AI>", b =>
                 {
-                    b.HasBaseType("Image_guesser.Core.Domain.OracleContext.BaseOracle");
+                    b.HasBaseType("Image_guesser.Core.Domain.GameContext.BaseGame");
 
-                    b.Property<string>("Oracle")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("RandomNumbersAI");
-
-                    b.HasDiscriminator().HasValue("RandomNumbersAI");
+                    b.HasDiscriminator().HasValue("AI");
                 });
 
-            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.GenericOracle<Image_guesser.Core.Domain.UserContext.User>", b =>
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Game<Image_guesser.Core.Domain.UserContext.User>", b =>
+                {
+                    b.HasBaseType("Image_guesser.Core.Domain.GameContext.BaseGame");
+
+                    b.HasDiscriminator().HasValue("User");
+                });
+
+            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.OracleContext.AI>", b =>
                 {
                     b.HasBaseType("Image_guesser.Core.Domain.OracleContext.BaseOracle");
 
-                    b.Property<string>("Oracle")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("UserInfo");
+                    b.Property<Guid>("AI_Id")
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("AI_Id");
+
+                    b.HasDiscriminator().HasValue("AI");
+                });
+
+            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.UserContext.User>", b =>
+                {
+                    b.HasBaseType("Image_guesser.Core.Domain.OracleContext.BaseOracle");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("UserId");
 
                     b.HasDiscriminator().HasValue("User");
                 });
 
             modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guesser", b =>
                 {
-                    b.HasOne("Image_guesser.Core.Domain.GameContext.Game", null)
+                    b.HasOne("Image_guesser.Core.Domain.GameContext.BaseGame", null)
                         .WithMany("Guessers")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BaseGameId");
                 });
 
             modelBuilder.Entity("Image_guesser.Core.Domain.SessionContext.Session", b =>
@@ -429,10 +461,10 @@ namespace Image_guesser.Infrastructure
                             b1.Property<int>("NumberOfRounds")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<bool>("RandomOracle")
+                            b1.Property<bool>("RandomPictureMode")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<bool>("RandomPictureMode")
+                            b1.Property<bool>("RandomUserOracle")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<bool>("UseAI")
@@ -508,7 +540,31 @@ namespace Image_guesser.Infrastructure
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Game", b =>
+            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.OracleContext.AI>", b =>
+                {
+                    b.HasOne("Image_guesser.Core.Domain.OracleContext.AI", "Entity")
+                        .WithMany()
+                        .HasForeignKey("AI_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Oracle_AI");
+
+                    b.Navigation("Entity");
+                });
+
+            modelBuilder.Entity("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.UserContext.User>", b =>
+                {
+                    b.HasOne("Image_guesser.Core.Domain.UserContext.User", "Entity")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Oracle_User");
+
+                    b.Navigation("Entity");
+                });
+
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.BaseGame", b =>
                 {
                     b.Navigation("Guessers");
                 });

@@ -2,20 +2,20 @@ using Image_guesser.Core.Domain.ImageContext;
 
 namespace Tests.Unit.Core.Domain.ImageContext;
 
-public class ImageDataTests
+public class ImageRecordTests
 {
 
     [Fact]
     public void EmptyConstructor_ShouldHaveDefaultValues()
     {
-        var imageData = new ImageData();
+        var ImageRecord = new ImageRecord();
 
-        Assert.Equal(Guid.Empty, imageData.Id);
-        Assert.Equal(string.Empty, imageData.Name);
-        Assert.Equal(string.Empty, imageData.Identifier);
-        Assert.Equal(string.Empty, imageData.Link);
-        Assert.Equal(string.Empty, imageData.FolderWithImagePiecesLink);
-        Assert.Equal(0, imageData.PieceCount);
+        Assert.Equal(Guid.Empty, ImageRecord.Id);
+        Assert.Equal(string.Empty, ImageRecord.Name);
+        Assert.Equal(string.Empty, ImageRecord.Identifier);
+        Assert.Equal(string.Empty, ImageRecord.Link);
+        Assert.Equal(string.Empty, ImageRecord.FolderWithImagePiecesLink);
+        Assert.Equal(0, ImageRecord.PieceCount);
     }
 
     [Fact]
@@ -27,13 +27,13 @@ public class ImageDataTests
         var folderWithImagePiecesLink = "FolderLink";
         var pieceCount = 1;
 
-        var ImageData = new ImageData(name, identifier, link, folderWithImagePiecesLink, pieceCount);
+        var ImageRecord = new ImageRecord(name, identifier, link, folderWithImagePiecesLink, pieceCount);
 
-        Assert.Equal(name, ImageData.Name);
-        Assert.Equal(identifier, ImageData.Identifier);
-        Assert.Equal(link, ImageData.Link);
-        Assert.Equal(folderWithImagePiecesLink, ImageData.FolderWithImagePiecesLink);
-        Assert.Equal(pieceCount, ImageData.PieceCount);
+        Assert.Equal(name, ImageRecord.Name);
+        Assert.Equal(identifier, ImageRecord.Identifier);
+        Assert.Equal(link, ImageRecord.Link);
+        Assert.Equal(folderWithImagePiecesLink, ImageRecord.FolderWithImagePiecesLink);
+        Assert.Equal(pieceCount, ImageRecord.PieceCount);
     }
 
 }

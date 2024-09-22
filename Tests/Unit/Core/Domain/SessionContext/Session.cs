@@ -13,7 +13,7 @@ public class SessionTests
 
         Assert.Equal(Guid.Empty, session.Id);
         Assert.Equal(Guid.Empty, session.SessionHostId);
-        Assert.Equal(Guid.Empty, session.ChosenOracle);
+        Assert.Equal(Guid.Empty, session.ChosenOracleId);
         Assert.Empty(session.SessionUsers);
 
         foreach (var property in sessionOptions.GetType().GetProperties())
@@ -39,7 +39,7 @@ public class SessionTests
         var session = new Session(user);
 
         Assert.Equal(user.Id, session.SessionHostId);
-        Assert.Equal(user.Id, session.ChosenOracle);
+        Assert.Equal(user.Id, session.ChosenOracleId);
 
         Assert.Single(session.SessionUsers);
     }

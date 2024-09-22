@@ -19,13 +19,13 @@ public class AddPlayerToSession
         {
             var session = await _mediator.Send(new GetSessionById.Request(request.SessionId), cancellationToken);
 
-            if (request.User != null && session != null)
+            if (session != null)
             {
                 _sessionService.JoinSession(request.User, session);
                 _db.Sessions.Update(session);
-            }
-            await _db.SaveChangesAsync(cancellationToken);
 
+                await _db.SaveChangesAsync(cancellationToken);
+            }
 
             return Unit.Value;
         }
