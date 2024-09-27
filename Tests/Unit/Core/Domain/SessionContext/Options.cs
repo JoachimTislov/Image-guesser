@@ -14,7 +14,7 @@ public class OptionsTests
         Assert.Equal(GameMode.SinglePlayer, Options.GameMode);
         Assert.True(Options.RandomPictureMode);
         Assert.False(Options.RandomUserOracle);
-        Assert.True(Options.UseAI);
+        Assert.True(Options.IsOracleAI());
 
     }
 
@@ -29,7 +29,7 @@ public class OptionsTests
             GameMode = GameMode.Duo,
             RandomPictureMode = false,
             RandomUserOracle = true,
-            UseAI = false,
+            Oracle = SessionOracle.User,
         };
 
         Assert.Equal(number, Options.NumberOfRounds);
@@ -37,7 +37,7 @@ public class OptionsTests
         Assert.Equal(GameMode.Duo, Options.GameMode);
         Assert.False(Options.RandomPictureMode);
         Assert.True(Options.RandomUserOracle);
-        Assert.False(Options.UseAI);
+        Assert.False(Options.IsOracleAI());
 
     }
 }

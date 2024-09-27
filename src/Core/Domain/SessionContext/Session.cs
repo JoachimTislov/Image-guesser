@@ -14,14 +14,12 @@ public class Session : BaseEntity
         SessionUsers = [User];
     }
 
-    public Guid Id { get; protected set; }
+    public Guid Id { get; protected set; } = Guid.NewGuid();
     public Guid SessionHostId { get; set; }
     public Guid ChosenOracleId { get; set; }
     public List<User> SessionUsers { get; set; } = [];
     public Options Options { get; set; } = new();
     public DateTime TimeOfCreation { get; set; } = DateTime.Now;
-    public string ImageIdentifier { get; set; } = string.Empty;
-    public string ChosenImageName { get; set; } = string.Empty;
     public SessionStatus SessionStatus { get; set; } = SessionStatus.Lobby;
 
 }

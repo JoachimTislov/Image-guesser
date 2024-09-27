@@ -1,14 +1,17 @@
 using System.Linq.Expressions;
+using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Infrastructure.GenericRepository;
 
 public interface IRepository
 {
-    public Task Add<T>(T entity) where T : class;
-    public Task Delete<T>(T entity) where T : class;
-    public List<T> GetAll<T>() where T : class;
-    public Task<T> GetById<T>(Guid Id) where T : class;
+    Task Add<T>(T entity) where T : class;
+    Task Delete<T>(T entity) where T : class;
+    List<T> GetAll<T>() where T : class;
+    Task<T> GetById<T, I>(I Id) where T : class;
+    Task<Entity> GetSingleWhere<Entity, IdentifierType>(Expression<Func<Entity, bool>> WhereExp, IdentifierType Id) where Entity : BaseEntity;
     IEnumerable<T> Where<T>(Expression<Func<T, bool>> exp) where T : class;
-    Task<T> GetSingleWhere<T, I>(Expression<Func<T, bool>> exp, I Id) where T : class;
-    public Task Update<T>(T entity) where T : class;
+    Task<ReturnType> GetSingleWhereAndSelectItem<Entity, IdentifierType, ReturnType>(Expression<Func<Entity, bool>> WhereExp, Expression<Func<Entity, ReturnType>> SelectExp, IdentifierType Id) where Entity : BaseEntity;
+    bool Any<T>() where T : class;
+    Task Update<T>(T entity) where T : class;
 }

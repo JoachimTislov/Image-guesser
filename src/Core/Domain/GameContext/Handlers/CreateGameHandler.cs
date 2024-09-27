@@ -17,9 +17,9 @@ public class CreateGameHandler(IHubContext<GameHub, IGameClient> hubContext, IGa
     {
         InitializeGameResponse result;
 
-        if (notification.Options.UseAI)
+        if (notification.Options.IsOracleAI())
         {
-            result = await _gameService.SetupGameWithAIAsOracle(notification.SessionId, notification.Users, notification.Options.GameMode.ToString(), notification.ImageIdentifier, AI_Type.Random);
+            result = await _gameService.SetupGameWithAIAsOracle(notification.SessionId, notification.Users, notification.Options.GameMode.ToString(), notification.Options.ImageIdentifier, notification.Options.AI_Type);
         }
         else
         {

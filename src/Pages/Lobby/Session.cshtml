@@ -1,0 +1,15 @@
+@page "{Id:guid}"
+@model SessionModel
+@{
+    ViewData["Title"] = "Lobby";
+}
+
+<div class="text-center">
+
+    <p> Welcome to the Lobby </p>
+
+    <a class="btn btn-primary" asp-area="" asp-page="/Lobby/ConfigureSessionOptions"
+        asp-route-id="@Model.RouteData.Values["Id"]" asp-route-text="Edit"> Options
+    </a>
+
+</div>

@@ -1,6 +1,5 @@
 using Image_guesser.Core.Domain.ImageContext.Services;
-using Image_guesser.Core.Domain.OracleContext.Repositories;
-using Image_guesser.Core.Domain.OracleContext.Responses;
+using Image_guesser.Core.Domain.OracleContext.AI_Repository;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Infrastructure;
@@ -26,12 +25,17 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
             _ => _AI_Repository.CreateRandomNumbersAI(ImagePieceCount)
         };
 
-        return new Oracle<AI>(AI);
+        return CreateOracle(AI);
     }
 
     public Oracle<User> CreateUserOracle(User ChosenOracle)
     {
-        return new Oracle<User>(ChosenOracle);
+        return CreateOracle(ChosenOracle);
+    }
+
+    public Oracle<T> CreateOracle<T>(T ChosenOracle) where T : class
+    {
+        return new Oracle<T>(ChosenOracle);
     }
 
     public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class
@@ -47,7 +51,7 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         return await _db.Oracles.Where(o => o.Id == Id).SingleOrDefaultAsync() ?? throw new Exception("Oracle not found");
     }
 
-    public async Task<Check_Guess_Response> CheckGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode gameMode)
+    public async Task<(bool IsGuessCorrect, string WinnerText)> CheckGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode gameMode)
     {
         var ImageRecord = await _imageService.GetImageRecordById(ImageIdentifier);
 
@@ -57,13 +61,13 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         {
             if (gameMode == GameMode.Duo)
             {
-                User ChosenOracle = await _repository.GetById<User>(ChosenOracleId);
+                User ChosenOracle = await _repository.GetById<User, Guid>(ChosenOracleId);
                 winnerText += $" and {ChosenOracle.UserName}";
             }
 
-            return new Check_Guess_Response(true, winnerText);
+            return (true, winnerText);
         }
 
-        return new Check_Guess_Response(false, string.Empty);
+        return (false, string.Empty);
     }
 }

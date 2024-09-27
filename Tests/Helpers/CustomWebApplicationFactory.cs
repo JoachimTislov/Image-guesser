@@ -1,6 +1,5 @@
 using System.Data.Common;
 using Image_guesser.Infrastructure;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;

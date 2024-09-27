@@ -15,7 +15,7 @@ public class CreateGameHandler(IMediator mediator) : INotificationHandler<Create
         if (session != null)
         {
             session.SessionStatus = SessionStatus.InGame;
-            session.Options.NumberOfRounds--;
+            session.Options.DecrementNumberOfRounds();
         }
     }
 }

@@ -21,7 +21,7 @@ public class CreateGameTests
         Assert.Equal(GameMode.SinglePlayer, createGame.Options.GameMode);
         Assert.True(createGame.Options.RandomPictureMode);
         Assert.False(createGame.Options.RandomUserOracle);
-        Assert.True(createGame.Options.UseAI);
+        Assert.True(createGame.Options.IsOracleAI());
 
         Assert.Empty(createGame.Users);
 

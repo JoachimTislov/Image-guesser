@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Image_guesser.Core.Domain.UserContext;
-using Image_guesser.SharedKernel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;

@@ -12,12 +12,10 @@ public record CreateGame : BaseDomainEvent
         ChosenOracleId = session.ChosenOracleId;
         Users = session.SessionUsers;
         Options = session.Options;
-        ImageIdentifier = session.ImageIdentifier;
     }
 
     public Guid SessionId { get; }
     public Guid ChosenOracleId { get; }
     public List<User> Users { get; }
     public Options Options { get; }
-    public string ImageIdentifier { get; }
 }

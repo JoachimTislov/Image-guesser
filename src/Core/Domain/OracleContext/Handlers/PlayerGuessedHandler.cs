@@ -4,14 +4,14 @@ using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.UserContext;
-using Image_guesser.Infrastructure;
+using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.OracleContext.Handlers;
 
-public class PlayerGuessedHandler(ImageGameContext db, IImageService imageService, IGameService gameService, ISessionService sessionService, IOracleService oracleService) : INotificationHandler<PlayerGuessed>
+public class PlayerGuessedHandler(IRepository repository, IImageService imageService, IGameService gameService, ISessionService sessionService, IOracleService oracleService) : INotificationHandler<PlayerGuessed>
 {
-    private readonly ImageGameContext _db = db ?? throw new ArgumentNullException(nameof(db));
+    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
     private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
     private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
@@ -35,7 +35,7 @@ public class PlayerGuessedHandler(ImageGameContext db, IImageService imageServic
         var Oracle = await _oracleService.GetBaseOracleById(OracleId);
 
         Oracle.IncrementGuesses();
-        _db.Oracles.Update(Oracle);
+        await _repository.Update(Oracle);
 
         var ImageRecord = await _imageService.GetImageRecordById(Oracle.ImageIdentifier);
         var game = await _gameService.GetBaseGameById(notification.GameId);
@@ -50,7 +50,5 @@ public class PlayerGuessedHandler(ImageGameContext db, IImageService imageServic
         {
             game.Events.Add(new PlayerGuessedIncorrectly(Guid.Parse(notification.GuesserId), notification.GameId));
         }
-
-        await _db.SaveChangesAsync(cancellationToken);
     }
 }

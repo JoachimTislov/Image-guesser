@@ -11,7 +11,6 @@ public class SessionClosedTests
         var session = new Session();
         var sessionClosed = new SessionClosed(session);
 
-        Assert.Equal(session.Id, sessionClosed.Session.Id);
-        Assert.Equal(session.ChosenImageName, sessionClosed.Session.ChosenImageName);
+        Assert.Equal(session, sessionClosed.Session);
     }
 }

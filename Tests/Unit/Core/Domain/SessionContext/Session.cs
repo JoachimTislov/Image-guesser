@@ -26,9 +26,6 @@ public class SessionTests
 
         var now = DateTime.Now;
         Assert.InRange(session.TimeOfCreation, now.AddSeconds(-1), now.AddSeconds(1));
-
-        Assert.Equal(string.Empty, session.ImageIdentifier);
-        Assert.Equal(string.Empty, session.ChosenImageName);
         Assert.Equal(SessionStatus.Lobby, session.SessionStatus);
     }
 

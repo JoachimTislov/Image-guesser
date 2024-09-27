@@ -37,7 +37,7 @@ public class GameService(ImageGameContext db, IOracleService oracleService, IRep
 
     public async Task<InitializeGameResponse> SetupGameWithUserAsOracle(Guid sessionId, List<User> users, string gameMode, Guid ChosenOracleId)
     {
-        User chosenOracle = await _repository.GetById<User>(ChosenOracleId);
+        User chosenOracle = await _repository.GetById<User, Guid>(ChosenOracleId);
         var UserOracle = _oracleService.CreateUserOracle(chosenOracle);
 
         return await InitializeGame(sessionId, users, gameMode, UserOracle);
@@ -45,16 +45,16 @@ public class GameService(ImageGameContext db, IOracleService oracleService, IRep
 
     public async Task<Game<T>> GetGameById<T>(Guid Id) where T : class
     {
-        return await _repository.GetSingleWhere<Game<T>, Guid>(s => s.Id == Id, Id);
+        return await _repository.GetById<Game<T>, Guid>(Id);
     }
 
     public async Task<BaseGame> GetBaseGameById(Guid gameId)
     {
-        return await _repository.GetById<BaseGame>(gameId) ?? throw new Exception("Game not found");
+        return await _repository.GetById<BaseGame, Guid>(gameId) ?? throw new Exception("Game not found");
     }
 
     public async Task<Guesser> GetGuesserById(Guid GuesserId)
     {
-        return await _repository.GetById<Guesser>(GuesserId) ?? throw new Exception("Guesser not found");
+        return await _repository.GetById<Guesser, Guid>(GuesserId) ?? throw new Exception("Guesser not found");
     }
 }

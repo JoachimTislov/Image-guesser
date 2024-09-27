@@ -1,5 +1,3 @@
-
-using Image_guesser.Core.Domain.OracleContext.Responses;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
 
@@ -11,7 +9,7 @@ namespace Image_guesser.Core.Domain.OracleContext.Services
         Oracle<User> CreateUserOracle(User ChosenOracle);
         Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class;
         Task<BaseOracle> GetBaseOracleById(Guid Id);
-        Task<Check_Guess_Response> CheckGuess(
+        Task<(bool IsGuessCorrect, string WinnerText)> CheckGuess(
             string Guess,
             string ImageIdentifier,
             string Username,

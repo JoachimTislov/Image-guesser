@@ -1,6 +1,4 @@
-using Image_guesser.Core.Domain.ImageContext.Repositories;
-using Image_guesser.Infrastructure;
-using Microsoft.EntityFrameworkCore;
+using Image_guesser.Core.Domain.ImageContext.Repository;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -15,9 +13,8 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
     {
         ImageRecord ImageRecord = await _imageRepository.GetImageRecordById(ImageIdentifier);
 
-        // I don't know what this does
-        ImageRecord.Link = ImageRecord.Link.Replace("\\", Path.DirectorySeparatorChar.ToString());
-        ImageRecord.FolderWithImagePiecesLink = ImageRecord.FolderWithImagePiecesLink.Replace("\\", Path.DirectorySeparatorChar.ToString());
+        ImageRecord.Link = MakeLinkCompatibleWithJavascript(ImageRecord.Link);
+        ImageRecord.FolderWithImagePiecesLink = MakeLinkCompatibleWithJavascript(ImageRecord.FolderWithImagePiecesLink);
 
         return ImageRecord;
     }
@@ -30,6 +27,32 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
     public void AddImageRecord(ImageRecord ImageRecord)
     {
         _imageRepository.AddImageRecord(ImageRecord);
+    }
+
+    public async Task<List<ImageRecord>> GetXAmountOfImageRecords(int amount)
+    {
+        List<string> imageIdentifiers = [];
+
+        for (var i = 0; i < amount; i++)
+        {
+            string imageId = await _imageRepository.GetRandomImageIdentifier();
+            imageIdentifiers.Add(imageId);
+        }
+
+        var imageRecords = _imageRepository.GetImageRecordsByIds(imageIdentifiers);
+
+        foreach (var record in imageRecords)
+        {
+            record.Link = MakeLinkCompatibleWithJavascript(record.Link);
+            record.FolderWithImagePiecesLink = MakeLinkCompatibleWithJavascript(record.FolderWithImagePiecesLink);
+        }
+
+        return imageRecords;
+    }
+
+    private static string MakeLinkCompatibleWithJavascript(string Link)
+    {
+        return Link.Replace("\\", "/");
     }
 
     public List<string> GetFileNameOfImagePieces(string imageIdentifier)

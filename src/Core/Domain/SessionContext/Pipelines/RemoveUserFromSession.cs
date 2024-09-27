@@ -21,9 +21,7 @@ public class RemoveUserFromSession
 
             if (session != null)
             {
-                _sessionService.LeaveSession(request.User, session);
-                _db.Sessions.Update(session);
-                await _db.SaveChangesAsync(cancellationToken);
+                await _sessionService.LeaveSession(request.User, session);
             }
 
             return Unit.Value;

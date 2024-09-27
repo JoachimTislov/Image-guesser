@@ -21,10 +21,7 @@ public class AddPlayerToSession
 
             if (session != null)
             {
-                _sessionService.JoinSession(request.User, session);
-                _db.Sessions.Update(session);
-
-                await _db.SaveChangesAsync(cancellationToken);
+                await _sessionService.JoinSession(request.User, session);
             }
 
             return Unit.Value;

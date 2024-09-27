@@ -9,9 +9,11 @@ using Image_guesser.Core.Domain.SignalRContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Hubs;
 using Image_guesser.SharedKernel;
 using Image_guesser.Core.Domain.GameContext.Services;
-using Image_guesser.Core.Domain.OracleContext.Repositories;
-using Image_guesser.Core.Domain.ImageContext.Repositories;
 using Image_guesser.Infrastructure.GenericRepository;
+using Image_guesser.Core.Domain.OracleContext.AI_Repository;
+using Image_guesser.Core.Domain.ImageContext.Repository;
+using Image_guesser.Core.Domain.UserContext.Services;
+using Image_guesser.Core.Domain.ImageContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,13 +22,15 @@ var services = builder.Services;
 services.AddMediatR(typeof(Program));
 
 // Add DI to builders
-services.AddTransient<IOracleService, OracleService>();
-services.AddTransient<IGameService, GameService>();
-services.AddTransient<ISessionService, SessionService>();
-services.AddTransient<IAI_Repository, AI_Repository>();
+services.AddScoped<IOracleService, OracleService>();
+services.AddScoped<IGameService, GameService>();
+services.AddScoped<ISessionService, SessionService>();
+services.AddScoped<IAI_Repository, AI_Repository>();
 
-services.AddTransient<IImageRepository, ImageRepository>();
-services.AddTransient<IImageService, ImageService>();
+services.AddScoped<IUserService, UserService>();
+
+services.AddScoped<IImageRepository, ImageRepository>();
+services.AddScoped<IImageService, ImageService>();
 
 services.AddScoped<IRepository, Repository>();
 
@@ -46,9 +50,21 @@ services.AddSignalR();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
+    var DbRepository = scope.ServiceProvider.GetRequiredService<IRepository>();
+    var _imageRepository = scope.ServiceProvider.GetRequiredService<IImageRepository>();
+
+    if (!DbRepository.Any<ImageRecord>())
+    {
+        await _imageRepository.AddAllMappedImagesToDatabase();
+    }
+
+}
+else
+{
+    // Configure the HTTP request pipeline.
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }

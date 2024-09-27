@@ -1,7 +1,6 @@
 @using Microsoft.AspNetCore.Identity
 @using Image_guesser.Core.Domain.UserContext
 @inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))

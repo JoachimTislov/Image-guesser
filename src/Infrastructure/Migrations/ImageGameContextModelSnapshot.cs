@@ -166,15 +166,7 @@ namespace Image_guesser.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ChosenImageName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid>("ChosenOracleId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ImageIdentifier")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SessionHostId")
@@ -452,8 +444,15 @@ namespace Image_guesser.Migrations
                             b1.Property<Guid>("SessionId")
                                 .HasColumnType("TEXT");
 
+                            b1.Property<int>("AI_Type")
+                                .HasColumnType("INTEGER");
+
                             b1.Property<int>("GameMode")
                                 .HasColumnType("INTEGER");
+
+                            b1.Property<string>("ImageIdentifier")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
 
                             b1.Property<int>("LobbySize")
                                 .HasColumnType("INTEGER");
@@ -461,13 +460,13 @@ namespace Image_guesser.Migrations
                             b1.Property<int>("NumberOfRounds")
                                 .HasColumnType("INTEGER");
 
+                            b1.Property<int>("Oracle")
+                                .HasColumnType("INTEGER");
+
                             b1.Property<bool>("RandomPictureMode")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<bool>("RandomUserOracle")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<bool>("UseAI")
                                 .HasColumnType("INTEGER");
 
                             b1.HasKey("SessionId");
