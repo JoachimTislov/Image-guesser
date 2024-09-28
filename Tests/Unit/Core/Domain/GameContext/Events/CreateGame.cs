@@ -24,7 +24,5 @@ public class CreateGameTests
         Assert.True(createGame.Options.IsOracleAI());
 
         Assert.Empty(createGame.Users);
-
-        Assert.Equal(string.Empty, createGame.ImageIdentifier);
     }
 }

@@ -1,4 +1,6 @@
+using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.SessionContext;
+using Image_guesser.Core.Domain.SessionContext.ViewModels;
 
 namespace Tests.Unit.Core.Domain.SessionContext;
 
@@ -19,25 +21,37 @@ public class OptionsTests
     }
 
     [Fact]
-    public void Properties_ShouldAllowUpdates()
+    public void SetOptionsValues_ShouldUpdateValuesCorrectly_WithViewModelOptionsAsParameter()
     {
         var number = 1;
-        var Options = new Options()
+        var Options = new Options();
+
+        var ViewModelOptions = new ViewModelOptions()
         {
             NumberOfRounds = number,
             LobbySize = number,
             GameMode = GameMode.Duo,
             RandomPictureMode = false,
             RandomUserOracle = true,
-            Oracle = SessionOracle.User,
+            Oracle = OracleTypes.User,
+            AI_Type = AI_Type.Random
         };
 
+        Options.SetOptionsValues(ViewModelOptions);
+
         Assert.Equal(number, Options.NumberOfRounds);
-        Assert.Equal(number, Options.LobbySize);
+
+        // Since it duo, should probably test the different scenarios as well
+        Assert.Equal(2, Options.LobbySize);
+
         Assert.Equal(GameMode.Duo, Options.GameMode);
+
         Assert.False(Options.RandomPictureMode);
+
+        Assert.True(!Options.IsGameMode(GameMode.SinglePlayer));
+        Assert.True(!Options.IsOracleAI());
+
         Assert.True(Options.RandomUserOracle);
-        Assert.False(Options.IsOracleAI());
 
     }
 }

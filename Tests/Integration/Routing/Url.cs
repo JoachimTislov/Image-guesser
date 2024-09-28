@@ -1,13 +1,10 @@
-
-
-using Microsoft.AspNetCore.Mvc.Testing;
+using Tests.Helpers;
 
 namespace Tests.Integration.Routing;
 
-public class UrlTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class UrlTests(CustomWebApplicationFactory<Program> factory) : IClassFixture<CustomWebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory = factory;
-
+    private readonly CustomWebApplicationFactory<Program> _factory = factory;
 
     [Theory]
     [InlineData("/")]

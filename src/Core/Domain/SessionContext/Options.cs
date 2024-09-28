@@ -13,7 +13,7 @@ public class Options
     public int NumberOfRounds { get; private set; } = 1;
     public int LobbySize { get; private set; } = 1;
     public GameMode GameMode { get; private set; } = GameMode.SinglePlayer;
-    public bool RandomUserOracle { get; private set; } = false;
+    public bool RandomUserOracle { get; private set; }
     public OracleTypes Oracle { get; private set; } = OracleTypes.AI;
     public AI_Type AI_Type { get; private set; } = AI_Type.Random;
     public bool RandomPictureMode { get; private set; } = true;
@@ -21,13 +21,6 @@ public class Options
 
     public void SetOptionsValues(ViewModelOptions options)
     {
-        NumberOfRounds = ValidateRange(options.NumberOfRounds, 1, 10);
-        GameMode = options.GameMode;
-        AI_Type = options.AI_Type;
-        RandomUserOracle = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() && options.RandomUserOracle;
-        RandomPictureMode = IsGameMode(GameMode.SinglePlayer) || options.RandomPictureMode;
-        ImageIdentifier = !IsGameMode(GameMode.SinglePlayer) && !RandomPictureMode ? options.ImageIdentifier : string.Empty;
-
         switch (options.GameMode)
         {
             case GameMode.SinglePlayer:
@@ -39,16 +32,22 @@ public class Options
                 Oracle = OracleTypes.User;
                 LobbySize = 2;
                 break;
+
             case GameMode.FreeForAll:
                 Oracle = options.Oracle;
                 LobbySize = ValidateRange(options.LobbySize, 3, 10);
                 break;
 
             default:
-#pragma warning disable CA2208 // Instantiate argument exceptions correctly
-                throw new ArgumentOutOfRangeException(nameof(options.GameMode), "Invalid Game mode");
-#pragma warning restore CA2208 // Instantiate argument exceptions correctly
+                break;
         }
+
+        NumberOfRounds = ValidateRange(options.NumberOfRounds, 1, 10);
+        GameMode = options.GameMode;
+        AI_Type = options.AI_Type;
+        RandomUserOracle = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() && options.RandomUserOracle;
+        RandomPictureMode = IsGameMode(GameMode.SinglePlayer) || options.RandomPictureMode;
+        ImageIdentifier = !IsGameMode(GameMode.SinglePlayer) && !RandomPictureMode ? options.ImageIdentifier : string.Empty;
     }
 
     public bool IsOracleAI()

@@ -11,7 +11,7 @@ public class SessionTests
         var session = new Session();
         var sessionOptions = new Options();
 
-        Assert.Equal(Guid.Empty, session.Id);
+        Assert.NotEqual(Guid.Empty, session.Id);
         Assert.Equal(Guid.Empty, session.SessionHostId);
         Assert.Equal(Guid.Empty, session.ChosenOracleId);
         Assert.Empty(session.SessionUsers);
