@@ -1,4 +1,3 @@
-using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Core.Domain.GameContext;
@@ -7,7 +6,7 @@ public class BaseGame : BaseEntity
 {
     public BaseGame() { }
 
-    public Guid Id { get; set; }
+    public Guid Id { get; private set; } = Guid.NewGuid();
     public Guid SessionId { get; set; }
     public List<Guesser> Guessers { get; set; } = [];
     public string GameMode { get; set; } = string.Empty;

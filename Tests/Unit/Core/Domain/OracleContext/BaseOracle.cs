@@ -17,17 +17,6 @@ public class BaseOracleTests
     }
 
     [Fact]
-    public void AssignImageId_ShouldAssignAStringToImageIdentifier()
-    {
-        var baseOracle = new BaseOracle();
-
-        var imageIdentifier = "ImageTest";
-        baseOracle.AssignImageId(imageIdentifier);
-
-        Assert.Equal(imageIdentifier, baseOracle.ImageIdentifier);
-    }
-
-    [Fact]
     public void Properties_ShouldIncrement()
     {
         var number = 1;

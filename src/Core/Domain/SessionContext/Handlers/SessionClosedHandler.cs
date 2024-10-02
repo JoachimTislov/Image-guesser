@@ -1,17 +1,18 @@
 using Image_guesser.Core.Domain.SessionContext.Events;
+using Image_guesser.Core.Domain.SessionContext.Services;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.SessionContext.Handlers;
 
-public class SessionClosedHandler : INotificationHandler<SessionClosed>
+public class SessionClosedHandler(ISessionService sessionService) : INotificationHandler<SessionClosed>
 {
-    public Task Handle(SessionClosed notification, CancellationToken cancellationToken)
+    private ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
+    public async Task Handle(SessionClosed notification, CancellationToken cancellationToken)
     {
-        if (notification.Session != null)
-        {
-            notification.Session.SessionStatus = SessionStatus.Closed;
-        }
+        var session = await _sessionService.GetSessionById(notification.SessionId);
 
-        return Task.CompletedTask;
+        session.CloseLobby();
+
+        await _sessionService.UpdateSession(session);
     }
 }

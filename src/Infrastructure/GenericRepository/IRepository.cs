@@ -9,9 +9,10 @@ public interface IRepository
     Task Delete<T>(T entity) where T : class;
     List<T> GetAll<T>() where T : class;
     Task<T> GetById<T, I>(I Id) where T : class;
-    Task<Entity> GetSingleWhere<Entity, IdentifierType>(Expression<Func<Entity, bool>> WhereExp, IdentifierType Id) where Entity : BaseEntity;
+    Task<T> WhereAndInclude_SingleOrDefault<T, I>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp) where T : class;
+    Task<T> GetSingleWhere<T, IdentifierType>(Expression<Func<T, bool>> whereExp, IdentifierType Id) where T : BaseEntity;
     IEnumerable<T> Where<T>(Expression<Func<T, bool>> exp) where T : class;
-    Task<ReturnType> GetSingleWhereAndSelectItem<Entity, IdentifierType, ReturnType>(Expression<Func<Entity, bool>> WhereExp, Expression<Func<Entity, ReturnType>> SelectExp, IdentifierType Id) where Entity : BaseEntity;
+    Task<ReturnType> WhereAndSelect_SingleOrDefault<T, IdentifierType, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp, IdentifierType Id) where T : BaseEntity;
     bool Any<T>() where T : class;
     Task Update<T>(T entity) where T : class;
 }

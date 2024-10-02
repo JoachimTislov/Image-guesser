@@ -1,7 +1,7 @@
 using Image_guesser.Core.Domain.SessionContext;
-using Image_guesser.Core.Domain.SessionContext.Pipelines;
+using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Hubs;
-using Image_guesser.Core.Domain.SignalRContext.Services;
+using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 using Image_guesser.Core.Domain.UserContext;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
@@ -14,17 +14,22 @@ public class ForceLeaveUserFromSession
 
     public class Handler(
             IMediator mediator,
+            ISessionService sessionService,
             IConnectionMappingService connectionMappingService,
             IHubContext<GameHub, IGameClient> hubContext) : IRequestHandler<Request>
     {
         private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+        private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
         private readonly IConnectionMappingService _connectionMappingService = connectionMappingService ?? throw new ArgumentNullException(nameof(connectionMappingService));
         private readonly IHubContext<GameHub, IGameClient> _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
         public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
         {
-            var userConnection = _connectionMappingService.GetConnections(request.User.Id.ToString());
+            var userConnection = _connectionMappingService.GetConnection(request.User.Id.ToString());
 
-            if (userConnection != null) await _hubContext.Groups.RemoveFromGroupAsync(userConnection, request.Session.Id.ToString(), cancellationToken);
+            if (userConnection != null)
+            {
+                await _hubContext.Groups.RemoveFromGroupAsync(userConnection, request.Session.Id.ToString(), cancellationToken);
+            }
 
             if (request.Session.ChosenOracleId == request.User.Id)
             {
@@ -33,20 +38,24 @@ public class ForceLeaveUserFromSession
 
             if (request.Session.SessionUsers.Count == 1 && request.Session.SessionHostId == request.User.Id)
             {
-                Console.WriteLine($"Force leave user: {request.User.UserName} from the session before closing it");
-                await _mediator.Send(new DeleteSession.Request(request.Session.Id), cancellationToken);
+                Console.WriteLine($"Force leave user: {request.User.UserName} from the session before deleting it");
+                await _sessionService.DeleteSessionById(request.Session.Id);
             }
             else
             {
                 Console.WriteLine($"Remove user: {request.User.UserName} from the session");
-                await _mediator.Send(new RemoveUserFromSession.Request(request.Session.Id, request.User), cancellationToken);
+                await _sessionService.RemoveUserFromSession(request.User, request.Session.Id.ToString());
             }
 
             // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end
             // await Clients.Groups(SessionId).RedirectToLink($"/Lobby/{SessionId}");
             if (!request.ClosedSession)
             {
-                if (userConnection != null) await _hubContext.Clients.Client(userConnection).RedirectToLink("/");
+                if (userConnection != null)
+                {
+                    await _hubContext.Clients.Client(userConnection).RedirectToLink("/");
+                }
+
                 await _hubContext.Clients.Groups(request.Session.Id.ToString()).ReloadPage();
             }
 

@@ -1,19 +1,20 @@
 using Image_guesser.Core.Domain.UserContext;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.Identity;
 using MediatR;
-using Image_guesser.Core.Domain.SignalRContext.Services;
-using Image_guesser.Core.Domain.SessionContext.Pipelines;
 using Image_guesser.Core.Domain.SessionContext.Events;
 using Image_guesser.Core.Domain.GameContext.Events;
-using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.OracleContext.Events;
+using Image_guesser.Core.Domain.UserContext.Services;
+using Image_guesser.Core.Domain.SessionContext.Services;
+using Image_guesser.Core.Domain.OracleContext.Services;
+using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 
 namespace Image_guesser.Core.Domain.SignalRContext.Hubs;
 
-public class GameHub(IConnectionMappingService connectionMappingService, UserManager<User> userManager, IMediator mediator, OracleService oracleService) : Hub<IGameClient>
+public class GameHub(IConnectionMappingService connectionMappingService, IUserService userService, ISessionService sessionService, IMediator mediator, IOracleService oracleService) : Hub<IGameClient>
 {
-    private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+    private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+    private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
     private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
 
@@ -26,9 +27,9 @@ public class GameHub(IConnectionMappingService connectionMappingService, UserMan
         var userId = Context.UserIdentifier;
         if (userId != null)
         {
-            _connectionMappingService.AddConnection(userId, Context.ConnectionId);
+            await _connectionMappingService.AddConnection(userId, Context.ConnectionId);
 
-            var groupId = _connectionMappingService.GetGroups(userId);
+            var groupId = _connectionMappingService.GetGroupId(userId);
             if (groupId != string.Empty)
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
@@ -41,129 +42,108 @@ public class GameHub(IConnectionMappingService connectionMappingService, UserMan
     {
         var userId = Context.UserIdentifier;
         if (userId != null)
+        {
             await _connectionMappingService.RemoveConnection(userId, Context.ConnectionId);
+        }
 
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task CreateGroup(string SessionId)
+    private async Task AddToGroups(string sessionId, string userId, string connectionId)
     {
-        var UserIdentifier = Context.UserIdentifier;
-        if (UserIdentifier != null)
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, SessionId);
+        await Groups.AddToGroupAsync(connectionId, sessionId);
+        await _connectionMappingService.AddToGroup(userId, sessionId);
+    }
 
-            var user = await _userManager.FindByIdAsync(UserIdentifier);
-            if (user != null)
-                await _connectionMappingService.AddToGroup(user.Id, Guid.Parse(SessionId));
+    public async Task CreateGroup(string sessionId)
+    {
+        var userId = Context.UserIdentifier;
+        if (userId != null)
+        {
+            await AddToGroups(sessionId, userId, Context.ConnectionId);
         }
     }
 
-    public async Task StartNextRound(string SessionId)
+    private static Guid GuidParseString(string value)
     {
-        var session = await _mediator.Send(new GetSessionById.Request(Guid.Parse(SessionId)));
-        if (session != null)
-        {
-            await _mediator.Publish(new CreateGame(session));
-        }
+        return Guid.Parse(value);
     }
 
-    public async Task JoinGroup(string SessionId)
+    public async Task CreateANewGame(string SessionId)
     {
-        var UserIdentifier = Context.UserIdentifier;
-        if (UserIdentifier != null)
+        var session = await _sessionService.GetSessionById(GuidParseString(SessionId));
+
+        await _mediator.Publish(new CreateGame(session));
+    }
+
+    public async Task JoinGroup(string sessionId)
+    {
+        var userId = Context.UserIdentifier;
+        if (userId != null)
         {
-            var sessionGuid = Guid.Parse(SessionId);
-
-            await Groups.AddToGroupAsync(Context.ConnectionId, SessionId);
-
-            var user = await _userManager.FindByIdAsync(UserIdentifier);
-            if (user != null)
-            {
-                await _connectionMappingService.AddToGroup(user.Id, sessionGuid);
-                await _mediator.Send(new AddPlayerToSession.Request(sessionGuid, user));
-            }
+            await AddToGroups(sessionId, userId, Context.ConnectionId);
+            await _sessionService.AddUserToSession(userId, sessionId);
 
             // We use RedirectToLink because this allows us to bypass the need for extensive front-end logic
             // that is already handled by the back-end rendering of the webpage.
-            await Clients.Groups(SessionId).RedirectToLink($"/Lobby/{SessionId}");
+            await Clients.Groups(sessionId).RedirectToLink($"/Lobby/{sessionId}");
         }
     }
 
     public async Task LeaveGroup(string userId, string SessionId)
     {
-        var userConnection = _connectionMappingService.GetConnections(userId);
-        var user = await _userManager.FindByIdAsync(userId);
-        var sessionGuid = Guid.Parse(SessionId);
+        string userConnection = _connectionMappingService.GetConnection(userId);
 
-        var session = await _mediator.Send(new GetSessionById.Request(sessionGuid));
+        await _sessionService.UpdateChosenOracleIfUserWasOracle(Guid.Parse(SessionId), Guid.Parse(userId));
 
-        if (session != null && user != null && session.ChosenOracleId == user.Id)
-        {
-            session.ChosenOracleId = session.SessionHostId;
-        }
+        await Groups.RemoveFromGroupAsync(userConnection, SessionId);
 
-        if (user != null && userConnection != null)
-        {
-            await Groups.RemoveFromGroupAsync(userConnection, SessionId.ToString());
+        await _connectionMappingService.RemoveFromGroup(userId, SessionId);
 
-            await _connectionMappingService.RemoveFromGroup(user.Id, sessionGuid);
+        User user = await _userService.GetUserById(userId);
+        await _sessionService.RemoveUserFromSession(user, SessionId);
 
-            await _mediator.Send(new RemoveUserFromSession.Request(sessionGuid, user));
-
-            // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end
-            // await Clients.Groups(SessionId).SendAsync("RedirectToLink", $"/Lobby/{SessionId}");
-            await Clients.Client(userConnection).RedirectToLink("/");
-            await Clients.Groups(SessionId).ReloadPage();
-        }
+        // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end
+        // await Clients.Groups(SessionId).SendAsync("RedirectToLink", $"/Lobby/{SessionId}");
+        await Clients.Client(userConnection).RedirectToLink("/");
+        await Clients.Groups(SessionId).ReloadPage();
     }
 
-    public async Task RemovePlayersFromGroup(string SessionId)
+    public async Task CloseGroup(string SessionId)
     {
-        var session = await _mediator.Send(new GetSessionById.Request(Guid.Parse(SessionId)));
+        var session = await _sessionService.GetSessionById(Guid.Parse(SessionId));
 
-        session.Events.Add(new SessionClosed(session));
-
-        var players = new List<User>();
-        if (session != null) players = session.SessionUsers.ToList();
-
-        foreach (var player in players)
+        foreach (var user in session.SessionUsers)
         {
-            var userConnection = _connectionMappingService.GetConnections(player.Id.ToString());
+            var userConnection = _connectionMappingService.GetConnection(user.Id.ToString());
 
-            await LeaveGroup(player.Id.ToString(), SessionId);
+            await LeaveGroup(user.Id.ToString(), SessionId);
 
-            if (userConnection != null) await Clients.Client(userConnection).RedirectToLink("/");
+            if (userConnection != null)
+            {
+                await Clients.Client(userConnection).RedirectToLink("/");
+            }
         }
 
-        await _mediator.Send(new DeleteSession.Request(Guid.Parse(SessionId)));
-    }
-
-    // Temp function to handle chat messages in the lobby, (not a feature, only for testing purposes)
-    public async Task SendMessage(string message, string SessionId)
-    {
-        await Clients.Group(SessionId).ReceiveMessage(message);
+        await _mediator.Publish(new SessionClosed(Guid.Parse(SessionId)));
     }
 
     public async Task SendGuess(
             string guess, string userId, string sessionId,
             string gameId, string guesserId, string imageIdentifier)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        string userName = await _userService.GetUserNameByUserId(userId);
 
-        // This makes it so that everyone can see the guesses made
-        if (user != null && user.UserName != null)
-            await Clients.Group(sessionId).ReceiveGuess(guess, user.UserName);
+        await Clients.Group(sessionId).ReceiveGuess(guess, userName);
 
         //This sets of an event that Oracle will handle 
         await _mediator.Publish(new PlayerGuessed(Guid.Parse(sessionId), guess, guesserId, Guid.Parse(gameId)));
 
-        var session = await _mediator.Send(new GetSessionById.Request(Guid.Parse(sessionId)));
-
-        if (user != null && user.UserName != null && session != null)
+        var session = await _sessionService.GetSessionById(Guid.Parse(sessionId));
+        var (IsGuessCorrect, WinnerText) = await _oracleService.CheckGuess(guess, imageIdentifier, userName, session.ChosenOracleId, session.Options.GameMode);
+        if (IsGuessCorrect)
         {
-            var Response = await _oracleService.CheckGuess(guess, imageIdentifier, user.UserName, session.ChosenOracleId, session.Options.GameMode);
-            if (Response.IsGuessCorrect) await Clients.Group(sessionId).CorrectGuess(Response.WinnerText, guess);
+            await Clients.Group(sessionId).CorrectGuess(WinnerText, guess);
         }
     }
 
@@ -177,7 +157,6 @@ public class GameHub(IConnectionMappingService connectionMappingService, UserMan
         await Clients.Group(sessionId).ShowPiece(pieceId);
     }
 
-    // Used in multiplayer AI games, where the leader reveals the next piece for everyone
     public async Task ShowNextPieceForAllPlayers(string sessionId)
     {
         await Clients.Group(sessionId).ShowNextPieceForAll();

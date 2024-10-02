@@ -8,9 +8,9 @@ public class SessionClosedTests
     [Fact]
     public void ConstructorWithSession_ShouldAssignTheSession()
     {
-        var session = new Session();
-        var sessionClosed = new SessionClosed(session);
+        var sessionId = Guid.NewGuid();
+        var sessionClosed = new SessionClosed(sessionId);
 
-        Assert.Equal(session, sessionClosed.Session);
+        Assert.Equal(sessionId, sessionClosed.SessionId);
     }
 }

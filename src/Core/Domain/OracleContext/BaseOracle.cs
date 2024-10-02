@@ -9,11 +9,8 @@ public class BaseOracle : BaseEntity
     public Guid Id { get; set; }
     public int TotalGuesses { get; private set; }
     public int NumberOfTilesRevealed { get; private set; }
-    public string ImageIdentifier { get; private set; } = string.Empty;
-    public void AssignImageId(string imageIdentifier)
-    {
-        ImageIdentifier = imageIdentifier;
-    }
+    public string ImageIdentifier { get; protected set; } = string.Empty;
+
     public void IncrementTiles()
     {
         NumberOfTilesRevealed++;

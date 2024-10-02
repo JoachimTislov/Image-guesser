@@ -1,4 +1,4 @@
-@page "/Lobby/ConfigureSessionOptions/{text}/{Id:guid?}"
+@page "/Lobby/Options/{text}/{Id:guid}"
 @using Image_guesser.Core.Domain.ImageContext
 @using Image_guesser.Core.Domain.ImageContext.Services
 @using Image_guesser.Core.Domain.OracleContext
@@ -11,7 +11,7 @@
 
 <div class="d-flex justify-content-center align-content-center">
 
-    <form method="post" style="width: 400px;">
+    <form id="ModifySessionForm" method="post" style="width: 400px;">
 
         <h1> @ViewData["Title"] </h1>
 
@@ -72,43 +72,74 @@
             id="ImageContainer">
 
             <input asp-for="Options.ImageIdentifier" id="imageIdentifier" hidden />
+            <input asp-for="ImageRecord.Link" id="imageLink" hidden />
 
-            <h4> Select an Image </h4>
+            @{
+                var NotSelectedImage = Model.ImageRecord.Link == string.Empty;
+            }
 
-            <div class="d-flex input-group mt-2 @(Model.ImageRecord.Name == string.Empty ? "hide" : "")"
-                id="selectedImageNameContainer">
-                <label class="input-group-text" for="selectedImageName"> Name: </label>
-                <input asp-for="ImageRecord.Name" id="selectedImageName" class="form-control text-center"
-                    value="@Model.ImageRecord.Name" readonly>
+            <div id="selectedImageContainer" class="@(NotSelectedImage ? "hide" : "")">
+
+                <h4> Selected Image </h4>
+
+                <div class="d-flex input-group mt-2">
+                    <label class="input-group-text" for="selectedImageName"> Name: </label>
+                    <input asp-for="ImageRecord.Name" id="selectedImageName" class="form-control text-center"
+                        value="@Model.ImageRecord.Name" readonly>
+                </div>
+
+                <div class="d-flex justify-content-center p-3">
+                    <img class="rounded" id="selectedImageEL" src="~/@Model.ImageRecord.Link" width="380px"
+                        height="300px">
+                </div>
             </div>
 
-            <div class="d-flex flex-wrap justify-content-center align-content-center" style="max-width: 400px">
-                @foreach (var image in Model.ImageRecords)
-                {
-                    <button type="button" class="btn position-relative" id="@image.Identifier"
-                        onclick="UserSelectedImage('@image.Name', '@image.Identifier')">
-                        <img src="~/@image.Link" class="rounded" width="100px" height="100px" />
-                    </button>
-                }
+            <div class="modal modal-lg fade" tabindex="-1" id="SelectImageModal">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content" style="max-height: 70%;">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Select an Image</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex flex-wrap justify-content-center align-content-center">
+                                @foreach (var image in Model.ImageRecords)
+                                {
+                                    <button type="button" data-bs-dismiss="modal" class="btn position-relative"
+                                        id="@image.Identifier"
+                                        onclick="UserSelectedImage('@image.Link', '@image.Name', '@image.Identifier')">
+                                        <img src="~/@image.Link" class="rounded" width="100px" height="100px" />
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="footer m-2">
+                            <div class="d-flex input-group mt-1 float-end" style="width: 350px">
+                                <label class="input-group-text" for="imageAmount"> Amount of Images: </label>
+
+                                <select id="imageAmount" class="form-select" asp-for="@Model.AmountOfPicturesToLoad">
+
+                                    @for (var i = 1; i <= 100; i++)
+                                    {
+                                        <option value="@i"> @i </option>
+                                    }
+
+                                </select>
+
+                                <button type="submit" asp-page-handler="RefreshImages" class="btn btn-primary"> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="d-flex input-group mt-1">
-
-                <select class="form-select" asp-for="@Model.AmountOfPicturesToLoad">
-
-                    @for (var i = 1; i <= 100; i++)
-                    {
-                        <option value="@i"> @i </option>
-                    }
-
-                </select>
-
-                <button type="submit" asp-page-handler="RefreshImages" class="btn btn-primary"> Refresh
-                    Images </button>
-            </div>
+            <button type="button" data-bs-toggle="modal" data-bs-target="#SelectImageModal"
+                asp-page-handler="RefreshImages" class="mt-2 btn btn-primary float-end">
+                Select an Image </button>
         </div>
 
-        <div class="m-1">
+        <div class="mt-5">
             <label for="numberOfRounds" class="form-label">Number of Rounds (<span
                     id="numberOfRoundsValue">@Model.Options.NumberOfRounds</span>)</label>
             <input asp-for="Options.NumberOfRounds" type="range" class="form-range" min="1" max="10" id="numberOfRounds"
@@ -142,4 +173,18 @@
 
 @section Scripts {
     <script src="~/js/ConfigureSessionOptions.js"></script>
+
+    <script>
+
+        // The code underneath shows the modal if the user clicked the refresh button
+        var showModal = @((Model.ShowSelectPictureModal.ToString().ToLower()));
+
+        if (showModal) {
+            var modalElement = document.getElementById('SelectImageModal');
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+
+    </script>
+
 }

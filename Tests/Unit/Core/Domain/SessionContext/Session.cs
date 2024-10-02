@@ -26,14 +26,16 @@ public class SessionTests
 
         var now = DateTime.Now;
         Assert.InRange(session.TimeOfCreation, now.AddSeconds(-1), now.AddSeconds(1));
-        Assert.Equal(SessionStatus.Lobby, session.SessionStatus);
+        Assert.Equal(SessionStatus.InLobby, session.SessionStatus);
     }
 
     [Fact]
     public void Constructor_ShouldSetPropertiesCorrectly()
     {
         var user = new User();
-        var session = new Session(user);
+
+        Guid Id = Guid.NewGuid();
+        var session = new Session(user, Id);
 
         Assert.Equal(user.Id, session.SessionHostId);
         Assert.Equal(user.Id, session.ChosenOracleId);

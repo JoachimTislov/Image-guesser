@@ -19,6 +19,19 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
     public DbSet<ImageRecord> ImageRecords { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Prevents foreign key errors when deleting a session
+        modelBuilder.Entity<Session>()
+            .HasMany(s => s.SessionUsers)
+            .WithOne()
+            .HasForeignKey(u => u.SessionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Prevent duplicate foreign keys for game table
+        modelBuilder.Entity<BaseGame>()
+        .HasMany(bg => bg.Guessers)
+        .WithOne()
+        .HasForeignKey(g => g.GameId);
+
         // Creates a TPH type hierarchy for the Games table
         modelBuilder.Entity<BaseGame>()
             .HasDiscriminator<string>("Oracle")

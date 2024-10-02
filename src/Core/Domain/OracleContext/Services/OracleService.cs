@@ -25,17 +25,16 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
             _ => _AI_Repository.CreateRandomNumbersAI(ImagePieceCount)
         };
 
-        return CreateOracle(AI);
+        return CreateOracle(AI, imageIdentifier);
     }
 
-    public Oracle<User> CreateUserOracle(User ChosenOracle)
+    public Oracle<T> CreateOracle<T>(T Oracle, string ImageIdentifier) where T : class
     {
-        return CreateOracle(ChosenOracle);
-    }
+        var oracle = new Oracle<T>(Oracle, ImageIdentifier);
 
-    public Oracle<T> CreateOracle<T>(T ChosenOracle) where T : class
-    {
-        return new Oracle<T>(ChosenOracle);
+        _repository.Add<BaseOracle>(oracle);
+
+        return oracle;
     }
 
     public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class

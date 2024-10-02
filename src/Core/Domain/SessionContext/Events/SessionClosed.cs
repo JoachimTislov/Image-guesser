@@ -4,9 +4,9 @@ namespace Image_guesser.Core.Domain.SessionContext.Events;
 
 public record SessionClosed : BaseDomainEvent
 {
-    public SessionClosed(Session session)
+    public SessionClosed(Guid sessionId)
     {
-        Session = session;
+        SessionId = sessionId;
     }
-    public Session Session { get; }
+    public Guid SessionId { get; }
 }

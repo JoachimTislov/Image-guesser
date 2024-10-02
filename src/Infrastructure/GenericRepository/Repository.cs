@@ -9,7 +9,7 @@ public class Repository(ImageGameContext context) : IRepository
 {
     public readonly ImageGameContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public DbSet<T> GetEntities<T>() where T : class
+    private DbSet<T> GetEntities<T>() where T : class
     {
         return _context.Set<T>();
     }
@@ -37,21 +37,26 @@ public class Repository(ImageGameContext context) : IRepository
         return entity;
     }
 
+    public async Task<T> WhereAndInclude_SingleOrDefault<T, I>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp) where T : class
+    {
+        return await GetEntities<T>().Where(whereExp).Include(includeExp).SingleOrDefaultAsync() ?? throw new EntityNotFoundException($"Entity not found with where statement: {whereExp} and include expression: {includeExp}");
+    }
+
+    public async Task<T> GetSingleWhere<T, IdentifierType>(Expression<Func<T, bool>> whereExp, IdentifierType Id) where T : BaseEntity
+    {
+        return await GetEntities<T>().Where(whereExp).SingleOrDefaultAsync()
+                ?? throw new EntityNotFoundException($"Entity of type {typeof(T)} with where expression {whereExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
+    }
+
     public IEnumerable<T> Where<T>(Expression<Func<T, bool>> exp) where T : class
     {
         return GetEntities<T>().Where(exp);
     }
 
-    public async Task<Entity> GetSingleWhere<Entity, IdentifierType>(Expression<Func<Entity, bool>> WhereExp, IdentifierType Id) where Entity : BaseEntity
+    public async Task<ReturnType> WhereAndSelect_SingleOrDefault<T, IdentifierType, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp, IdentifierType Id) where T : BaseEntity
     {
-        return await GetEntities<Entity>().Where(WhereExp).SingleOrDefaultAsync()
-                ?? throw new EntityNotFoundException($"Entity of type {typeof(Entity)} with where expression {WhereExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
-    }
-
-    public async Task<ReturnType> GetSingleWhereAndSelectItem<Entity, IdentifierType, ReturnType>(Expression<Func<Entity, bool>> WhereExp, Expression<Func<Entity, ReturnType>> SelectExp, IdentifierType Id) where Entity : BaseEntity
-    {
-        return await GetEntities<Entity>().Where(WhereExp).Select(SelectExp).SingleOrDefaultAsync()
-                ?? throw new EntityNotFoundException($"Entity of type {typeof(Entity)} with where expression {WhereExp}, select expression {SelectExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
+        return await GetEntities<T>().Where(whereExp).Select(selectExp).SingleOrDefaultAsync()
+                ?? throw new EntityNotFoundException($"Entity of type {typeof(T)} with where expression {whereExp}, select expression {selectExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
     }
 
     public bool Any<T>() where T : class

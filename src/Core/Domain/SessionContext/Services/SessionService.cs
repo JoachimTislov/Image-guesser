@@ -1,44 +1,44 @@
+using System.Security.Claims;
+using Image_guesser.Core.Domain.ImageContext.Repository;
+using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
-using Image_guesser.Core.Domain.SignalRContext.Hubs;
 using Image_guesser.Core.Domain.UserContext;
-using Image_guesser.Infrastructure.GenericRepository;
-using Microsoft.AspNetCore.SignalR;
+using Image_guesser.Core.Domain.UserContext.Services;
 
 namespace Image_guesser.Core.Domain.SessionContext.Services;
 
-public class SessionService(IHubContext<GameHub, IGameClient> hubContext, IRepository repository) : ISessionService
+public class SessionService(ISessionRepository sessionRepository, IUserService userService, IImageRepository imageRepository) : ISessionService
 {
-    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-    private readonly IHubContext<GameHub, IGameClient> _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+    private readonly ISessionRepository _sessionRepository = sessionRepository ?? throw new ArgumentNullException(nameof(sessionRepository));
+    private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+    private readonly IImageRepository _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
 
-    public async Task<Session> CreateSession(User user)
+    public async Task CreateSession(ClaimsPrincipal User, Guid Id)
     {
-        Session session = new(user);
+        var user = await _userService.GetUserByClaimsPrincipal(User);
 
-        await AddSession(session);
+        Session session = new(user, Id);
 
-        //await _hubContext.Groups.AddToGroupAsync(user.Id.ToString(), session.Id.ToString());
-
-        return session;
-    }
-
-    public async Task AddSession(Session session)
-    {
-        await _repository.Add(session);
-    }
-
-    public async Task UpdateSession(Guid Id, ViewModelOptions options)
-    {
-        var session = await GetSessionById(Id);
-
-        session.Options.SetOptionsValues(options);
-
-        await _repository.Update(session);
+        await _sessionRepository.AddSession(session);
     }
 
     public async Task<Session> GetSessionById(Guid Id)
     {
-        return await _repository.GetById<Session, Guid>(Id);
+        return await _sessionRepository.GetSessionById(Id);
+    }
+
+    public async Task UpdateSession(Session session)
+    {
+        await _sessionRepository.UpdateSession(session);
+    }
+
+    public async Task UpdateSessionOptions(Guid Id, ViewModelOptions options)
+    {
+        var session = await GetSessionById(Id);
+
+        await session.Options.SetOptionsValues(options, _imageRepository);
+
+        await UpdateSession(session);
     }
 
     public async Task<bool> CheckIfOracleIsAI(Guid sessionId)
@@ -48,34 +48,53 @@ public class SessionService(IHubContext<GameHub, IGameClient> hubContext, IRepos
         return session.Options.IsOracleAI();
     }
 
-    public async Task<bool> JoinSession(User user, Session session)
+    public async Task UpdateChosenOracleIfUserWasOracle(Guid sessionId, Guid userId)
     {
-        if (session.SessionUsers.Contains(user) || user == null)
+        var session = await GetSessionById(sessionId);
+
+        if (session.ChosenOracleId == userId)
+        {
+            session.ChosenOracleId = session.SessionHostId;
+        }
+    }
+
+    public async Task<bool> AddUserToSession(string userId, string sessionId)
+    {
+        User user = await _userService.GetUserById(userId);
+        var session = await GetSessionById(Guid.Parse(sessionId));
+        if (session.SessionUsers.Contains(user))
         {
             return false;
         }
         else
         {
             session.SessionUsers.Add(user);
+            await UpdateSession(session);
 
-            // unsure if this is needed
-            // Adding a user to a session, requires the sessionId to the user to be updated
-            await _repository.Update(session);
-            await _repository.Update(user);
+            await _userService.UpdateUser(user);
 
             return true;
         }
     }
 
-    public async Task<bool> LeaveSession(User user, Session session)
+    public async Task<bool> RemoveUserFromSession(User user, string sessionId)
     {
+        var session = await GetSessionById(Guid.Parse(sessionId));
         var result = session.SessionUsers.Remove(user);
+        await UpdateSession(session);
 
-        // unsure if this is needed
-        // Removing a user from a session, requires the sessionId to the user to be updated
-        await _repository.Update(session);
-        await _repository.Update(user);
+        await _userService.UpdateUser(user);
 
         return result;
+    }
+
+    public async Task DeleteSessionById(Guid Id)
+    {
+        await _sessionRepository.DeleteSessionById(Id);
+    }
+
+    public List<Session> GetAllOpenSessions()
+    {
+        return _sessionRepository.GetAllOpenSessions();
     }
 }

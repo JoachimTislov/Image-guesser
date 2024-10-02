@@ -53,9 +53,6 @@ namespace Image_guesser.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("BaseGameId")
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid>("GameId")
                         .HasColumnType("TEXT");
 
@@ -77,7 +74,7 @@ namespace Image_guesser.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BaseGameId");
+                    b.HasIndex("GameId");
 
                     b.ToTable("Guessers");
                 });
@@ -434,7 +431,9 @@ namespace Image_guesser.Migrations
                 {
                     b.HasOne("Image_guesser.Core.Domain.GameContext.BaseGame", null)
                         .WithMany("Guessers")
-                        .HasForeignKey("BaseGameId");
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Image_guesser.Core.Domain.SessionContext.Session", b =>
@@ -485,7 +484,8 @@ namespace Image_guesser.Migrations
                 {
                     b.HasOne("Image_guesser.Core.Domain.SessionContext.Session", null)
                         .WithMany("SessionUsers")
-                        .HasForeignKey("SessionId");
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

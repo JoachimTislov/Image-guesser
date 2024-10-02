@@ -7,14 +7,16 @@
 <div class="text-center">
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
-
         <p> Welcome to Image Guesser </p>
 
         <div class="d-flex justify-content-evenly">
-            <a class="btn btn-success" asp-area="" asp-page="/Lobby/ConfigureSessionOptions" asp-route-text="Create"> Create
-                a
-                Lobby </a>
-            <a class="btn btn-primary" asp-area="" asp-page="/Lobby/SessionList"> View available Lobbies </a>
+            <form method="post" asp-page-handler="CreateSession">
+                <input name="Id" value="@Model.SessionId" hidden>
+                <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"> Create a
+                    Lobby </button>
+            </form>
+
+            <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>
         </div>
 
 
@@ -29,3 +31,7 @@
 
     }
 </div>
+
+@section Scripts {
+    <script type="module" src="~/js/Index.js"></script>
+}

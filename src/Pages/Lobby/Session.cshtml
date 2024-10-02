@@ -1,4 +1,5 @@
-@page "{Id:guid}"
+@page "/Lobby/{Id:guid}"
+@using Image_guesser.SharedKernel
 @model SessionModel
 @{
     ViewData["Title"] = "Lobby";
@@ -6,10 +7,146 @@
 
 <div class="text-center">
 
-    <p> Welcome to the Lobby </p>
+    <h1 class="display-4"> @ViewData["Title"] </h1>
 
-    <a class="btn btn-primary" asp-area="" asp-page="/Lobby/ConfigureSessionOptions"
-        asp-route-id="@Model.RouteData.Values["Id"]" asp-route-text="Edit"> Options
-    </a>
+    <div class="d-flex justify-content-evenly">
 
+        @if (!Model.Session.Options.RandomPictureMode && Model.ImageRecord != null)
+        {
+            <div class="col-3">
+                <div class="card">
+                    <h3 class="card-title p-2"> Selected Image </h3>
+                    <img src="~/@Model.ImageRecord.Link" class="card-img-top rounded p-2">
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.ImageRecord.Name</h5>
+                        <p class="car-text"> Piece Count: @Model.ImageRecord.PieceCount </p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="d-flex flex-column col-3">
+
+            <h3> Game Setup </h3>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Gamemode: </label>
+                <input class="form-control text-center" value="@Model.Session.Options.GameMode" disabled>
+            </div>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Players / Lobby size </label>
+                <input class="form-control text-center"
+                    value=" @Model.Session.SessionUsers.Count / @Model.Session.Options.LobbySize" disabled>
+            </div>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Host: </label>
+                <input class="form-control text-center" value="@(Model.SessionHost.Id == Model.Player.Id ? "You" :
+                Model.SessionHost.UserName)" disabled>
+            </div>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Oracle: </label>
+                <input class="form-control text-center" value="@(!Model.Session.Options.IsOracleAI()
+                ? (Model.Session.Options.RandomUserOracle 
+                ? "A Random User" 
+                : Model.ChosenOracle.Id == Model.Player.Id 
+                ? "You" 
+                : Model.ChosenOracle.UserName)
+                : $"AI - {@Model.Session.Options.AI_Type.GetDisplayName()}")" disabled>
+            </div>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Picture Mode: </label>
+                <input class="form-control text-center" value="@(Model.Session.Options.RandomPictureMode || Model.ImageRecord == null ? "Random" :
+               "A Specific image")" disabled>
+            </div>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Number Of Rounds: </label>
+                <input class="form-control text-center" value="@Model.Session.Options.NumberOfRounds" disabled>
+            </div>
+        </div>
+
+        <div class="col-3">
+            <h3> Players </h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th> # </th>
+                        <th> Name </th>
+                        <th> Total Wins </th>
+                        <th> Average Points </th>
+                        @if (Model.SessionHost.Id != Model.Player.Id)
+                        {
+                            <th></th>
+                        }
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        var users = Model.Session.SessionUsers;
+                    }
+                    @for (var i = 0; i < users.Count; i++)
+                    {
+                        <tr>
+                            <td> @(i + 1) </td>
+                            <td>@(users[i].UserName == Model.Player.UserName ? "You" : users[i].UserName)</td>
+                            <td>@users[i].Correct_Guesses</td>
+                            <td>@users[i].Points</td>
+                            @if (Model.SessionHost.Id == Model.Player.Id && Model.SessionHost.Id != users[i].Id)
+                            {
+                                <td>
+                                    <button type="button" class="btn btm-md btn-danger kickButton" user-Id="@users[i].Id">
+                                        Kick
+                                    </button>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+    <div class="d-flex justify-content-center m-2">
+        <div class="d-flex flex-column col-3">
+            <a class="btn btn-primary" asp-page="/Lobby/ConfigureSessionOptions" asp-route-text="Edit"
+                asp-route-id="@Model.Id"> Configure Settings
+            </a>
+
+            <div class="d-flex mt-3">
+                @if (Model.SessionHost.Id == Model.Player.Id)
+                {
+                    <button id="closeLobbyButton" type="button" class="btn btn-danger"> Close Lobby </button>
+
+                    <form method="post" class="ms-auto" asp-page-handler="Startgame">
+                        <button type="submit" class="btn btn-success" id="startGameButton">
+                            Start Game
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button id="leaveLobbyButton" type="button" class="btn btn-danger">
+                        Leave Lobby
+                    </button>
+                }
+            </div>
+
+        </div>
+    </div>
 </div>
+
+
+
+@section Scripts {
+    <script>
+        var userId = '@Model.Player.Id'
+        var sessionId = '@Model.Id'
+    </script>
+
+    <script type="module" src="~/js/Session.js"></script>
+}

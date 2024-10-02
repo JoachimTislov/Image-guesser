@@ -39,7 +39,7 @@ function gameModeChanged() {
         case 0: // SinglePayer
             // Oracle can only be AI in SinglePlayer
             infoOracleInput.value = "AI"
-            selectOracleType.value = "0"
+            selectOracleType.value = "0"  // Index for AI in OracleTypes
 
             show([infoOracleType, pickAI])
             hide([RandomUserOracle, RandomPictureMode, lobbySize, ImageContainer, selectOracleTypeContainer])
@@ -48,7 +48,7 @@ function gameModeChanged() {
         case 1: //Duo
             // Oracle can only be a User in Duo
             infoOracleInput.value = "User"
-            selectOracleType.value = "1"
+            selectOracleType.value = "1" // Index for user in OracleTypes
 
             show([infoOracleType, RandomUserOracle, RandomPictureMode])
             hide([pickAI, lobbySize, selectOracleTypeContainer])
@@ -58,13 +58,12 @@ function gameModeChanged() {
             show([selectOracleTypeContainer, RandomPictureMode, lobbySize])
             hide([infoOracleType])
 
+            // Adjust visibility of elements related to a 'parent'
             OracleTypeChange()
             break
         default:
             console.warn('GameMode invalid', selectedGameMode.value)
     }
-    // Updating the select which have a connection to the backend
-    // asp-for Oracle in Session
 
     // Adjust visibility of elements related to a 'parent'
     ToggleRandomPictureMode()
@@ -77,13 +76,13 @@ function OracleTypeChange()
     const RandomUserOracle = EL("RandomUserOracle")
     const pickAI = EL("pickAI")
 
-    if (selectOracleType.value == "0")
+    if (selectOracleType.value == "0")  // Index for AI in OracleTypes
     {
         show([pickAI])
         hide([RandomUserOracle])
     }
 
-    if (selectOracleType.value == "1")
+    if (selectOracleType.value == "1")  // Index for user in OracleTypes
     {
         show([RandomUserOracle])
         hide([pickAI])
@@ -103,16 +102,21 @@ function ToggleRandomPictureMode() {
     }
 }
 
-function UserSelectedImage(Name, Identifier)
+function UserSelectedImage(Link, Name, Identifier)
 {
+    const selectedImageEL = EL("selectedImageEL")
     const selectedImageName = EL("selectedImageName")
-    const selectedImageNameContainer = EL("selectedImageNameContainer")
-    const imageIdentifier = EL("imageIdentifier")
+    const selectedImageContainer = EL("selectedImageContainer")
+ 
+    show([selectedImageContainer])
 
-    show([selectedImageNameContainer])
-
+    selectedImageEL.src = `/${Link}`
     selectedImageName.value = Name
 
+    const imageLink = EL("imageLink")
+    const imageIdentifier = EL("imageIdentifier")
+
+    imageLink.value = Link
     imageIdentifier.value = Identifier
 }
 

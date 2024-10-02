@@ -5,7 +5,6 @@ using MediatR;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.ImageContext.Services;
-using Image_guesser.Core.Domain.SignalRContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Hubs;
 using Image_guesser.SharedKernel;
 using Image_guesser.Core.Domain.GameContext.Services;
@@ -14,6 +13,8 @@ using Image_guesser.Core.Domain.OracleContext.AI_Repository;
 using Image_guesser.Core.Domain.ImageContext.Repository;
 using Image_guesser.Core.Domain.UserContext.Services;
 using Image_guesser.Core.Domain.ImageContext;
+using Image_guesser.Core.Domain.SessionContext.Repository;
+using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +23,14 @@ var services = builder.Services;
 services.AddMediatR(typeof(Program));
 
 // Add DI to builders
-services.AddScoped<IOracleService, OracleService>();
-services.AddScoped<IGameService, GameService>();
-services.AddScoped<ISessionService, SessionService>();
+
 services.AddScoped<IAI_Repository, AI_Repository>();
+services.AddScoped<IOracleService, OracleService>();
+
+services.AddScoped<IGameService, GameService>();
+
+services.AddScoped<ISessionRepository, SessionRepository>();
+services.AddScoped<ISessionService, SessionService>();
 
 services.AddScoped<IUserService, UserService>();
 

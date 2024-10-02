@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Image_guesser.Core.Domain.OracleContext;
 
 namespace Image_guesser.Core.Domain.SessionContext.ViewModels;

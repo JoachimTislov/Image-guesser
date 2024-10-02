@@ -1,22 +1,28 @@
-using Image_guesser.Core.Domain.OracleContext;
+using System.Security.Claims;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
 
 namespace Image_guesser.Core.Domain.SessionContext.Services;
 public interface ISessionService
 {
-    Task<Session> CreateSession(User user);
-
-    Task AddSession(Session session);
-
-    Task UpdateSession(Guid Id, ViewModelOptions options);
+    Task CreateSession(ClaimsPrincipal User, Guid SessionId);
 
     Task<Session> GetSessionById(Guid Id);
 
+    Task UpdateSession(Session session);
+
+    Task UpdateSessionOptions(Guid Id, ViewModelOptions options);
+
     Task<bool> CheckIfOracleIsAI(Guid sessionId);
 
-    Task<bool> JoinSession(User user, Session session);
+    Task UpdateChosenOracleIfUserWasOracle(Guid sessionId, Guid userId);
 
-    Task<bool> LeaveSession(User user, Session session);
+    Task<bool> AddUserToSession(string userId, string SessionId);
+
+    Task<bool> RemoveUserFromSession(User user, string SessionId);
+
+    Task DeleteSessionById(Guid Id);
+
+    List<Session> GetAllOpenSessions();
 
 }

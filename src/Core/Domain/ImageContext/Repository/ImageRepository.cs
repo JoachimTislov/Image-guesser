@@ -24,13 +24,7 @@ public class ImageRepository(IRepository repository) : IImageRepository
 
     public async Task<int> GetImagePieceCountById(string ImageIdentifier)
     {
-        // Handling missing image identifier case
-        if (ImageIdentifier == string.Empty)
-        {
-            throw new ArgumentException("Image Identifier is required to find piece count for given image");
-        }
-
-        var ImagePieceCount = await _repository.GetSingleWhereAndSelectItem<ImageRecord, string, int>(
+        var ImagePieceCount = await _repository.WhereAndSelect_SingleOrDefault<ImageRecord, string, int>(
         /*Where*/    i => i.Identifier == ImageIdentifier,
         /*Select*/   i => i.PieceCount,
         /*Identifier*/ ImageIdentifier);

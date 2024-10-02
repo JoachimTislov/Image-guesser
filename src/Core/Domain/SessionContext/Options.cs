@@ -1,3 +1,5 @@
+using Image_guesser.Core.Domain.ImageContext.Repository;
+using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +21,7 @@ public class Options
     public bool RandomPictureMode { get; private set; } = true;
     public string ImageIdentifier { get; private set; } = string.Empty;
 
-    public void SetOptionsValues(ViewModelOptions options)
+    public async Task SetOptionsValues(ViewModelOptions options, IImageRepository imageRepository)
     {
         switch (options.GameMode)
         {
@@ -45,9 +47,11 @@ public class Options
         NumberOfRounds = ValidateRange(options.NumberOfRounds, 1, 10);
         GameMode = options.GameMode;
         AI_Type = options.AI_Type;
+
         RandomUserOracle = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() && options.RandomUserOracle;
-        RandomPictureMode = IsGameMode(GameMode.SinglePlayer) || options.RandomPictureMode;
-        ImageIdentifier = !IsGameMode(GameMode.SinglePlayer) && !RandomPictureMode ? options.ImageIdentifier : string.Empty;
+        RandomPictureMode = IsGameMode(GameMode.SinglePlayer) || options.RandomPictureMode || options.ImageIdentifier == null;
+
+        ImageIdentifier = !RandomPictureMode && options.ImageIdentifier != null ? options.ImageIdentifier : await imageRepository.GetRandomImageIdentifier();
     }
 
     public bool IsOracleAI()

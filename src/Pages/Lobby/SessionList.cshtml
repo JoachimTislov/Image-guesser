@@ -1,11 +1,72 @@
-@page
+@page "/LobbyList"
+@using Image_guesser.SharedKernel
 @model SessionListModel
 @{
-    ViewData["Title"] = "Available Sessions";
+    ViewData["Title"] = "Lobby List";
 }
 
 <div class="text-center">
 
-    <p> Welcome to the Session List </p>
+    <h1 class="display-4"> @ViewData["Title"] </h1>
+
+    <div class="d-flex flex-wrap">
+        @foreach (var session in Model.SessionHosts)
+        {
+            <div class="col-md-4">
+                <div class="card m-2">
+                    <h4 class="card-header">@session.Value.Host.UserName's Lobby</h4>
+                    <div class="card-body">
+                        <div class="container">
+                            <div class="mb-3 d-flex justify-content-center">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <label class="input-group-text" for="status">Status: </label>
+                                        <input class="form-control text-center"
+                                            value="@session.Key.SessionStatus.GetDisplayName()" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-1">
+                                <div class="col-md-4">
+                                    <h5>Game Type</h5>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>Oracle</h5>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>Players</h5>
+                                </div>
+                            </div>
+                            <div class="row mt-1">
+                                <div class="col-md-4">@session.Key.Options.GameMode</div>
+                                <div class="col-md-4">
+                                    @session.Key.Options.Oracle:
+                                    @(session.Key.Options.IsOracleAI() ? session.Key.Options.AI_Type :
+                                        session.Value.ChosenOracle.UserName)
+                                </div>
+                                <div class="col-md-4">@session.Key.SessionUsers.Count / @session.Key.Options.LobbySize</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        @if (session.Key.SessionUsers.Count < session.Key.Options.LobbySize)
+                        {
+                            <button session-Id="@session.Key.Id" type="submit" class="btn btn-success joinSessionButton">Join
+                                Lobby</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-danger" disabled>Full</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 
 </div>
+
+@section Scripts {
+    <script type="module" src="~/js/SessionList.js"></script>
+}
