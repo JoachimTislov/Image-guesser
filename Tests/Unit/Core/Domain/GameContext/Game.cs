@@ -16,7 +16,7 @@ public class GameTests
         Assert.Equal(Guid.Empty, game.SessionId);
         Assert.Empty(game.Guessers);
         Assert.Equal(string.Empty, game.GameMode);
-        Assert.False(game.IsGameOver());
+        Assert.False(game.IsFinished);
 
         Assert.IsType<Game<object>>(game);
 

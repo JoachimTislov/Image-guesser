@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Image_guesser.Core.Domain.ImageContext.Repository;
+using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
@@ -7,24 +7,52 @@ using Image_guesser.Core.Domain.UserContext.Services;
 
 namespace Image_guesser.Core.Domain.SessionContext.Services;
 
-public class SessionService(ISessionRepository sessionRepository, IUserService userService, IImageRepository imageRepository) : ISessionService
+public class SessionService(ISessionRepository sessionRepository, IUserService userService, IImageService imageService) : ISessionService
 {
     private readonly ISessionRepository _sessionRepository = sessionRepository ?? throw new ArgumentNullException(nameof(sessionRepository));
     private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-    private readonly IImageRepository _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
+    private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
+
 
     public async Task CreateSession(ClaimsPrincipal User, Guid Id)
     {
         var user = await _userService.GetUserByClaimsPrincipal(User);
+        var ImageId = await _imageService.GetRandomImageIdentifier();
 
-        Session session = new(user, Id);
+        Session session = new(user, Id, ImageId);
 
         await _sessionRepository.AddSession(session);
+    }
+
+    public async Task BackToLobbyEvent(Guid Id)
+    {
+        var session = await GetSessionById(Id);
+
+        session.Options.ResetAmountOfGamesPlayed();
+        session.InLobby();
+
+        await UpdateSession(session);
+    }
+
+    public async Task<List<User>> GetUsersInSessionById(Guid Id)
+    {
+        return await _sessionRepository.GetUsersInSessionById(Id);
     }
 
     public async Task<Session> GetSessionById(Guid Id)
     {
         return await _sessionRepository.GetSessionById(Id);
+    }
+
+    public async Task<Guid> GetSessionHostIdById(Guid Id)
+    {
+        return await _sessionRepository.GetSessionHostIdBySessionId(Id);
+    }
+
+    public async Task<bool> CheckIfSessionHasReachedSetNumberOfGamesToPlay(Guid Id)
+    {
+        var session = await GetSessionById(Id);
+        return session.HasPlayedSetAmountGames;
     }
 
     public async Task UpdateSession(Session session)
@@ -36,7 +64,7 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
     {
         var session = await GetSessionById(Id);
 
-        await session.Options.SetOptionsValues(options, _imageRepository);
+        session.Options.SetOptionsValues(options);
 
         await UpdateSession(session);
     }
@@ -46,6 +74,20 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         var session = await GetSessionById(sessionId);
 
         return session.Options.IsOracleAI();
+    }
+
+    public async Task<bool> CheckIfUserIsOracle(Guid sessionId, Guid userId)
+    {
+        var session = await GetSessionById(sessionId);
+
+        return session.UserIsOracle(userId);
+    }
+
+    public async Task<bool> CheckIfUserIsSessionHost(Guid sessionId, Guid userId)
+    {
+        var session = await GetSessionById(sessionId);
+
+        return session.UserIsSessionHost(userId);
     }
 
     public async Task UpdateChosenOracleIfUserWasOracle(Guid sessionId, Guid userId)
@@ -58,34 +100,38 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         }
     }
 
-    public async Task<bool> AddUserToSession(string userId, string sessionId)
+    public async Task AddUserToSession(string userId, string sessionId)
     {
         User user = await _userService.GetUserById(userId);
         var session = await GetSessionById(Guid.Parse(sessionId));
-        if (session.SessionUsers.Contains(user))
-        {
-            return false;
-        }
-        else
-        {
-            session.SessionUsers.Add(user);
-            await UpdateSession(session);
 
-            await _userService.UpdateUser(user);
-
-            return true;
+        if (!session.AddUser(user))
+        {
+            // Do something if user is already added ? 
+            return;
         }
+
+        await UpdateSessionAndUser(session, user);
     }
 
-    public async Task<bool> RemoveUserFromSession(User user, string sessionId)
+    private async Task UpdateSessionAndUser(Session session, User user)
     {
-        var session = await GetSessionById(Guid.Parse(sessionId));
-        var result = session.SessionUsers.Remove(user);
         await UpdateSession(session);
-
         await _userService.UpdateUser(user);
+    }
 
-        return result;
+    public async Task RemoveUserFromSession(string userId, string sessionId)
+    {
+        User user = await _userService.GetUserById(userId);
+        var session = await GetSessionById(Guid.Parse(sessionId));
+
+        if (!session.RemoveUser(user))
+        {
+            // No user to remove...
+            return;
+        }
+
+        await UpdateSessionAndUser(session, user);
     }
 
     public async Task DeleteSessionById(Guid Id)

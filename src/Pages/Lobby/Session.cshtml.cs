@@ -2,7 +2,9 @@ using Image_guesser.Core.Domain.GameContext.Events;
 using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
+using Image_guesser.Core.Domain.SessionContext.Events;
 using Image_guesser.Core.Domain.SessionContext.Services;
+using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
 using MediatR;
@@ -23,6 +25,8 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
     [BindProperty(SupportsGet = true)]
     public Guid Id { get; set; }
+
+    public List<string> SessionErrorMessages { get; set; } = [];
 
     public Session Session { get; set; } = null!;
     public User SessionHost { get; set; } = null!;
@@ -50,10 +54,30 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
     public async Task OnPostStartGame()
     {
-        _logger.LogInformation("{Name} started a game in a session with Id: {Id}", User.Identity!.Name, Id);
+        var session = await _sessionService.GetSessionById(Id);
 
-        Session = await _sessionService.GetSessionById(Id);
+        if (!session.Options.IsGameMode(GameMode.SinglePlayer) && session.SessionUsers.Count < 2)
+        {
+            SessionErrorMessages.Add("Need more players to start a game");
+        }
+        else if (session.HasPlayedSetAmountGames)
+        {
+            SessionErrorMessages.Add("Reached set games limit, increase it to start a new game");
+        }
+        else
+        {
+            _logger.LogInformation("{Name} started a game in a session with Id: {Id}", User.Identity!.Name, Id);
+            await _mediator.Publish(new CreateGame(Id));
+        }
+    }
 
-        await _mediator.Publish(new CreateGame(Session));
+    public async Task OnPostCloseSession()
+    {
+        await _mediator.Publish(new SessionClosed(Id));
+    }
+
+    public async Task OnPostRemoveUserFromSession(string userId)
+    {
+        await _mediator.Publish(new UserLeftSessionOrWasKicked(userId, Id));
     }
 }

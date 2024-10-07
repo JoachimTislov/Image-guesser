@@ -27,6 +27,12 @@ public class UserService(UserManager<User> userManager, IRepository repository) 
         return await _userManager.GetUserAsync(User) ?? throw new EntityNotFoundException($"User with ClaimsPrincipal: {User} was not found");
     }
 
+    public Guid GetUserIdByClaimsPrincipal(ClaimsPrincipal User)
+    {
+        var Id = _userManager.GetUserId(User) ?? throw new EntityNotFoundException($"UserId with ClaimsPrincipal: {User} was not found");
+        return Guid.Parse(Id);
+    }
+
     public async Task<User> GetUserById(string Id)
     {
         return await _userManager.FindByIdAsync(Id) ?? throw new EntityNotFoundException($"User with ID: {Id} was not found");

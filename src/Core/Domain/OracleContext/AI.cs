@@ -14,8 +14,8 @@ public class AI : BaseEntity
         NumbersForImagePieces = numbersForImagePieces;
         AI_Type = type;
     }
-    public Guid Id { get; set; }
+    public Guid Id { get; private set; }
     public int[] NumbersForImagePieces { get; private set; } = [];
-    public AI_Type AI_Type { get; set; }
+    public AI_Type AI_Type { get; private set; }
 }
 

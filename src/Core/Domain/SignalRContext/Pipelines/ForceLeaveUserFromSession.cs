@@ -13,12 +13,10 @@ public class ForceLeaveUserFromSession
     public record Request(User User, Session Session, bool ClosedSession) : IRequest;
 
     public class Handler(
-            IMediator mediator,
             ISessionService sessionService,
             IConnectionMappingService connectionMappingService,
             IHubContext<GameHub, IGameClient> hubContext) : IRequestHandler<Request>
     {
-        private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
         private readonly IConnectionMappingService _connectionMappingService = connectionMappingService ?? throw new ArgumentNullException(nameof(connectionMappingService));
         private readonly IHubContext<GameHub, IGameClient> _hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
@@ -44,7 +42,7 @@ public class ForceLeaveUserFromSession
             else
             {
                 Console.WriteLine($"Remove user: {request.User.UserName} from the session");
-                await _sessionService.RemoveUserFromSession(request.User, request.Session.Id.ToString());
+                await _sessionService.RemoveUserFromSession(request.User.Id.ToString(), request.Session.Id.ToString());
             }
 
             // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end

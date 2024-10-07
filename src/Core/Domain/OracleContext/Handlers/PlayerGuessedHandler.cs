@@ -1,54 +1,38 @@
 using Image_guesser.Core.Domain.GameContext.Events;
-using Image_guesser.Core.Domain.GameContext.Services;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext.Services;
-using Image_guesser.Core.Domain.SessionContext.Services;
-using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.OracleContext.Handlers;
 
-public class PlayerGuessedHandler(IRepository repository, IImageService imageService, IGameService gameService, ISessionService sessionService, IOracleService oracleService) : INotificationHandler<PlayerGuessed>
+public class PlayerGuessedHandler(IRepository repository, IImageService imageService, IOracleService oracleService, IMediator mediator) : INotificationHandler<PlayerGuessed>
 {
     private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
-    private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
-    private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
     private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
+    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+
 
     public async Task Handle(PlayerGuessed notification, CancellationToken cancellationToken)
     {
-        var OracleIsAI = await _sessionService.CheckIfOracleIsAI(notification.SessionId);
+        var oracle = await _oracleService.GetBaseOracleById(notification.OracleId);
+        oracle.IncrementGuesses();
+        await _repository.Update(oracle);
 
-        Guid OracleId;
+        var ImageRecord = await _imageService.GetImageRecordById(oracle.ImageIdentifier);
 
-        if (OracleIsAI)
-        {
-            OracleId = (await _gameService.GetGameById<AI>(notification.GameId)).Oracle.Entity.Id;
-        }
-        else
-        {
-            OracleId = (await _gameService.GetGameById<User>(notification.GameId)).Oracle.Entity.Id;
-        }
-
-        var Oracle = await _oracleService.GetBaseOracleById(OracleId);
-
-        Oracle.IncrementGuesses();
-        await _repository.Update(Oracle);
-
-        var ImageRecord = await _imageService.GetImageRecordById(Oracle.ImageIdentifier);
-        var game = await _gameService.GetBaseGameById(notification.GameId);
-        if (ImageRecord.Name == notification.Guess)
+        if (_oracleService.CheckGuess(notification.Guess, ImageRecord.Name))
         {
             //Calculating amount of unrevealed tiles
-            var points = ImageRecord.PieceCount - Oracle.NumberOfTilesRevealed;
+            var points = _oracleService.CalculatePoints(ImageRecord.PieceCount, oracle.NumberOfTilesRevealed);
 
-            game.Events.Add(new GameFinished(game, Guid.Parse(notification.GuesserId), points));
+            await _mediator.Publish(new PlayerGuessedCorrectly(notification.GuesserId, points, notification.GameId), cancellationToken);
+            await _mediator.Publish(new GameFinished(notification.GameId, notification.SessionId));
         }
         else
         {
-            game.Events.Add(new PlayerGuessedIncorrectly(Guid.Parse(notification.GuesserId), notification.GameId));
+            await _mediator.Publish(new PlayerGuessedIncorrectly(notification.GuesserId, notification.GameId), cancellationToken);
         }
     }
 }

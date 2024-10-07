@@ -1,11 +1,140 @@
-@page "/Game/{Id:guid}"
+@page "/Lobby/{SessionId:guid}/Game/{GameId:guid}"
+@using Newtonsoft.Json
 @model GameModel
 @{
     ViewData["Title"] = "Game page";
+
+    var gamePageTitle = $"Game - {(Model.UserIsOracle ? "You are Oracle - " : "")}{Model.Player.UserName}";
+
+    var gameIsSinglePlayer = Model.BaseGame.GameMode == "SinglePlayer";
+    var gameIsFreeForAll = Model.BaseGame.GameMode == "FreeForAll";
+
+    var gameIsAIAndPlayerIsSessionHost = Model.GameAI != null && Model.UserIsSessionHost;
 }
 
 <div class="text-center">
 
-    <h1 class="display-4"> @ViewData["Title"] </h1>
+    <h1 class="display-4"> @gamePageTitle </h1>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-20">
+                <div class="row">
+                    <div class="col-8">
+                        <div class="card" style="height: 750px">
+                            @{
+                                var header = !Model.UserIsOracle || Model.OracleIsAI ? "Guess The Image" : "Oracle, use your insight to reveal the best image pieces for guessing!";
+                            }
+                            <div class="card-header">@header, TEMP Name: @Model.ImageRecord.Name</div>
+                            <div class="card-body d-flex justify-content-center align-items-center" id="imageList"
+                                style="position: relative; z-index: 10;"></div>
+
+                            <div class="card-footer">
+                                @{
+                                    //Statement
+                                    var sm = Model.UserIsOracle || gameIsSinglePlayer || gameIsAIAndPlayerIsSessionHost;
+                                }
+
+                                <form method="post"
+                                    asp-page-handler="@(sm ? "ReturnToLobby" : "LeaveGame")">
+                                    <input class="btn btn-danger float-start" type="submit"
+                                        value=" @(sm ? "Return To Lobby" : "Leave Game")" />
+                                </form>
+
+                                @if (gameIsAIAndPlayerIsSessionHost)
+                                {
+                                    <!--<input class="btn btn-success" type="button" id="RequestNewAI"
+                                                                        value="Restart game with new AI" />-->
+
+                                    var NotFreeForAllOrIsSinglePlayer = !gameIsFreeForAll || gameIsSinglePlayer;
+
+                                    <input class="btn btn-success" type="button"
+                                        id="@(NotFreeForAllOrIsSinglePlayer ? "showOneMore" : "ShowNextPieceForAll")"
+                                        value="@(NotFreeForAllOrIsSinglePlayer ? "Reveal Next Tile" : "Reveal Next Tile For All Players")" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card" style="height: 100%;">
+                            <div class="card-header">Guesses</div>
+                            <div class="card-body">
+                                <div id="guessingDiv" style="max-height: 625px;" class="overflow-y-auto"></div>
+                            </div>
+                            @if (!Model.UserIsOracle || Model.OracleIsAI)
+                            {
+                                <div class="card-footer input-group">
+                                    <input type="text" id="answerInput" class="form-control" />
+                                    <input class="btn btn-info" type="submit" id="guessButton" value="Guess" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div class="modal fade" id="victoryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Game round Ended</h5>
+                </div>
+                <div class="modal-body">
+                    <h6 id="winningPlayer"></h6>
+                    <img src="~/@Model.ImageRecord.Link" style="width: 200px; height: 200px;" class="rounded" />
+                    <h5 id="modalAnswer"></h5>
+                </div>
+                <div class="modal-footer">
+
+                    <form method="post"
+                        asp-page-handler="@(Model.HasPlayedSetAmountGames ? "ReturnToLobby" : "CreateGame")">
+                        <button type="submit"
+                            class="float-start btn btn-@(Model.HasPlayedSetAmountGames ? "danger" : "success")">
+                            @(Model.HasPlayedSetAmountGames ? "Return To Lobby" : "Next Round")
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
+
+@section Scripts {
+
+    @*Transfer variables to javascript*@
+
+    <script>
+        var sessionId = '@Model.BaseGame.SessionId';
+        var userId = '@Model.Player.Id';
+        var guesserId = '@(Model.Guesser != null ? Model.Guesser.Id : null)';
+        var gameId = '@Model.BaseGame.Id';
+        var imageIdentifier = '@Model.ImageRecord.Identifier';
+        var gameMode = '@Model.BaseGame.GameMode';
+        var imagePiecesFolderPath = '@Model.ImageRecord.FolderWithImagePiecesLink.ToString()';
+        var oracleIsAI = '@Model.OracleIsAI.ToString().ToLower()' === 'true';
+        var oracleId = '@(Model.OracleIsAI ? Model.GameAI!.Oracle.Id : Model.GameUser!.Oracle.Id)';
+        var oracleEntityId = '@(Model.OracleIsAI ? Model.GameAI!.Oracle.Entity.Id : Model.GameUser!.Oracle.Entity.Id)';
+        var numberOfTilesRevealed = '@Model.NumberOfTilesRevealed';
+
+        var oracleAI_Array_NumbersForImagePieces = @(Model.GameAI != null ? Html.Raw(JsonConvert.SerializeObject(Model.GameAI.Oracle.Entity.NumbersForImagePieces)) : "null");
+        oracleAI_Array_NumbersForImagePieces = oracleAI_Array_NumbersForImagePieces || "Oracle AI Array not found";
+        console.log(oracleAI_Array_NumbersForImagePieces);
+
+        var availablePiecesOfImage = @Html.Raw(Model.ImagePieceList);
+        availablePiecesOfImage = availablePiecesOfImage || "availablePiecesOfImage not found";
+        console.log(availablePiecesOfImage);
+
+        var imageCoordinates = @(Model.ImageCoordinates != null ? Html.Raw(Model.ImageCoordinates) : "null");
+        imageCoordinates = imageCoordinates || "ImageCoordinates not found";
+        console.log(imageCoordinates);
+    </script>
+
+    <script type="module" src="~/js/game.js"></script>
+}

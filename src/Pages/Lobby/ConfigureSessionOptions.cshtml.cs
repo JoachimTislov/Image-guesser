@@ -1,5 +1,6 @@
 using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
+using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -42,7 +43,7 @@ public class ConfigureSessionOptionsModel(ILogger<ConfigureSessionOptionsModel> 
             ImageRecords = await _imageService.GetXAmountOfImageRecords(AmountOfPicturesToLoad);
         }
 
-        if (!Options.RandomPictureMode)
+        if (Options.PictureMode == PictureMode.Specific)
         {
             ImageRecord = await _imageService.GetImageRecordById(Options.ImageIdentifier);
         }
@@ -57,6 +58,12 @@ public class ConfigureSessionOptionsModel(ILogger<ConfigureSessionOptionsModel> 
 
     public async Task<IActionResult> OnPostModifyAsync()
     {
+        // Handles case where the user switches to specific from random picture mode and back to random picture mode
+        if (Options.PictureMode == PictureMode.Random)
+        {
+            Options.ImageIdentifier = await _imageService.GetRandomImageIdentifier();
+        }
+
         await _sessionService.UpdateSessionOptions(Id, Options);
 
         return RedirectToPage("/Lobby/Session", new { Id });

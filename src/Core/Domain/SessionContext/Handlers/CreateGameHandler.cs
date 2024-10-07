@@ -10,9 +10,10 @@ public class CreateGameHandler(ISessionService sessionService) : INotificationHa
 
     public async Task Handle(CreateGame notification, CancellationToken cancellationToken)
     {
-        notification.Session.InGame();
-        notification.Session.Options.DecrementNumberOfRounds();
+        var session = await _sessionService.GetSessionById(notification.SessionId);
 
-        await _sessionService.UpdateSession(notification.Session);
+        session.InGame();
+
+        await _sessionService.UpdateSession(session);
     }
 }

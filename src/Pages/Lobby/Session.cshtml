@@ -1,5 +1,6 @@
 @page "/Lobby/{Id:guid}"
 @using Image_guesser.SharedKernel
+@using Image_guesser.Core.Domain.SessionContext;
 @model SessionModel
 @{
     ViewData["Title"] = "Lobby";
@@ -9,9 +10,22 @@
 
     <h1 class="display-4"> @ViewData["Title"] </h1>
 
+    @if (Model.SessionErrorMessages.Count > 0)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-1" role="alert">
+            <ul>
+                @foreach (var error in Model.SessionErrorMessages)
+                {
+                    <li> @error </li>
+                }
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="d-flex justify-content-evenly">
 
-        @if (!Model.Session.Options.RandomPictureMode && Model.ImageRecord != null)
+        @if (Model.ImageRecord != null && Model.Session.Options.PictureMode == PictureMode.Specific)
         {
             <div class="col-3">
                 <div class="card">
@@ -59,13 +73,17 @@
 
             <div class="input-group m-1">
                 <label class="input-group-text"> Picture Mode: </label>
-                <input class="form-control text-center" value="@(Model.Session.Options.RandomPictureMode || Model.ImageRecord == null ? "Random" :
-               "A Specific image")" disabled>
+                <input class="form-control text-center" value="@Model.Session.Options.PictureMode" disabled>
             </div>
 
             <div class="input-group m-1">
-                <label class="input-group-text"> Number Of Rounds: </label>
-                <input class="form-control text-center" value="@Model.Session.Options.NumberOfRounds" disabled>
+                <label class="input-group-text"> Set Game Limit: </label>
+                <input class="form-control text-center" value="@Model.Session.Options.NumberOfGamesToPlay" disabled>
+            </div>
+
+            <div class="input-group m-1">
+                <label class="input-group-text"> Completed Games: </label>
+                <input class="form-control text-center" value="@Model.Session.Options.AmountOfGamesPlayed" disabled>
             </div>
         </div>
 
@@ -78,7 +96,7 @@
                         <th> Name </th>
                         <th> Total Wins </th>
                         <th> Average Points </th>
-                        @if (Model.SessionHost.Id != Model.Player.Id)
+                        @if (Model.SessionHost.Id == Model.Player.Id)
                         {
                             <th></th>
                         }
@@ -99,9 +117,15 @@
                             @if (Model.SessionHost.Id == Model.Player.Id && Model.SessionHost.Id != users[i].Id)
                             {
                                 <td>
-                                    <button type="button" class="btn btm-md btn-danger kickButton" user-Id="@users[i].Id">
-                                        Kick
-                                    </button>
+                                    <form method="post" asp-page-handler="RemoveUserFromSession">
+
+                                        <input name="userId" value="@users[i].Id" hidden>
+
+                                        <button type="submit" class="btn btn-danger">
+                                            Kick
+                                        </button>
+
+                                    </form>
                                 </td>
                             }
                         </tr>
@@ -113,14 +137,26 @@
     </div>
     <div class="d-flex justify-content-center m-2">
         <div class="d-flex flex-column col-3">
-            <a class="btn btn-primary" asp-page="/Lobby/ConfigureSessionOptions" asp-route-text="Edit"
-                asp-route-id="@Model.Id"> Configure Settings
-            </a>
+
+
+            @if (Model.SessionHost.Id == Model.Player.Id)
+            {
+                <a class="btn btn-primary" asp-page="/Lobby/ConfigureSessionOptions" asp-route-text="Edit"
+                    asp-route-id="@Model.Id"> Configure Settings
+                </a>
+            }
 
             <div class="d-flex mt-3">
                 @if (Model.SessionHost.Id == Model.Player.Id)
                 {
-                    <button id="closeLobbyButton" type="button" class="btn btn-danger"> Close Lobby </button>
+
+                    <form method="post" asp-page-handler="CloseSession">
+
+                        <button type="submit" class="btn btn-danger">
+                            Close Lobby
+                        </button>
+
+                    </form>
 
                     <form method="post" class="ms-auto" asp-page-handler="Startgame">
                         <button type="submit" class="btn btn-success" id="startGameButton">
@@ -130,9 +166,15 @@
                 }
                 else
                 {
-                    <button id="leaveLobbyButton" type="button" class="btn btn-danger">
-                        Leave Lobby
-                    </button>
+                    <form method="post" asp-page-handler="RemoveUserFromSession">
+
+                        <input name="userId" value="@Model.Player.Id" hidden>
+
+                        <button type="submit" class="btn btn-danger">
+                            Leave Lobby
+                        </button>
+
+                    </form>
                 }
             </div>
 

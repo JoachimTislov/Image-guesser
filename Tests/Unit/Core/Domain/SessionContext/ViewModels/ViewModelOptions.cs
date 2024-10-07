@@ -8,26 +8,6 @@ namespace Tests.Unit.Core.Domain.SessionContext.ViewModels;
 public class ViewModelOptionsTests
 {
     [Fact]
-    public void EmptyConstructor_ShouldHaveInitializedValues()
-    {
-        var ViewModelOptions = new ViewModelOptions();
-
-        var number = 0;
-
-        Assert.Equal(number, ViewModelOptions.NumberOfRounds);
-        Assert.Equal(number, ViewModelOptions.LobbySize);
-        Assert.True(ViewModelOptions.IsGameMode(GameMode.SinglePlayer));
-
-        Assert.False(ViewModelOptions.RandomUserOracle);
-        Assert.Equal(AI_Type.Random, ViewModelOptions.AI_Type);
-
-        Assert.True(ViewModelOptions.IsOracleAI());
-
-        Assert.False(ViewModelOptions.RandomPictureMode);
-        Assert.Empty(ViewModelOptions.ImageIdentifier);
-    }
-
-    [Fact]
     public void ConstructorWithOptions_ShouldHaveTheSameInitializedValues()
     {
 
@@ -36,7 +16,7 @@ public class ViewModelOptionsTests
 
         var number = 1;
 
-        Assert.Equal(number, ViewModelOptions.NumberOfRounds);
+        Assert.Equal(number, ViewModelOptions.NumberOfGamesToPlay);
         Assert.Equal(number, ViewModelOptions.LobbySize);
         Assert.True(ViewModelOptions.IsGameMode(GameMode.SinglePlayer));
 
@@ -44,7 +24,7 @@ public class ViewModelOptionsTests
         Assert.True(ViewModelOptions.IsOracleAI());
         Assert.Equal(AI_Type.Random, ViewModelOptions.AI_Type);
 
-        Assert.True(ViewModelOptions.RandomPictureMode);
+        Assert.Equal(PictureMode.Random, ViewModelOptions.PictureMode);
         Assert.Empty(ViewModelOptions.ImageIdentifier);
     }
 }

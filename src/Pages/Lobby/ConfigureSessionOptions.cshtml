@@ -7,6 +7,8 @@
 @model ConfigureSessionOptionsModel
 @{
     ViewData["Title"] = @Model.RouteData.Values["text"] + " Lobby";
+
+    var hide = "hide";
 }
 
 <div class="d-flex justify-content-center align-content-center">
@@ -26,15 +28,14 @@
             var IsFreeForAll = Model.Options.IsGameMode(GameMode.FreeForAll);
         }
 
-        <div id="selectOracleTypeContainer" class="d-flex input-group mt-2 @(IsFreeForAll ? "" : "hide")">
+        <div id="selectOracleTypeContainer" class="d-flex input-group mt-2 @(IsFreeForAll ? "" : hide)">
             <label class="input-group-text" for="selectOracleType"> Oracle Type: </label>
             <select asp-for="Options.Oracle" asp-items="Html.GetEnumSelectList<OracleTypes>()" id="selectOracleType"
-                using Image_guesser.Core.Domain.ImageContext; class="form-select text-center"
-                onchange="OracleTypeChange()">
+                class="form-select text-center" onchange="OracleTypeChange()">
             </select>
         </div>
 
-        <div id="infoOracleType" class="d-flex input-group mt-2 @(IsFreeForAll ? "hide" : "")">
+        <div id="infoOracleType" class="d-flex input-group mt-2 @(IsFreeForAll ? hide : "")">
             <label class="input-group-text" for="infoOracleInput">Oracle Type: </label>
             <input id="infoOracleInput" class="form-control text-center" value="@Model.Options.Oracle" disabled>
         </div>
@@ -42,7 +43,7 @@
         @{
             var randomUserOracleClass =
             Model.Options.IsGameMode(GameMode.SinglePlayer) ||
-            Model.Options.IsOracleAI() ? "hide" : string.Empty;
+            Model.Options.IsOracleAI() ? hide : string.Empty;
         }
 
         <div class="form-check m-1 @randomUserOracleClass" id="RandomUserOracle">
@@ -51,37 +52,36 @@
         </div>
 
         @{
-            var pickAIClass = Model.Options.IsOracleAI() ? string.Empty : "hide";
+            var pickAIClass = Model.Options.IsOracleAI() ? string.Empty : hide;
         }
 
         <div class="d-flex input-group mt-2 @pickAIClass" id="pickAI">
             <label class="input-group-text" for="selectAI"> Type of AI: </label>
-            <select class="form-select" asp-for="Options.AI_Type" asp-items="Html.GetEnumSelectList<AI_Type>()"
-                id="selectAI">
+            <select class="form-select text-center" asp-for="Options.AI_Type"
+                asp-items="Html.GetEnumSelectList<AI_Type>()" id="selectAI">
             </select>
         </div>
 
-        <div class="form-check m-1 @(Model.Options.IsGameMode(GameMode.SinglePlayer) ? "hide" : string.Empty)"
-            id="RandomPictureMode">
-            <label for="randomPictureCheckBox"> Random Picture Mode </label>
-            <input onchange="ToggleRandomPictureMode()" type="checkbox" class="form-check-input"
-                asp-for="Options.RandomPictureMode" id="randomPictureCheckBox">
+        <div id="PictureMode"
+            class="d-flex input-group mt-2  @(Model.Options.IsGameMode(GameMode.SinglePlayer) ? hide : string.Empty)">
+            <label class="input-group-text" for="selectPictureMode"> Picture Mode: </label>
+            <select asp-for="Options.PictureMode" asp-items="Html.GetEnumSelectList<PictureMode>()"
+                id="selectPictureMode" class="form-select text-center" onchange="TogglePictureMode()">
+            </select>
         </div>
 
-        <div class="@(Model.Options.RandomPictureMode || Model.Options.IsGameMode(GameMode.SinglePlayer) ? "hide" : "")"
+        <div class="@(Model.Options.PictureMode == PictureMode.Random || Model.Options.IsGameMode(GameMode.SinglePlayer) ? hide : "")"
             id="ImageContainer">
 
-            <input asp-for="Options.ImageIdentifier" id="imageIdentifier" hidden />
+            <input asp-for="Options.ImageIdentifier" value="@Model.Options.ImageIdentifier" id="imageIdentifier"
+                hidden />
             <input asp-for="ImageRecord.Link" id="imageLink" hidden />
 
             @{
                 var NotSelectedImage = Model.ImageRecord.Link == string.Empty;
             }
 
-            <div id="selectedImageContainer" class="@(NotSelectedImage ? "hide" : "")">
-
-                <h4> Selected Image </h4>
-
+            <div id="selectedImageContainer" class="@(NotSelectedImage ? hide : "")">
                 <div class="d-flex input-group mt-2">
                     <label class="input-group-text" for="selectedImageName"> Name: </label>
                     <input asp-for="ImageRecord.Name" id="selectedImageName" class="form-control text-center"
@@ -107,7 +107,7 @@
                                 {
                                     <button type="button" data-bs-dismiss="modal" class="btn position-relative"
                                         id="@image.Identifier"
-                                        onclick="UserSelectedImage('@image.Link', '@image.Name', '@image.Identifier')">
+                                        onclick="UserSelectedImage('@image.Link.Replace("\\", "/")', '@image.Name', '@image.Identifier')">
                                         <img src="~/@image.Link" class="rounded" width="100px" height="100px" />
                                     </button>
                                 }
@@ -140,14 +140,14 @@
         </div>
 
         <div class="mt-5">
-            <label for="numberOfRounds" class="form-label">Number of Rounds (<span
-                    id="numberOfRoundsValue">@Model.Options.NumberOfRounds</span>)</label>
-            <input asp-for="Options.NumberOfRounds" type="range" class="form-range" min="1" max="10" id="numberOfRounds"
-                oninput="numberOfRoundsChange()">
+            <label for="numberOfGames" class="form-label"> Number of Games (<span
+                    id="numberOfGamesValue">@Model.Options.NumberOfGamesToPlay</span>)</label>
+            <input asp-for="Options.NumberOfGamesToPlay" type="range" class="form-range" min="1" max="100"
+                id="numberOfGames" oninput="numberOfGamesChange()">
         </div>
 
         @{
-            var LobbyPlayerLimitClass = Model.Options.IsGameMode(GameMode.FreeForAll) ? string.Empty : "hide";
+            var LobbyPlayerLimitClass = Model.Options.IsGameMode(GameMode.FreeForAll) ? string.Empty : hide;
         }
 
         <div class="m-1 @LobbyPlayerLimitClass" id="lobbyPlayerLimit">

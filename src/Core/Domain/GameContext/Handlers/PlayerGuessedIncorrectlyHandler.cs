@@ -14,7 +14,7 @@ public class PlayerGuessedIncorrectlyHandler(IGameService gameService, IReposito
     {
         var guesser = await _gameService.GetGuesserById(notification.GuesserId);
 
-        if (guesser.ReachedMaxWrongGuess())
+        if (guesser.ReachedMaxWrongGuesses())
         {
             // Oracles Turn, how should it be handled in multiplayer game ? 
             // await _mediator.Publish(new OraclesTurn(notification.GameId), cancellationToken);

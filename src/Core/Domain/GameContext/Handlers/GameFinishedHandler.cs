@@ -1,6 +1,5 @@
 using Image_guesser.Core.Domain.GameContext.Events;
 using Image_guesser.Core.Domain.GameContext.Services;
-using Image_guesser.Infrastructure;
 using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
@@ -13,15 +12,10 @@ public class GameFinishedHandler(IGameService gameService, IRepository repositor
 
     public async Task Handle(GameFinished notification, CancellationToken cancellationToken)
     {
-        Guesser guesser = await _gameService.GetGuesserById(notification.GuesserId);
-        TimeSpan speed = DateTime.Now - notification.Game.TimeOfCreation;
+        BaseGame game = await _gameService.GetBaseGameById(notification.GameId);
 
-        guesser.TimeSpan = speed;
-        guesser.Points = notification.Points;
-        await _repository.Update(guesser);
+        game.GameOver();
 
-        notification.Game.GameOver();
-
-        await _repository.Update(notification.Game);
+        await _repository.Update(game);
     }
 }

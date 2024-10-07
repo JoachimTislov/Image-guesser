@@ -9,57 +9,61 @@
 
     <h1 class="display-4"> @ViewData["Title"] </h1>
 
-    <div class="d-flex flex-wrap">
+    <div class="d-flex flex-wrap justify-content-center">
         @foreach (var session in Model.SessionHosts)
         {
-            <div class="col-md-4">
-                <div class="card m-2">
-                    <h4 class="card-header">@session.Value.Host.UserName's Lobby</h4>
-                    <div class="card-body">
-                        <div class="container">
-                            <div class="mb-3 d-flex justify-content-center">
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <label class="input-group-text" for="status">Status: </label>
-                                        <input class="form-control text-center"
-                                            value="@session.Key.SessionStatus.GetDisplayName()" disabled>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mt-1">
-                                <div class="col-md-4">
-                                    <h5>Game Type</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <h5>Oracle</h5>
-                                </div>
-                                <div class="col-md-4">
-                                    <h5>Players</h5>
-                                </div>
-                            </div>
-                            <div class="row mt-1">
-                                <div class="col-md-4">@session.Key.Options.GameMode</div>
-                                <div class="col-md-4">
-                                    @session.Key.Options.Oracle:
-                                    @(session.Key.Options.IsOracleAI() ? session.Key.Options.AI_Type :
-                                        session.Value.ChosenOracle.UserName)
-                                </div>
-                                <div class="col-md-4">@session.Key.SessionUsers.Count / @session.Key.Options.LobbySize</div>
-                            </div>
+            <div class="card m-2 col-md-5">
+                <h4 class="card-header">@session.Value.Host.UserName's Lobby</h4>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-center">
+                        <div class="col-md-6">
+                            <input class="form-control text-center" value="@session.Key.SessionStatus.GetDisplayName()"
+                                disabled>
                         </div>
                     </div>
+                    <table class="table">
 
-                    <div class="card-footer">
+                        <tr>
+                            <th>
+                                <h5>Mode</h5>
+                            </th>
+                            <th>
+                                <h5>Oracle</h5>
+                            </th>
+                            <th>
+                                <h5>Players</h5>
+                            </th>
+                        </tr>
+
+                        <tr>
+                            <td> @session.Key.Options.GameMode </td>
+                            <td> @session.Key.Options.Oracle:
+                                @(session.Key.Options.IsOracleAI() ? session.Key.Options.AI_Type :
+                                    session.Value.ChosenOracle.UserName) </td>
+                            <td> @session.Key.SessionUsers.Count / @session.Key.Options.LobbySize </td>
+                        </tr>
+
+                    </table>
+                </div>
+
+                <div class="card-footer">
+                    @if(Model.Player.Id == session.Key.SessionHostId && session.Key.SessionUsers.Contains(Model.Player))
+                    {
+                        <a class="btn btn-success" asp-page="/Lobby/Session" asp-route-Id="@session.Key.Id"> Return to lobby </a>
+                    }
+                    else
+                    {
                         @if (session.Key.SessionUsers.Count < session.Key.Options.LobbySize)
                         {
-                            <button session-Id="@session.Key.Id" type="submit" class="btn btn-success joinSessionButton">Join
+                            <button session-Id="@session.Key.Id" type="submit" class="btn btn-primary joinSessionButton">Join
                                 Lobby</button>
                         }
                         else
                         {
                             <button class="btn btn-danger" disabled>Full</button>
                         }
-                    </div>
+                    }
+
                 </div>
             </div>
         }

@@ -4,15 +4,17 @@ namespace Image_guesser.Core.Domain.GameContext.Events;
 
 public record PlayerGuessed : BaseDomainEvent
 {
-    public PlayerGuessed(Guid sessionId, string guess, string guesserId, Guid gameId)
+    public PlayerGuessed(Guid oracleId, string guess, Guid guesserId, Guid gameId, Guid sessionId)
     {
-        SessionId = sessionId;
+        OracleId = oracleId;
         Guess = guess;
         GuesserId = guesserId;
         GameId = gameId;
+        SessionId = sessionId;
     }
-    public Guid SessionId { get; }
+    public Guid OracleId { get; }
     public string Guess { get; }
-    public string GuesserId { get; }
+    public Guid GuesserId { get; }
     public Guid GameId { get; }
+    public Guid SessionId { get; }
 }

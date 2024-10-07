@@ -15,10 +15,10 @@ public class ImageRecord : BaseEntity
         PieceCount = pieceCount;
     }
 
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Identifier { get; set; } = string.Empty;
+    public Guid Id { get; private set; }
+    public string Name { get; private set; } = string.Empty;
+    public string Identifier { get; private set; } = string.Empty;
     public string Link { get; set; } = string.Empty;
     public string FolderWithImagePiecesLink { get; set; } = string.Empty;
-    public int PieceCount { get; set; }
+    public int PieceCount { get; private set; }
 }

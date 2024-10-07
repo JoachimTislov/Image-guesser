@@ -1,5 +1,6 @@
 
 using Image_guesser.Core.Domain.UserContext;
+using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 
 namespace Image_guesser.Core.Domain.SessionContext.Repository;
@@ -18,14 +19,28 @@ public class SessionRepository(IRepository repository) : ISessionRepository
         await _repository.Update(session);
     }
 
+    public async Task<List<User>> GetUsersInSessionById(Guid Id)
+    {
+        return await _repository.WhereAndSelect_SingleOrDefault<Session, Guid, List<User>>(s => s.Id == Id, s => s.SessionUsers, Id);
+    }
+
     public async Task<Session> GetSessionById(Guid Id)
     {
-        return await _repository.WhereAndInclude_SingleOrDefault<Session, List<User>>(s => s.Id == Id, s => s.SessionUsers);
+        return await _repository.WhereAndInclude_SingleOrDefault<Session, List<User>>(s => s.Id == Id, s => s.SessionUsers) ?? throw new EntityNotFoundException($"Session with Id {Id} was not found");
+    }
+
+    public async Task<Guid> GetSessionHostIdBySessionId(Guid Id)
+    {
+        return await _repository.WhereAndSelect_SingleOrDefault<Session, Guid, Guid>(
+                /*Where*/    s => s.Id == Id,
+                /*Select*/   s => s.SessionHostId,
+                /*Identifier*/ Id);
     }
 
     public List<Session> GetAllOpenSessions()
     {
-        var sessions = _repository.Where<Session>(s => s.SessionStatus != SessionStatus.Closed).ToList();
+        var sessions = _repository.Where<Session>(s => s.SessionStatus != SessionStatus.Closed && s.Options.GameMode != GameMode.SinglePlayer).ToList();
+        sessions.Reverse();
         return sessions;
     }
 

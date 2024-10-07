@@ -1,5 +1,3 @@
-using Image_guesser.Core.Domain.ImageContext.Repository;
-using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -11,17 +9,23 @@ public class Options
 {
     public Options() { }
 
+    public Options(string randomImageIdentifier)
+    {
+        ImageIdentifier = randomImageIdentifier;
+    }
+
     // Init as SinglePlayer for new Sessions
-    public int NumberOfRounds { get; private set; } = 1;
+    public int NumberOfGamesToPlay { get; private set; } = 1;
+    public int AmountOfGamesPlayed { get; private set; }
     public int LobbySize { get; private set; } = 1;
     public GameMode GameMode { get; private set; } = GameMode.SinglePlayer;
     public bool RandomUserOracle { get; private set; }
     public OracleTypes Oracle { get; private set; } = OracleTypes.AI;
     public AI_Type AI_Type { get; private set; } = AI_Type.Random;
-    public bool RandomPictureMode { get; private set; } = true;
+    public PictureMode PictureMode { get; private set; } = PictureMode.Random;
     public string ImageIdentifier { get; private set; } = string.Empty;
 
-    public async Task SetOptionsValues(ViewModelOptions options, IImageRepository imageRepository)
+    public void SetOptionsValues(ViewModelOptions options)
     {
         switch (options.GameMode)
         {
@@ -44,14 +48,27 @@ public class Options
                 break;
         }
 
-        NumberOfRounds = ValidateRange(options.NumberOfRounds, 1, 10);
+        NumberOfGamesToPlay = ValidateRange(options.NumberOfGamesToPlay, 1, 100);
+
         GameMode = options.GameMode;
         AI_Type = options.AI_Type;
 
         RandomUserOracle = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() && options.RandomUserOracle;
-        RandomPictureMode = IsGameMode(GameMode.SinglePlayer) || options.RandomPictureMode || options.ImageIdentifier == null;
 
-        ImageIdentifier = !RandomPictureMode && options.ImageIdentifier != null ? options.ImageIdentifier : await imageRepository.GetRandomImageIdentifier();
+        PictureMode = options.PictureMode;
+        ImageIdentifier = options.ImageIdentifier;
+    }
+
+    public void ResetAmountOfGamesPlayed() => AmountOfGamesPlayed = 0;
+
+    public void IncrementAmountOfGamesPlayed()
+    {
+        AmountOfGamesPlayed++;
+    }
+
+    public void IncrementNumberOfGamesToPlay()
+    {
+        NumberOfGamesToPlay++;
     }
 
     public bool IsOracleAI()
@@ -63,8 +80,6 @@ public class Options
     {
         return GameMode == gameMode;
     }
-
-    public void DecrementNumberOfRounds() => NumberOfRounds--;
 
     private static int ValidateRange(int number, int start, int end)
     {

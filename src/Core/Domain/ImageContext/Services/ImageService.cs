@@ -1,6 +1,7 @@
 using Image_guesser.Core.Domain.ImageContext.Repository;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Image_guesser.Core.Domain.ImageContext.Services;
 
@@ -9,12 +10,17 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
     private readonly IWebHostEnvironment _hostingEnvironment = hostingEnvironment ?? throw new ArgumentNullException(nameof(hostingEnvironment));
     private readonly IImageRepository _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
 
+    private static void MakeLinksCompatibleWithJavascript(ImageRecord imageRecord)
+    {
+        imageRecord.Link = MakeLinkCompatibleWithJavascript(imageRecord.Link);
+        imageRecord.FolderWithImagePiecesLink = MakeLinkCompatibleWithJavascript(imageRecord.FolderWithImagePiecesLink);
+    }
+
     public async Task<ImageRecord> GetImageRecordById(string ImageIdentifier)
     {
         ImageRecord ImageRecord = await _imageRepository.GetImageRecordById(ImageIdentifier);
 
-        ImageRecord.Link = MakeLinkCompatibleWithJavascript(ImageRecord.Link);
-        ImageRecord.FolderWithImagePiecesLink = MakeLinkCompatibleWithJavascript(ImageRecord.FolderWithImagePiecesLink);
+        MakeLinksCompatibleWithJavascript(ImageRecord);
 
         return ImageRecord;
     }
@@ -22,6 +28,11 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
     public async Task<int> GetImagePieceCountById(string ImageIdentifier)
     {
         return await _imageRepository.GetImagePieceCountById(ImageIdentifier);
+    }
+
+    public async Task<string> GetRandomImageIdentifier()
+    {
+        return await _imageRepository.GetRandomImageIdentifier();
     }
 
     public void AddImageRecord(ImageRecord ImageRecord)
@@ -43,8 +54,7 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
 
         foreach (var record in imageRecords)
         {
-            record.Link = MakeLinkCompatibleWithJavascript(record.Link);
-            record.FolderWithImagePiecesLink = MakeLinkCompatibleWithJavascript(record.FolderWithImagePiecesLink);
+            MakeLinksCompatibleWithJavascript(record);
         }
 
         return imageRecords;
@@ -52,7 +62,7 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
 
     private static string MakeLinkCompatibleWithJavascript(string Link)
     {
-        return Link.Replace("\\", "/");
+        return Link.Replace("\\", Path.DirectorySeparatorChar.ToString());
     }
 
     public List<string> GetFileNameOfImagePieces(string imageIdentifier)
@@ -69,25 +79,30 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
         return filteredFileNames;
     }
 
-    public List<(string ImageId, List<(int X, int Y)> Coordinates)> GetCoordinatesForImagePieces(string imagePiecesFolderPath, List<string> ImagePieceList)
+    public List<(string ImageId, List<(int X, int Y)> Coordinates)> GetCoordinatesForImagePieces(List<string> ImagePieceList)
     {
         List<(string ImageId, List<(int X, int Y)> Coordinates)> _imageCoordinates = [];
 
-        if (Directory.Exists(imagePiecesFolderPath))
+        foreach (var image in ImagePieceList)
         {
-            foreach (var image in ImagePieceList)
-            {
-                var modifiedPath = image.Replace($"wwwroot{Path.DirectorySeparatorChar}", "");
-                var relativeImagePath = Path.Combine(_hostingEnvironment.WebRootPath, modifiedPath);
-                _imageCoordinates.Add((image, GetNonTransparentPixelCoordinates(relativeImagePath)));
-            }
+            var modifiedPath = image.Replace($"wwwroot{Path.DirectorySeparatorChar}", "");
+            var relativeImagePath = Path.Combine(_hostingEnvironment.WebRootPath, modifiedPath);
 
-            return _imageCoordinates;
+            ChangeSizeOfImagePiece(relativeImagePath);
+            _imageCoordinates.Add((image, GetNonTransparentPixelCoordinates(relativeImagePath)));
         }
-        else
-        {
-            throw new Exception($"{imagePiecesFolderPath} does not exist");
-        }
+
+        return _imageCoordinates;
+    }
+
+
+    private static void ChangeSizeOfImagePiece(string imagePiecePath)
+    {
+        using Image<Rgba32> image = Image.Load<Rgba32>(imagePiecePath);
+
+        image.Mutate(x => x.Resize(new Size(500, 500)));
+
+        image.Save(imagePiecePath);
     }
 
     private static List<(int X, int Y)> GetNonTransparentPixelCoordinates(string imagePiecePath)

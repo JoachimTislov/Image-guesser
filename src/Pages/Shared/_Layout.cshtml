@@ -31,12 +31,13 @@
                         </li>
                         @{
                             Guid? sessionId = null;
-                            if (SignInManager.IsSignedIn(User))
+                            bool userIsAuthed = SignInManager.IsSignedIn(User);
+                            if (userIsAuthed)
                             {
                                 sessionId = await UserService.GetSessionIdForGivenUserWithClaimPrincipal(User);
                             }
                         }
-                        @if (SignInManager.IsSignedIn(User) && sessionId != null)
+                        @if (userIsAuthed && sessionId != null)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-white" id="ActiveLobby" session-Id="@sessionId"

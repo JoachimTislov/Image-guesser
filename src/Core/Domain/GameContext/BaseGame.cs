@@ -6,20 +6,39 @@ public class BaseGame : BaseEntity
 {
     public BaseGame() { }
 
-    public Guid Id { get; private set; } = Guid.NewGuid();
-    public Guid SessionId { get; set; }
-    public List<Guesser> Guessers { get; set; } = [];
+    public Guid Id { get; private set; }
+    public Guid SessionId { get; protected set; }
+    public Guid BaseOracleId { get; protected set; }
+    public List<Guesser> Guessers { get; private set; } = [];
     public string GameMode { get; set; } = string.Empty;
-    private GameStatus GameStatus = GameStatus.Started;
-    public DateTime TimeOfCreation { get; set; } = DateTime.Now;
+    public GameStatus GameStatus { get; private set; } = GameStatus.Started;
+    public DateTime TimeOfCreation { get; private set; } = DateTime.Now;
 
-    public void GameOver()
+    public bool AddGuesser(Guesser guesser)
     {
-        GameStatus = GameStatus.Finished;
+        if (!Guessers.Contains(guesser))
+        {
+            Guessers.Add(guesser);
+
+            return true;
+        }
+
+        return false;
     }
 
-    public bool IsGameOver()
+    public bool RemoveGuesser(Guesser guesser)
     {
-        return GameStatus == GameStatus.Finished;
+        return Guessers.Remove(guesser);
     }
+
+    public static Guesser CreateGuesser(string username, Guid gameId)
+    {
+        return new Guesser(username, gameId);
+    }
+
+    public void GameOver() => GameStatus = GameStatus.Finished;
+
+    public void Terminated() => GameStatus = GameStatus.Terminated;
+
+    public bool IsFinished() => GameStatus == GameStatus.Finished;
 }

@@ -6,16 +6,15 @@ public class AI_Repository : IAI_Repository
     where each number in the row represents a piece of that image.*/
     public AI CreateRandomNumbersAI(int ImagePieceCount)
     {
-        // Enumerates the numbers from 1 to the number of image pieces/tiles in the image
+        // Enumerates the numbers from 0 to the number of image pieces/tiles in the image
         // Creates an array of the numbers
-        int[] ArrayOfNumbers = Enumerable.Range(1, ImagePieceCount).ToArray();
+        int[] ArrayOfNumbers = Enumerable.Range(0, ImagePieceCount).ToArray();
 
         // Shuffles the array of numbers
 
         //****  Fisher-Yates shuffle algorithm ****\\\\
         int LengthOfArray = ArrayOfNumbers.Length;
 
-        // Creates a random object
         Random random = new();
 
         while (LengthOfArray > 0)

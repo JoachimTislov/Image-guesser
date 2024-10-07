@@ -28,19 +28,36 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
 
         // Prevent duplicate foreign keys for game table
         modelBuilder.Entity<BaseGame>()
-        .HasMany(bg => bg.Guessers)
-        .WithOne()
-        .HasForeignKey(g => g.GameId);
+            .HasMany(bg => bg.Guessers)
+            .WithOne()
+            .HasForeignKey(g => g.GameId);
 
-        // Creates a TPH type hierarchy for the Games table
+        // Creates a TPH type hierarchy for the BaseGame table
         modelBuilder.Entity<BaseGame>()
-            .HasDiscriminator<string>("Oracle")
+            .HasDiscriminator<string>("OracleType")
             .HasValue<Game<User>>("User")
             .HasValue<Game<AI>>("AI");
 
-        // Creates a TPH type hierarchy for the Oracles table
+        // Configure the foreign key for Game<User>
+        modelBuilder.Entity<Game<User>>()
+            .HasOne(o => o.Oracle)
+            .WithMany()
+            .HasForeignKey("UserOracleId")
+            .HasConstraintName("FK_Oracle_User")
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure the foreign key for Game<AI>
+        modelBuilder.Entity<Game<AI>>()
+            .HasOne(o => o.Oracle)
+            .WithOne()
+            .HasForeignKey<Game<AI>>("AIOracleId")
+            .HasConstraintName("FK_Oracle_AI")
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+        // Creates a TPH type hierarchy for the BaseOracle table
         modelBuilder.Entity<BaseOracle>()
-            .HasDiscriminator<string>("Oracle")
+            .HasDiscriminator<string>("Type")
             .HasValue<Oracle<User>>("User")
             .HasValue<Oracle<AI>>("AI");
 
@@ -49,18 +66,17 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
             .HasOne(o => o.Entity)
             .WithMany()
             .HasForeignKey("UserId")
-            .HasConstraintName("FK_Oracle_User")
-            .IsRequired()
+            .HasConstraintName("FK_User")
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure the foreign key for Oracle<AI>
         modelBuilder.Entity<Oracle<AI>>()
             .HasOne(o => o.Entity)
-            .WithMany()
-            .HasForeignKey("AI_Id")
-            .HasConstraintName("FK_Oracle_AI")
-            .IsRequired()
+            .WithOne()
+            .HasForeignKey<Oracle<AI>>("AI_Id")
+            .HasConstraintName("FK_AI")
             .OnDelete(DeleteBehavior.Cascade);
+
 
         base.OnModelCreating(modelBuilder);
     }

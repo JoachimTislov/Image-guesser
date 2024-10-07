@@ -1,14 +1,12 @@
-using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Core.Domain.GameContext.Events;
 
 public record CreateGame : BaseDomainEvent
 {
-    public CreateGame(Session session)
+    public CreateGame(Guid sessionId)
     {
-        Session = session;
+        SessionId = sessionId;
     }
-
-    public Session Session { get; }
+    public Guid SessionId { get; }
 }

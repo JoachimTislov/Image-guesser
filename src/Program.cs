@@ -15,6 +15,7 @@ using Image_guesser.Core.Domain.UserContext.Services;
 using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
+using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,7 @@ services.AddScoped<IImageService, ImageService>();
 
 services.AddScoped<IRepository, Repository>();
 
+services.AddScoped<IHubService, HubService>();
 services.AddSingleton<IConnectionMappingService, ConnectionMappingService>();
 
 // Configure DbContext with SQLite

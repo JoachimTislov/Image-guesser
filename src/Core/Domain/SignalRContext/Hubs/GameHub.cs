@@ -55,81 +55,32 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         await _connectionMappingService.AddToGroup(userId, sessionId);
     }
 
-    public async Task CreateGroup(string sessionId)
+    public async Task AddToGroup(string sessionId)
     {
         var userId = Context.UserIdentifier;
         if (userId != null)
         {
             await AddToGroups(sessionId, userId, Context.ConnectionId);
         }
-    }
-
-    private static Guid GuidParseString(string value)
-    {
-        return Guid.Parse(value);
-    }
-
-    public async Task CreateANewGame(string SessionId)
-    {
-        var session = await _sessionService.GetSessionById(GuidParseString(SessionId));
-
-        await _mediator.Publish(new CreateGame(session));
     }
 
     public async Task JoinGroup(string sessionId)
     {
+        await AddToGroup(sessionId);
+
         var userId = Context.UserIdentifier;
         if (userId != null)
         {
-            await AddToGroups(sessionId, userId, Context.ConnectionId);
             await _sessionService.AddUserToSession(userId, sessionId);
-
-            // We use RedirectToLink because this allows us to bypass the need for extensive front-end logic
-            // that is already handled by the back-end rendering of the webpage.
-            await Clients.Groups(sessionId).RedirectToLink($"/Lobby/{sessionId}");
         }
-    }
+        // We use RedirectToLink because this allows us to bypass the need for extensive front-end logic
+        // that is already handled by the back-end rendering of the webpage.
+        await Clients.Groups(sessionId).RedirectToLink($"/Lobby/{sessionId}");
 
-    public async Task LeaveGroup(string userId, string SessionId)
-    {
-        string userConnection = _connectionMappingService.GetConnection(userId);
-
-        await _sessionService.UpdateChosenOracleIfUserWasOracle(Guid.Parse(SessionId), Guid.Parse(userId));
-
-        await Groups.RemoveFromGroupAsync(userConnection, SessionId);
-
-        await _connectionMappingService.RemoveFromGroup(userId, SessionId);
-
-        User user = await _userService.GetUserById(userId);
-        await _sessionService.RemoveUserFromSession(user, SessionId);
-
-        // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end
-        // await Clients.Groups(SessionId).SendAsync("RedirectToLink", $"/Lobby/{SessionId}");
-        await Clients.Client(userConnection).RedirectToLink("/");
-        await Clients.Groups(SessionId).ReloadPage();
-    }
-
-    public async Task CloseGroup(string SessionId)
-    {
-        var session = await _sessionService.GetSessionById(Guid.Parse(SessionId));
-
-        foreach (var user in session.SessionUsers)
-        {
-            var userConnection = _connectionMappingService.GetConnection(user.Id.ToString());
-
-            await LeaveGroup(user.Id.ToString(), SessionId);
-
-            if (userConnection != null)
-            {
-                await Clients.Client(userConnection).RedirectToLink("/");
-            }
-        }
-
-        await _mediator.Publish(new SessionClosed(Guid.Parse(SessionId)));
     }
 
     public async Task SendGuess(
-            string guess, string userId, string sessionId,
+            string guess, string userId, string sessionId, string oracleId,
             string gameId, string guesserId, string imageIdentifier)
     {
         string userName = await _userService.GetUserNameByUserId(userId);
@@ -137,10 +88,10 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         await Clients.Group(sessionId).ReceiveGuess(guess, userName);
 
         //This sets of an event that Oracle will handle 
-        await _mediator.Publish(new PlayerGuessed(Guid.Parse(sessionId), guess, guesserId, Guid.Parse(gameId)));
+        await _mediator.Publish(new PlayerGuessed(Guid.Parse(oracleId), guess, Guid.Parse(guesserId), Guid.Parse(gameId), Guid.Parse(sessionId)));
 
         var session = await _sessionService.GetSessionById(Guid.Parse(sessionId));
-        var (IsGuessCorrect, WinnerText) = await _oracleService.CheckGuess(guess, imageIdentifier, userName, session.ChosenOracleId, session.Options.GameMode);
+        var (IsGuessCorrect, WinnerText) = await _oracleService.HandleGuess(guess, imageIdentifier, userName, session.ChosenOracleId, session.Options.GameMode);
         if (IsGuessCorrect)
         {
             await Clients.Group(sessionId).CorrectGuess(WinnerText, guess);
@@ -157,7 +108,7 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         await Clients.Group(sessionId).ShowPiece(pieceId);
     }
 
-    public async Task ShowNextPieceForAllPlayers(string sessionId)
+    public async Task ShowNextPieceForAll(string sessionId)
     {
         await Clients.Group(sessionId).ShowNextPieceForAll();
     }

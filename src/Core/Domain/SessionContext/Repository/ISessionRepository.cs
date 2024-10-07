@@ -1,5 +1,6 @@
 
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
+using Image_guesser.Core.Domain.UserContext;
 
 namespace Image_guesser.Core.Domain.SessionContext.Repository;
 
@@ -9,7 +10,11 @@ public interface ISessionRepository
 
     Task UpdateSession(Session session);
 
+    Task<List<User>> GetUsersInSessionById(Guid Id);
+
     Task<Session> GetSessionById(Guid Id);
+
+    Task<Guid> GetSessionHostIdBySessionId(Guid Id);
 
     List<Session> GetAllOpenSessions();
 

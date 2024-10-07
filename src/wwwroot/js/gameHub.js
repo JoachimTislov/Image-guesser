@@ -11,31 +11,16 @@ connection.start().then(()=> {
 }).catch(err => console.error(err.toString()));
 
 export function createGroup(sessionId) {
-    connection.invoke("CreateGroup", sessionId).catch(err => console.error(err.toString()));
+    connection.invoke("AddToGroup", sessionId).catch(err => console.error(err.toString()));
 }
 
 export function joinGroup(sessionId) {
     connection.invoke("JoinGroup", sessionId).catch(err => console.error(err.toString()));
 }
 
-export function leaveGroup(userId, sessionId) {
-    console.log("User with Id: " + userId + " and sessionId: " + sessionId + " is leaving")
-    connection.invoke("LeaveGroup", userId, sessionId).catch(err => console.error(err.toString()));
-}
-
-export function closeGroup(sessionId) {
-    console.log("SessionId: " + sessionId + " is closing");
-    connection.invoke("CloseGroup", sessionId).catch(err => console.error(err.toString()));
-}
-
-export function createANewGame(sessionId) {
-    console.log("SessionId: " + sessionId + " is starting a new game");
-    connection.invoke("CreateANewGame", sessionId).catch(err => console.error(err.toString()));
-}
-
-export function sendGuess(message, userId, sessionId, gameId, guesserId, imageIdentifier) {
+export function sendGuess(message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier) {
     console.log("Sending guess: " + message + " to game: " + gameId + " from guesser: " + guesserId);
-    connection.invoke("SendGuess", message, userId, sessionId, gameId, guesserId, imageIdentifier).catch(err => console.error(err.toString()));
+    connection.invoke("SendGuess", message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier).catch(err => console.error(err.toString()));
 }
 
 export function oracleRevealedATile(oracleId) {
@@ -48,9 +33,9 @@ export function showThisPiece(pieceId, sessionId) {
     connection.invoke("ShowThisPiece", pieceId, sessionId).catch(err => console.error(err.toString()));
 }
 
-export function showNextPieceForAllPlayers(sessionId) {
-    console.log("We are trying to show a piece for all players")
-    connection.invoke("ShowNextPieceForAllPlayers", sessionId).catch(err => console.error(err.toString()));
+export function showPieceForAllPlayers(sessionId) {
+    console.log("We are trying to show a piece to everyone")
+    connection.invoke("ShowNextPieceForAll", sessionId).catch(err => console.error(err.toString()));
 }
 
 // Temp function to test if the connection works
@@ -77,10 +62,19 @@ connection.on("ReloadPage", () => {
 // Handles functions for receiving and displaying guesses
 connection.on("ReceiveGuess", (guess, playerName) => {
     var guessingDiv = document.getElementById("guessingDiv");
+
+    var guessContainer = document.createElement("div");
+    var playerNameP = document.createElement("p");
+    playerNameP.classList.add("float-start");
+    playerNameP.textContent = playerName + ": ";
+    guessContainer.appendChild(playerNameP);
+
     var guessP = document.createElement("p");
-    guess = playerName + ": " + guess;
+    guessP.classList.add("float-end");
     guessP.textContent = guess;
-    guessingDiv.appendChild(guessP);
+    guessContainer.appendChild(guessP);
+
+    guessingDiv.appendChild(guessContainer);
 })
 
 connection.on("CorrectGuess", (winnerText, answer) => {

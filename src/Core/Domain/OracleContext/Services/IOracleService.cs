@@ -8,12 +8,8 @@ namespace Image_guesser.Core.Domain.OracleContext.Services
         Oracle<T> CreateOracle<T>(T ChosenOracle, string ImageIdentifier) where T : class;
         Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class;
         Task<BaseOracle> GetBaseOracleById(Guid Id);
-        Task<(bool IsGuessCorrect, string WinnerText)> CheckGuess(
-            string Guess,
-            string ImageIdentifier,
-            string Username,
-            Guid ChosenOracle,
-            GameMode GameMode
-        );
+        int CalculatePoints(int pieceCount, int numberOfTilesRevealed);
+        bool CheckGuess(string guess, string imageName);
+        Task<(bool IsGuessCorrect, string WinnerText)> HandleGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode GameMode);
     }
 }

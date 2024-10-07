@@ -20,13 +20,14 @@ const loop = (arr, display) => {
     }
 }
 
-function gameModeChanged() {
+function gameModeChanged() 
+{
     const selectedGameMode = EL("selectedGameMode")
 
     const pickAI = EL("pickAI")
     const lobbySize = EL("lobbyPlayerLimit")
     const RandomUserOracle = EL("RandomUserOracle")
-    const RandomPictureMode = EL("RandomPictureMode")
+    const PictureMode = EL("PictureMode")
     const ImageContainer = EL("ImageContainer") 
 
     const infoOracleType = EL("infoOracleType")
@@ -42,7 +43,7 @@ function gameModeChanged() {
             selectOracleType.value = "0"  // Index for AI in OracleTypes
 
             show([infoOracleType, pickAI])
-            hide([RandomUserOracle, RandomPictureMode, lobbySize, ImageContainer, selectOracleTypeContainer])
+            hide([RandomUserOracle, PictureMode, lobbySize, ImageContainer, selectOracleTypeContainer])
             break
 
         case 1: //Duo
@@ -50,12 +51,12 @@ function gameModeChanged() {
             infoOracleInput.value = "User"
             selectOracleType.value = "1" // Index for user in OracleTypes
 
-            show([infoOracleType, RandomUserOracle, RandomPictureMode])
+            show([infoOracleType, RandomUserOracle, PictureMode])
             hide([pickAI, lobbySize, selectOracleTypeContainer])
             break
 
         case 2: //FreeForAll
-            show([selectOracleTypeContainer, RandomPictureMode, lobbySize])
+            show([selectOracleTypeContainer, PictureMode, lobbySize])
             hide([infoOracleType])
 
             // Adjust visibility of elements related to a 'parent'
@@ -66,7 +67,7 @@ function gameModeChanged() {
     }
 
     // Adjust visibility of elements related to a 'parent'
-    ToggleRandomPictureMode()
+    TogglePictureMode()
 }
 
 function OracleTypeChange()
@@ -89,13 +90,16 @@ function OracleTypeChange()
     }
 }
 
-function ToggleRandomPictureMode() {
-    const RandomPictureMode = EL("randomPictureCheckBox")
+function TogglePictureMode()
+{
+    const selectPictureMode = EL("selectPictureMode")
     const ImageContainer = EL("ImageContainer")
 
     const selectedGameMode = EL("selectedGameMode")
 
-    if(RandomPictureMode.checked || selectedGameMode.value == "0") {
+    // Checks if its Random picture mode or its singleplayer, 
+    //selectPicture should be random if the game mode is singleplayer
+    if(selectPictureMode.value == "0" || selectedGameMode.value == "0") {
         hide([ImageContainer])
     } else {
         show([ImageContainer])
@@ -120,9 +124,9 @@ function UserSelectedImage(Link, Name, Identifier)
     imageIdentifier.value = Identifier
 }
 
-function numberOfRoundsChange() {
-    var input = EL("numberOfRounds")
-    var visibleNumber = EL("numberOfRoundsValue")
+function numberOfGamesChange() {
+    var input = EL("numberOfGames")
+    var visibleNumber = EL("numberOfGamesValue")
     
     visibleNumber.innerHTML = input.value
 }

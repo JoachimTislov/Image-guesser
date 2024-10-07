@@ -11,10 +11,10 @@ public class OptionsTests
     {
         var Options = new Options();
 
-        Assert.Equal(1, Options.NumberOfRounds);
+        Assert.Equal(1, Options.NumberOfGamesToPlay);
         Assert.Equal(1, Options.LobbySize);
         Assert.Equal(GameMode.SinglePlayer, Options.GameMode);
-        Assert.True(Options.RandomPictureMode);
+        Assert.Equal(PictureMode.Random, Options.PictureMode);
         Assert.False(Options.RandomUserOracle);
         Assert.True(Options.IsOracleAI());
 
@@ -28,10 +28,10 @@ public class OptionsTests
 
         var ViewModelOptions = new ViewModelOptions()
         {
-            NumberOfRounds = number,
+            NumberOfGamesToPlay = number,
             LobbySize = number,
             GameMode = GameMode.Duo,
-            RandomPictureMode = false,
+            PictureMode = PictureMode.Specific,
             RandomUserOracle = true,
             Oracle = OracleTypes.User,
             AI_Type = AI_Type.Random
@@ -39,14 +39,14 @@ public class OptionsTests
 
         Options.SetOptionsValues(ViewModelOptions);
 
-        Assert.Equal(number, Options.NumberOfRounds);
+        Assert.Equal(number, Options.NumberOfGamesToPlay);
 
         // Since it duo, should probably test the different scenarios as well
         Assert.Equal(2, Options.LobbySize);
 
         Assert.Equal(GameMode.Duo, Options.GameMode);
 
-        Assert.False(Options.RandomPictureMode);
+        Assert.Equal(PictureMode.Specific, Options.PictureMode);
 
         Assert.True(!Options.IsGameMode(GameMode.SinglePlayer));
         Assert.True(!Options.IsOracleAI());
