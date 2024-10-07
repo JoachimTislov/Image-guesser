@@ -6,6 +6,7 @@ public interface IImageService
 {
     Task<ImageRecord> GetImageRecordById(string ImageIdentifier);
     Task<int> GetImagePieceCountById(string ImageIdentifier);
+    Task<string> GetDifferentRandomImageIdentifier(List<string> imageIdentifiers);
     Task<string> GetRandomImageIdentifier();
     Task<List<ImageRecord>> GetXAmountOfImageRecords(int amount);
     List<string> GetFileNameOfImagePieces(string imageIdentifier);

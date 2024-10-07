@@ -1,7 +1,7 @@
 namespace Image_guesser.Core.Domain.SignalRContext.Hubs;
 public interface IGameClient
 {
-   //------------ Server to Client ------------
+   //--------------- Server to Client ---------------//
    Task RedirectToLink(string Url);
    Task ReloadPage();
    Task ReceiveGuess(string Guess, string UserName);

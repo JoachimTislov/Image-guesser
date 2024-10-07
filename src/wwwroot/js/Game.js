@@ -44,15 +44,19 @@ connection.on("ShowPiece", (piece) => {
 });
 
 connection.on("CorrectGuess", (winnerText, answer) => {
-  document.getElementById("winningPlayer").textContent = winnerText;
-  document.getElementById("modalAnswer").textContent = answer;
+    document.getElementById("winningPlayer").textContent = winnerText;
+    document.getElementById("modalAnswer").textContent = answer;
 
-  var myModal = document.getElementById('victoryModal')
-
-  var victoryModal = new bootstrap.Modal(myModal);
-  victoryModal.show();
+    var myModal = document.getElementById("victoryModal")
+    if(myModal)
+    {
+      var victoryModal = new bootstrap.Modal(myModal, {
+        backdrop: 'static',
+        keyboard: false
+      });
+      victoryModal.show();
+    }
 });
-
 
 connection.on("ShowNextPieceForAll", () => {    
     ExecuteOracleRevealTile()
@@ -166,14 +170,9 @@ if (oracleIsAI && showOneMoreButton) {
   });
 }
 
-window.onload = function() {
-  function waitForConnection() {
-      if (!isConnected) {
-          setTimeout(waitForConnection, 100);
-      }
-  }
-  waitForConnection();
-
+function InitGamePage()
+{
+  // User is Oracle
   if(!userIsAGuesser) {
     InitUserAsOracle();
     return;
@@ -181,7 +180,7 @@ window.onload = function() {
 
   if (numberOfTilesRevealed == 0)
   {
-      // initial load 
+      // initial load for Games with Oracle as AI
       ExecuteOracleRevealTile();
   }
   else
@@ -193,4 +192,17 @@ window.onload = function() {
     }
     renderImages();
   }
+}
+
+window.onload = function() {
+  function waitForConnection() {
+      if (isConnected) {
+        InitGamePage()
+      }
+      else
+      {
+        setTimeout(waitForConnection, 100);
+      }
+  }
+  waitForConnection();
 }

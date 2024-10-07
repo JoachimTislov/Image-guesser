@@ -14,8 +14,8 @@ export function createGroup(sessionId) {
     connection.invoke("AddToGroup", sessionId).catch(err => console.error(err.toString()));
 }
 
-export function joinGroup(sessionId) {
-    connection.invoke("JoinGroup", sessionId).catch(err => console.error(err.toString()));
+export function joinSession(sessionId, userId) {
+    connection.invoke("JoinSession", sessionId, userId).catch(err => console.error(err.toString()));
 }
 
 export function sendGuess(message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier) {
@@ -76,13 +76,5 @@ connection.on("ReceiveGuess", (guess, playerName) => {
 
     guessingDiv.appendChild(guessContainer);
 })
-
-connection.on("CorrectGuess", (winnerText, answer) => {
-    document.getElementById("winningPlayer").textContent = winnerText;
-    document.getElementById("modalAnswer").textContent = answer;
-
-    var victoryModal = new bootstrap.Modal(document.getElementById("myModal"));
-    victoryModal.show();
-});
 
 export { connection };

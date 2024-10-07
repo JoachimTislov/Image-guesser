@@ -7,7 +7,6 @@ public class ViewModelOptions
     public ViewModelOptions() { }
     public ViewModelOptions(Options options)
     {
-        NumberOfGamesToPlay = options.NumberOfGamesToPlay;
         LobbySize = options.LobbySize;
         GameMode = options.GameMode;
         RandomUserOracle = options.RandomUserOracle;
@@ -16,7 +15,6 @@ public class ViewModelOptions
         PictureMode = options.PictureMode;
         ImageIdentifier = options.ImageIdentifier;
     }
-    public int NumberOfGamesToPlay { get; set; }
     public int LobbySize { get; set; }
     public GameMode GameMode { get; set; }
     public bool RandomUserOracle { get; set; }

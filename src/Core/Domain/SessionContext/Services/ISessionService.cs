@@ -11,7 +11,6 @@ public interface ISessionService
     Task<List<User>> GetUsersInSessionById(Guid Id);
     Task<Session> GetSessionById(Guid Id);
     Task<Guid> GetSessionHostIdById(Guid Id);
-    Task<bool> CheckIfSessionHasReachedSetNumberOfGamesToPlay(Guid Id);
     Task UpdateSession(Session session);
     Task UpdateSessionOptions(Guid Id, ViewModelOptions options);
     Task<bool> CheckIfOracleIsAI(Guid sessionId);

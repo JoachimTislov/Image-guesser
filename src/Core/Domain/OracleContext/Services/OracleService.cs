@@ -1,3 +1,4 @@
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext.AI_Repository;
 using Image_guesser.Core.Domain.SessionContext;
@@ -42,6 +43,13 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
     public async Task<BaseOracle> GetBaseOracleById(Guid Id)
     {
         return await _repository.GetSingleWhere<BaseOracle, Guid>(o => o.Id == Id, Id);
+    }
+
+    public List<string> GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(Guid sessionId)
+    {
+        IQueryable<Guid> BaseOracleIds = _repository.WhereAndSelect<BaseGame, Guid>(g => g.SessionId == sessionId, g => g.BaseOracleId);
+
+        return [.. _repository.WhereAndSelect<BaseOracle, string>(b => BaseOracleIds.Contains(b.Id), b => b.ImageIdentifier)];
     }
 
     public int CalculatePoints(int pieceCount, int numberOfTilesRevealed)

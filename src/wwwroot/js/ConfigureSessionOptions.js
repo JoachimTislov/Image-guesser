@@ -35,12 +35,14 @@ function gameModeChanged()
 
     const selectOracleTypeContainer = EL("selectOracleTypeContainer")
     const selectOracleType = EL("selectOracleType")
+    const selectPictureMode = EL("selectPictureMode")
 
     switch (parseInt(selectedGameMode.value)) {
         case 0: // SinglePayer
             // Oracle can only be AI in SinglePlayer
             infoOracleInput.value = "AI"
             selectOracleType.value = "0"  // Index for AI in OracleTypes
+            selectPictureMode.value = "0" // Index for random picture mode
 
             show([infoOracleType, pickAI])
             hide([RandomUserOracle, PictureMode, lobbySize, ImageContainer, selectOracleTypeContainer])
@@ -122,13 +124,6 @@ function UserSelectedImage(Link, Name, Identifier)
 
     imageLink.value = Link
     imageIdentifier.value = Identifier
-}
-
-function numberOfGamesChange() {
-    var input = EL("numberOfGames")
-    var visibleNumber = EL("numberOfGamesValue")
-    
-    visibleNumber.innerHTML = input.value
 }
 
 function lobbySizeChange() {

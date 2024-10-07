@@ -1,4 +1,3 @@
-
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Hubs;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
@@ -12,16 +11,10 @@ public class HubService(IHubContext<GameHub, IGameClient> hubContext, ISessionSe
     private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
     private readonly IConnectionMappingService _connectionMappingService = connectionMappingService ?? throw new ArgumentNullException(nameof(connectionMappingService));
 
-    private async Task RemoveFromGroups(string userConnection, string userId, string sessionId)
-    {
-        await _hubContext.Groups.RemoveFromGroupAsync(userConnection, sessionId);
-        await _connectionMappingService.RemoveFromGroup(userId, sessionId);
-    }
-
     public async Task LeaveGroup(string userId, string sessionId)
     {
         string userConnection = _connectionMappingService.GetConnection(userId);
-        await RemoveFromGroups(userConnection, userId, sessionId);
+        await _hubContext.Groups.RemoveFromGroupAsync(userConnection, sessionId);
 
         await RedirectClientToPage(userConnection, "/");
         // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end

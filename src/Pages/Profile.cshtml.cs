@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Image_guesser.Core.Domain.UserContext;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Image_guesser.Pages;
 
+[Authorize]
 public class ProfileModel(ILogger<ProfileModel> logger, UserManager<User> userManager, SignInManager<User> signInManager) : PageModel
 {
     private readonly ILogger<ProfileModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -25,28 +27,26 @@ public class ProfileModel(ILogger<ProfileModel> logger, UserManager<User> userMa
 
     public async Task<IActionResult> OnGet()
     {
-        if (User.Identity != null && User.Identity.IsAuthenticated)
-        {
-            var username = User.Identity.Name!;
-
-            _logger.LogInformation("User: {User} Viewed their profile", username);
-
-            User_ = await _userManager.FindByNameAsync(username);
-
-            if (User_ == null)
-            {
-                _logger.LogWarning("User not found: {username}", username);
-                return NotFound(new { message = "User not found." });
-            }
-
-            attributes = User_?.GetType().GetProperties()!;
-
-            return Page();
-        }
-        else
+        if (User.Identity?.IsAuthenticated ?? false)
         {
             return RedirectToPage("/Home/Index");
         }
+
+        var username = User.Identity?.Name!;
+
+        _logger.LogInformation("User: {User} Viewed their profile", username);
+
+        User_ = await _userManager.FindByNameAsync(username);
+
+        if (User_ == null)
+        {
+            _logger.LogWarning("User not found: {username}", username);
+            return NotFound(new { message = "User not found." });
+        }
+
+        attributes = User_?.GetType().GetProperties()!;
+
+        return Page();
 
     }
 

@@ -9,7 +9,7 @@ public class Repository(ImageGameContext context) : IRepository
 {
     public readonly ImageGameContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    private DbSet<T> GetEntities<T>() where T : BaseEntity
+    private DbSet<T> GetEntities<T>() where T : class
     {
         return _context.Set<T>();
     }
@@ -53,7 +53,12 @@ public class Repository(ImageGameContext context) : IRepository
         return GetEntities<T>().Where(exp);
     }
 
-    public async Task<ReturnType> WhereAndSelect_SingleOrDefault<T, IdentifierType, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp, IdentifierType Id) where T : BaseEntity
+    public IQueryable<ReturnType> WhereAndSelect<T, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp) where T : BaseEntity
+    {
+        return GetEntities<T>().Where(whereExp).Select(selectExp);
+    }
+
+    public async Task<ReturnType> WhereAndSelect_SingleOrDefault<T, IdentifierType, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp, IdentifierType Id) where T : class
     {
         return await GetEntities<T>().Where(whereExp).Select(selectExp).SingleOrDefaultAsync() ?? throw new EntityNotFoundException($"Entity of type {typeof(T)} with where expression {whereExp}, select expression {selectExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
     }

@@ -16,7 +16,6 @@ public class ViewModelOptionsTests
 
         var number = 1;
 
-        Assert.Equal(number, ViewModelOptions.NumberOfGamesToPlay);
         Assert.Equal(number, ViewModelOptions.LobbySize);
         Assert.True(ViewModelOptions.IsGameMode(GameMode.SinglePlayer));
 

@@ -4,7 +4,6 @@ using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SessionContext.Events;
 using Image_guesser.Core.Domain.SessionContext.Services;
-using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
 using MediatR;
@@ -38,6 +37,38 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
     public async Task OnGet()
     {
+        await LoadSessionData();
+    }
+
+    public async Task<IActionResult> OnPostStartGame()
+    {
+        await LoadSessionData();
+
+        if (!Session.Options.IsGameMode(GameMode.SinglePlayer) && Session.SessionUsers.Count < 2)
+        {
+            ModelState.AddModelError(string.Empty, "Need more players to start a game");
+        }
+        else
+        {
+            _logger.LogInformation("{Name} started a game in a session with Id: {Id}", User.Identity?.Name, Id);
+            await _mediator.Publish(new CreateGame(Id));
+        }
+
+        return Page();
+    }
+
+    public async Task OnPostCloseSession()
+    {
+        await _mediator.Publish(new SessionClosed(Id));
+    }
+
+    public async Task OnPostRemoveUserFromSession(string userId)
+    {
+        await _mediator.Publish(new UserLeftSessionOrWasKicked(userId, Id));
+    }
+
+    private async Task LoadSessionData()
+    {
         Session = await _sessionService.GetSessionById(Id);
         SessionHost = await _userService.GetUserById(Session.SessionHostId.ToString());
         ChosenOracle = await _userService.GetUserById(Session.ChosenOracleId.ToString());
@@ -50,34 +81,5 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
         Player = await _userService.GetUserByClaimsPrincipal(User);
         _logger.LogInformation("{Name} entered the session page with Id: {Id}", Player.UserName, Id);
-    }
-
-    public async Task OnPostStartGame()
-    {
-        var session = await _sessionService.GetSessionById(Id);
-
-        if (!session.Options.IsGameMode(GameMode.SinglePlayer) && session.SessionUsers.Count < 2)
-        {
-            SessionErrorMessages.Add("Need more players to start a game");
-        }
-        else if (session.HasPlayedSetAmountGames)
-        {
-            SessionErrorMessages.Add("Reached set games limit, increase it to start a new game");
-        }
-        else
-        {
-            _logger.LogInformation("{Name} started a game in a session with Id: {Id}", User.Identity!.Name, Id);
-            await _mediator.Publish(new CreateGame(Id));
-        }
-    }
-
-    public async Task OnPostCloseSession()
-    {
-        await _mediator.Publish(new SessionClosed(Id));
-    }
-
-    public async Task OnPostRemoveUserFromSession(string userId)
-    {
-        await _mediator.Publish(new UserLeftSessionOrWasKicked(userId, Id));
     }
 }

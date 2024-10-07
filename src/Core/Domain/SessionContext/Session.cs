@@ -7,13 +7,12 @@ public class Session : BaseEntity
 {
     public Session() { }
 
-    public Session(User user, Guid id, string randomImageIdentifier)
+    public Session(User user, Guid id)
     {
         Id = id;
         SessionHostId = user.Id;
         ChosenOracleId = user.Id;
         SessionUsers = [user];
-        Options = new(randomImageIdentifier);
     }
 
     public Guid Id { get; private set; }
@@ -59,8 +58,6 @@ public class Session : BaseEntity
     {
         SessionStatus = status;
     }
-
-    public bool HasPlayedSetAmountGames => Options.NumberOfGamesToPlay <= Options.AmountOfGamesPlayed;
 
     public bool UserIsOracle(Guid userId) => ChosenOracleId == userId;
     public bool UserIsSessionHost(Guid userId) => SessionHostId == userId;

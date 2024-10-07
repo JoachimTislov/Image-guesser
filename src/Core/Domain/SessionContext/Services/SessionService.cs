@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
@@ -7,19 +6,16 @@ using Image_guesser.Core.Domain.UserContext.Services;
 
 namespace Image_guesser.Core.Domain.SessionContext.Services;
 
-public class SessionService(ISessionRepository sessionRepository, IUserService userService, IImageService imageService) : ISessionService
+public class SessionService(ISessionRepository sessionRepository, IUserService userService) : ISessionService
 {
     private readonly ISessionRepository _sessionRepository = sessionRepository ?? throw new ArgumentNullException(nameof(sessionRepository));
     private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-    private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
-
 
     public async Task CreateSession(ClaimsPrincipal User, Guid Id)
     {
         var user = await _userService.GetUserByClaimsPrincipal(User);
-        var ImageId = await _imageService.GetRandomImageIdentifier();
 
-        Session session = new(user, Id, ImageId);
+        Session session = new(user, Id);
 
         await _sessionRepository.AddSession(session);
     }
@@ -47,12 +43,6 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
     public async Task<Guid> GetSessionHostIdById(Guid Id)
     {
         return await _sessionRepository.GetSessionHostIdBySessionId(Id);
-    }
-
-    public async Task<bool> CheckIfSessionHasReachedSetNumberOfGamesToPlay(Guid Id)
-    {
-        var session = await GetSessionById(Id);
-        return session.HasPlayedSetAmountGames;
     }
 
     public async Task UpdateSession(Session session)

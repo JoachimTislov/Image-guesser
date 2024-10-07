@@ -7,11 +7,4 @@ public interface IConnectionMappingService
     Task RemoveConnection(string userId, string connectionId);
 
     string GetConnection(string userId);
-
-    Task AddToGroup(string userId, string groupId);
-
-    Task RemoveFromGroup(string userId, string groupId);
-
-    string GetGroupId(string userId);
-
 }

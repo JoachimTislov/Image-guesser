@@ -135,15 +135,8 @@
             </div>
 
             <button type="button" data-bs-toggle="modal" data-bs-target="#SelectImageModal"
-                asp-page-handler="RefreshImages" class="mt-2 btn btn-primary float-end">
+                asp-page-handler="RefreshImages" class="m-1 btn btn-primary">
                 Select an Image </button>
-        </div>
-
-        <div class="mt-5">
-            <label for="numberOfGames" class="form-label"> Number of Games (<span
-                    id="numberOfGamesValue">@Model.Options.NumberOfGamesToPlay</span>)</label>
-            <input asp-for="Options.NumberOfGamesToPlay" type="range" class="form-range" min="1" max="100"
-                id="numberOfGames" oninput="numberOfGamesChange()">
         </div>
 
         @{
@@ -157,7 +150,7 @@
                 oninput="lobbySizeChange()">
         </div>
 
-        <button class="btn btn-md btn-success float-end" type="submit" asp-page-handler="Modify">
+        <button class="btn btn-md btn-success float-end mt-2" type="submit" asp-page-handler="Modify">
             @Model.RouteData.Values["text"] </button>
 
     </form>

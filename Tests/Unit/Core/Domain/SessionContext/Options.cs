@@ -11,7 +11,6 @@ public class OptionsTests
     {
         var Options = new Options();
 
-        Assert.Equal(1, Options.NumberOfGamesToPlay);
         Assert.Equal(1, Options.LobbySize);
         Assert.Equal(GameMode.SinglePlayer, Options.GameMode);
         Assert.Equal(PictureMode.Random, Options.PictureMode);
@@ -28,7 +27,6 @@ public class OptionsTests
 
         var ViewModelOptions = new ViewModelOptions()
         {
-            NumberOfGamesToPlay = number,
             LobbySize = number,
             GameMode = GameMode.Duo,
             PictureMode = PictureMode.Specific,
@@ -38,8 +36,6 @@ public class OptionsTests
         };
 
         Options.SetOptionsValues(ViewModelOptions);
-
-        Assert.Equal(number, Options.NumberOfGamesToPlay);
 
         // Since it duo, should probably test the different scenarios as well
         Assert.Equal(2, Options.LobbySize);

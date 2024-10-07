@@ -91,11 +91,15 @@
                 </div>
                 <div class="modal-footer">
 
-                    <form method="post"
-                        asp-page-handler="@(Model.HasPlayedSetAmountGames ? "ReturnToLobby" : "CreateGame")">
-                        <button type="submit"
-                            class="float-start btn btn-@(Model.HasPlayedSetAmountGames ? "danger" : "success")">
-                            @(Model.HasPlayedSetAmountGames ? "Return To Lobby" : "Next Round")
+                    <form method="post" asp-page-handler="ReturnToLobby">
+                        <button type="submit" class="btn btn-danger">
+                            Return to lobby
+                        </button>
+                    </form>
+
+                    <form method="post" asp-page-handler="CreateGame">
+                        <button type="submit" class="btn btn-success">
+                            Start new game
                         </button>
                     </form>
 
@@ -124,16 +128,16 @@
         var numberOfTilesRevealed = '@Model.NumberOfTilesRevealed';
 
         var oracleAI_Array_NumbersForImagePieces = @(Model.GameAI != null ? Html.Raw(JsonConvert.SerializeObject(Model.GameAI.Oracle.Entity.NumbersForImagePieces)) : "null");
-        oracleAI_Array_NumbersForImagePieces = oracleAI_Array_NumbersForImagePieces || "Oracle AI Array not found";
-        console.log(oracleAI_Array_NumbersForImagePieces);
+        /*oracleAI_Array_NumbersForImagePieces = oracleAI_Array_NumbersForImagePieces || "Oracle AI Array not found";
+        console.log(oracleAI_Array_NumbersForImagePieces);*/
 
         var availablePiecesOfImage = @Html.Raw(Model.ImagePieceList);
-        availablePiecesOfImage = availablePiecesOfImage || "availablePiecesOfImage not found";
-        console.log(availablePiecesOfImage);
+        /*availablePiecesOfImage = availablePiecesOfImage || "availablePiecesOfImage not found";
+        console.log(availablePiecesOfImage);*/
 
         var imageCoordinates = @(Model.ImageCoordinates != null ? Html.Raw(Model.ImageCoordinates) : "null");
-        imageCoordinates = imageCoordinates || "ImageCoordinates not found";
-        console.log(imageCoordinates);
+        /*imageCoordinates = imageCoordinates || "ImageCoordinates not found";
+        console.log(imageCoordinates);*/
     </script>
 
     <script type="module" src="~/js/game.js"></script>

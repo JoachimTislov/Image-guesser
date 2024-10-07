@@ -30,6 +30,18 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
         return await _imageRepository.GetImagePieceCountById(ImageIdentifier);
     }
 
+    public async Task<string> GetDifferentRandomImageIdentifier(List<string> imageIdentifiers)
+    {
+        string imageId;
+        do
+        {
+            imageId = await GetRandomImageIdentifier();
+        }
+        while (imageIdentifiers.Contains(imageId));
+
+        return imageId;
+    }
+
     public async Task<string> GetRandomImageIdentifier()
     {
         return await _imageRepository.GetRandomImageIdentifier();

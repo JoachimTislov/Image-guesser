@@ -39,9 +39,6 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     public BaseOracle BaseOracle { get; set; } = null!;
     public Guesser? Guesser { get; set; } = null!;
 
-    public bool OracleIsAI { get; set; }
-    public bool HasPlayedSetAmountGames { get; set; }
-
     public Guid SessionHostId { get; set; }
 
     public Game<User>? GameUser { get; set; }
@@ -56,6 +53,7 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     /* If statements */
     public bool UserIsOracle { get; set; }
     public bool UserIsSessionHost { get; set; }
+    public bool OracleIsAI { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -78,8 +76,6 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
             UserIsOracle = await _sessionService.CheckIfUserIsOracle(SessionId, Player.Id);
 
             UserIsSessionHost = await _sessionService.CheckIfUserIsSessionHost(SessionId, Player.Id);
-
-            HasPlayedSetAmountGames = await _sessionService.CheckIfSessionHasReachedSetNumberOfGamesToPlay(SessionId);
 
             NumberOfTilesRevealed = BaseOracle.NumberOfTilesRevealed;
 

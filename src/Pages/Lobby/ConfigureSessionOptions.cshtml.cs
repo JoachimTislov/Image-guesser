@@ -47,6 +47,8 @@ public class ConfigureSessionOptionsModel(ILogger<ConfigureSessionOptionsModel> 
         {
             ImageRecord = await _imageService.GetImageRecordById(Options.ImageIdentifier);
         }
+
+        _logger.LogInformation("{Name} visited the options page for session with Id: {Id}", User.Identity?.Name, Id);
     }
 
     public async Task OnPostRefreshImagesAsync()
@@ -54,17 +56,15 @@ public class ConfigureSessionOptionsModel(ILogger<ConfigureSessionOptionsModel> 
         ShowSelectPictureModal = true;
 
         ImageRecords = await _imageService.GetXAmountOfImageRecords(AmountOfPicturesToLoad);
+
+        _logger.LogInformation("{Name} refreshed the image records in options page for session with Id: {Id}", User.Identity?.Name, Id);
     }
 
     public async Task<IActionResult> OnPostModifyAsync()
     {
-        // Handles case where the user switches to specific from random picture mode and back to random picture mode
-        if (Options.PictureMode == PictureMode.Random)
-        {
-            Options.ImageIdentifier = await _imageService.GetRandomImageIdentifier();
-        }
-
         await _sessionService.UpdateSessionOptions(Id, Options);
+
+        _logger.LogInformation("{Name} modified options for session with Id: {Id}", User.Identity?.Name, Id);
 
         return RedirectToPage("/Lobby/Session", new { Id });
     }

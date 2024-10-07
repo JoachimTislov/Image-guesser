@@ -1,4 +1,5 @@
 using Image_guesser.Core.Domain.GameContext.Responses;
+using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
@@ -10,11 +11,12 @@ using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Core.Domain.GameContext.Services;
 
-public class GameService(IOracleService oracleService, IRepository repository, IHubService hubService) : IGameService
+public class GameService(IOracleService oracleService, IRepository repository, IHubService hubService, IImageService imageService) : IGameService
 {
     private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
     private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IHubService _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
+    private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
 
     private async Task<InitializeGameResponse> InitializeGame<T>(Session session, Oracle<T> Oracle) where T : class
     {
@@ -42,6 +44,13 @@ public class GameService(IOracleService oracleService, IRepository repository, I
 
     public async Task CreateGame(Session session)
     {
+        var pastIdentifiers = _oracleService.GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(session.Id);
+        // Ensure the picture is random each game
+        if (session.Options.PictureMode == PictureMode.Random)
+        {
+            session.Options.ImageIdentifier = await _imageService.GetDifferentRandomImageIdentifier(pastIdentifiers);
+        }
+
         var CreateGameResult = session.Options.IsOracleAI()
         ? await SetupGameWithAIAsOracle(session)
         : await SetupGameWithUserAsOracle(session);

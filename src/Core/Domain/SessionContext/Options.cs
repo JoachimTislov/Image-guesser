@@ -15,7 +15,6 @@ public class Options
     }
 
     // Init as SinglePlayer for new Sessions
-    public int NumberOfGamesToPlay { get; private set; } = 1;
     public int AmountOfGamesPlayed { get; private set; }
     public int LobbySize { get; private set; } = 1;
     public GameMode GameMode { get; private set; } = GameMode.SinglePlayer;
@@ -23,7 +22,7 @@ public class Options
     public OracleTypes Oracle { get; private set; } = OracleTypes.AI;
     public AI_Type AI_Type { get; private set; } = AI_Type.Random;
     public PictureMode PictureMode { get; private set; } = PictureMode.Random;
-    public string ImageIdentifier { get; private set; } = string.Empty;
+    public string ImageIdentifier { get; set; } = string.Empty;
 
     public void SetOptionsValues(ViewModelOptions options)
     {
@@ -48,14 +47,12 @@ public class Options
                 break;
         }
 
-        NumberOfGamesToPlay = ValidateRange(options.NumberOfGamesToPlay, 1, 100);
-
         GameMode = options.GameMode;
         AI_Type = options.AI_Type;
 
         RandomUserOracle = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() && options.RandomUserOracle;
 
-        PictureMode = options.PictureMode;
+        PictureMode = !IsGameMode(GameMode.SinglePlayer) ? options.PictureMode : PictureMode.Random;
         ImageIdentifier = options.ImageIdentifier;
     }
 
@@ -64,11 +61,6 @@ public class Options
     public void IncrementAmountOfGamesPlayed()
     {
         AmountOfGamesPlayed++;
-    }
-
-    public void IncrementNumberOfGamesToPlay()
-    {
-        NumberOfGamesToPlay++;
     }
 
     public bool IsOracleAI()

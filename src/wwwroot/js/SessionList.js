@@ -1,8 +1,9 @@
-import { joinGroup } from "./gameHub.js";
+import { joinSession } from "./gameHub.js";
 
 document.querySelectorAll('.joinSessionButton').forEach(button => {
     button.addEventListener('click', function () {
         const sessionId = button.getAttribute("session-Id")
-        joinGroup(sessionId);
+        const userId = button.getAttribute("user-Id")
+        joinSession(sessionId, userId);
     });
 });

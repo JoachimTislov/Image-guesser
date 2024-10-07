@@ -55,8 +55,9 @@
                     {
                         @if (session.Key.SessionUsers.Count < session.Key.Options.LobbySize)
                         {
-                            <button session-Id="@session.Key.Id" type="submit" class="btn btn-primary joinSessionButton">Join
-                                Lobby</button>
+                            <button session-Id="@session.Key.Id" user-Id="@Model.Player.Id" type="submit" class="btn btn-primary joinSessionButton">
+                                Join Lobby
+                            </button>
                         }
                         else
                         {

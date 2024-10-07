@@ -1,4 +1,3 @@
-using Image_guesser.Core.Domain.UserContext;
 using Microsoft.AspNetCore.SignalR;
 using MediatR;
 using Image_guesser.Core.Domain.SessionContext.Events;
@@ -11,7 +10,7 @@ using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 
 namespace Image_guesser.Core.Domain.SignalRContext.Hubs;
 
-public class GameHub(IConnectionMappingService connectionMappingService, IUserService userService, ISessionService sessionService, IMediator mediator, IOracleService oracleService) : Hub<IGameClient>
+public class GameHub(IConnectionMappingService connectionMappingService, IUserService userService, ISessionService sessionService, IMediator mediator, IOracleService oracleService) : Hub<IGameClient>, IGameServer
 {
     private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
     private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
@@ -29,10 +28,11 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         {
             await _connectionMappingService.AddConnection(userId, Context.ConnectionId);
 
-            var groupId = _connectionMappingService.GetGroupId(userId);
-            if (groupId != string.Empty)
+            // Gets persisted sessionId from the database
+            var sessionId = await _userService.GetSessionIdByUserId(Guid.Parse(userId));
+            if (sessionId != null)
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, groupId);
+                await Groups.AddToGroupAsync(Context.ConnectionId, sessionId.Value.ToString());
             }
         }
         await base.OnConnectedAsync();
@@ -49,34 +49,19 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         await base.OnDisconnectedAsync(exception);
     }
 
-    private async Task AddToGroups(string sessionId, string userId, string connectionId)
-    {
-        await Groups.AddToGroupAsync(connectionId, sessionId);
-        await _connectionMappingService.AddToGroup(userId, sessionId);
-    }
-
     public async Task AddToGroup(string sessionId)
     {
         var userId = Context.UserIdentifier;
         if (userId != null)
         {
-            await AddToGroups(sessionId, userId, Context.ConnectionId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
         }
     }
 
-    public async Task JoinGroup(string sessionId)
+    public async Task JoinSession(string sessionId, string userId)
     {
         await AddToGroup(sessionId);
-
-        var userId = Context.UserIdentifier;
-        if (userId != null)
-        {
-            await _sessionService.AddUserToSession(userId, sessionId);
-        }
-        // We use RedirectToLink because this allows us to bypass the need for extensive front-end logic
-        // that is already handled by the back-end rendering of the webpage.
-        await Clients.Groups(sessionId).RedirectToLink($"/Lobby/{sessionId}");
-
+        await _mediator.Publish(new UserClickedJoinSession(userId, sessionId));
     }
 
     public async Task SendGuess(
@@ -87,7 +72,6 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
 
         await Clients.Group(sessionId).ReceiveGuess(guess, userName);
 
-        //This sets of an event that Oracle will handle 
         await _mediator.Publish(new PlayerGuessed(Guid.Parse(oracleId), guess, Guid.Parse(guesserId), Guid.Parse(gameId), Guid.Parse(sessionId)));
 
         var session = await _sessionService.GetSessionById(Guid.Parse(sessionId));
