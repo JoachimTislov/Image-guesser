@@ -82,7 +82,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Game round Ended</h5>
+                    <h5 class="modal-title">Game round ended</h5>
                 </div>
                 <div class="modal-body">
                     <h6 id="winningPlayer"></h6>
@@ -90,19 +90,20 @@
                     <h5 id="modalAnswer"></h5>
                 </div>
                 <div class="modal-footer">
+                    @if(sm)
+                    {
+                        <form method="post" asp-page-handler="ReturnToLobby">
+                            <button type="submit" class="btn btn-danger">
+                                Return to lobby
+                            </button>
+                        </form>
 
-                    <form method="post" asp-page-handler="ReturnToLobby">
-                        <button type="submit" class="btn btn-danger">
-                            Return to lobby
-                        </button>
-                    </form>
-
-                    <form method="post" asp-page-handler="CreateGame">
-                        <button type="submit" class="btn btn-success">
-                            Start new game
-                        </button>
-                    </form>
-
+                        <form method="post" asp-page-handler="CreateGame">
+                            <button type="submit" class="btn btn-success">
+                                Start new game
+                            </button>
+                        </form>
+                    }
                 </div>
             </div>
         </div>

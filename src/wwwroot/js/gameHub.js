@@ -57,15 +57,15 @@ connection.on("ReceiveMessage", (message) => {
 // These functions are used to send a user from to the link or force a reload of the current page
 // and serve as a way to reload the page for everyone in the SignalR groups
 connection.on("RedirectToLink", (link) => {
-    console.log("Redirecting to: " + link);
-    
+    console.log(`Redirected to: ${link}`);
     window.location.href = link
 });
 
 // Pretty much serves the same purpose as above just by reloading the current page instead of redirecting
 connection.on("ReloadPage", () => {
-    console.log("Reloading page.. ")
     window.location.reload();
+
+    console.log("Reloaded the page.. ")
 });
 
 // Handles functions for receiving and displaying guesses

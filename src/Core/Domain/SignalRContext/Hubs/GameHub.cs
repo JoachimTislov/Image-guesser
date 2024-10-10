@@ -29,6 +29,8 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         var userId = Context.UserIdentifier;
         if (userId != null)
         {
+            await _connectionMappingService.AddConnection(userId, Context.ConnectionId);
+
             // Gets persisted sessionId from the database
             var sessionId = await _userService.GetSessionIdByUserId(Guid.Parse(userId));
             if (sessionId != null)
@@ -53,7 +55,6 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
     public async Task AddToGroup(string sessionId, string userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
-        await _connectionMappingService.AddConnection(userId, Context.ConnectionId);
     }
 
     public async Task JoinSession(string sessionId, string userId)
@@ -67,19 +68,19 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
 
     public async Task LeaveSession(string userId, string sessionId)
     {
-        await RemoveFromGroupAsync(userId, sessionId, Context.ConnectionId);
+        await RemoveFromGroupAsync(sessionId, Context.ConnectionId);
 
         await _sessionService.RemoveUserFromSession(userId, Guid.Parse(sessionId));
 
+        // await _hubService.ReloadGroupPage(sessionId);
         await _hubService.RedirectClientToPage(userId, "/");
-        // Allows us to bypass the need for extensive front-end logic that is already handled by the back-end
+
         await _hubService.ReloadGroupPage(sessionId);
     }
 
-    private async Task RemoveFromGroupAsync(string userId, string sessionId, string connectionId)
+    private async Task RemoveFromGroupAsync(string sessionId, string connectionId)
     {
         await Groups.RemoveFromGroupAsync(connectionId, sessionId);
-        await _connectionMappingService.RemoveConnection(userId, connectionId);
     }
 
     public async Task CloseSession(string sessionId)
@@ -92,7 +93,7 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         foreach (var user in sessionUsers)
         {
             var connectionId = _connectionMappingService.GetConnection(user.Id.ToString());
-            await RemoveFromGroupAsync(user.Id.ToString(), sessionId, connectionId);
+            await RemoveFromGroupAsync(sessionId, connectionId);
         }
     }
 

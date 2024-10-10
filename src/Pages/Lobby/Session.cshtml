@@ -158,7 +158,7 @@
                             @if (Model.UserIsSessionHost && Model.SessionHost.Id != users[i].Id)
                             {
                                 <td>
-                                    <button type="submit" class="btn btn-danger removeUserButton" user-Id="@users[i].Id">
+                                    <button type="button" class="btn btn-danger removeUserButton" user-Id="@users[i].Id">
                                         Kick
                                     </button>
                                 </td>
@@ -190,7 +190,7 @@
                 }
                 else
                 {
-                    <button type="submit" class="btn btn-danger removeUserButton" user-Id="@Model.Player.Id">
+                    <button type="button" class="btn btn-danger removeUserButton" user-Id="@Model.Player.Id">
                         Leave Lobby
                     </button>
                 }
