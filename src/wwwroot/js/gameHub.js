@@ -10,12 +10,20 @@ connection.start().then(()=> {
     isConnected = true;
 }).catch(err => console.error(err.toString()));
 
-export function createGroup(sessionId) {
-    connection.invoke("AddToGroup", sessionId).catch(err => console.error(err.toString()));
+export function AddToGroup(sessionId, userId) {
+    connection.invoke("AddToGroup", sessionId, userId).catch(err => console.error(err.toString()));
 }
 
 export function joinSession(sessionId, userId) {
     connection.invoke("JoinSession", sessionId, userId).catch(err => console.error(err.toString()));
+}
+
+export function leaveSession(sessionId, userId) {
+    connection.invoke("LeaveSession", sessionId, userId).catch(err => console.error(err.toString()));
+}
+
+export function closeSession(sessionId) {
+    connection.invoke("CloseSession", sessionId).catch(err => console.error(err.toString()));
 }
 
 export function sendGuess(message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier) {
@@ -56,6 +64,7 @@ connection.on("RedirectToLink", (link) => {
 
 // Pretty much serves the same purpose as above just by reloading the current page instead of redirecting
 connection.on("ReloadPage", () => {
+    console.log("Reloading page.. ")
     window.location.reload();
 });
 
@@ -65,12 +74,12 @@ connection.on("ReceiveGuess", (guess, playerName) => {
 
     var guessContainer = document.createElement("div");
     var playerNameP = document.createElement("p");
-    playerNameP.classList.add("float-start");
+    playerNameP.classList.add("ms-auto");
     playerNameP.textContent = playerName + ": ";
     guessContainer.appendChild(playerNameP);
 
     var guessP = document.createElement("p");
-    guessP.classList.add("float-end");
+    guessP.classList.add("me-auto");
     guessP.textContent = guess;
     guessContainer.appendChild(guessP);
 

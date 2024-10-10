@@ -1,8 +1,7 @@
-using Image_guesser.Core.Domain.GameContext.Events;
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
-using Image_guesser.Core.Domain.SessionContext.Events;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
@@ -29,43 +28,87 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
     public Session Session { get; set; } = null!;
     public User SessionHost { get; set; } = null!;
+    public bool UserIsSessionHost { get; set; }
+    public bool UserIsOracle { get; set; }
     public User ChosenOracle { get; set; } = null!;
 
+    [BindProperty]
+    public List<ImageRecord> ImageRecords { get; set; } = [];
+
+    [BindProperty]
+    public int AmountOfPicturesToLoad { get; set; } = 9;
+
     public ImageRecord? ImageRecord { get; set; }
+    public string? ImageIdentifier { get; set; }
 
     public User Player { get; set; } = null!;
 
     public async Task OnGet()
     {
         await LoadSessionData();
+
+        await LoadImageRecords();
+
+        _logger.LogInformation("{Name} entered the session page with Id: {Id}", Player.UserName, Id);
     }
 
-    public async Task<IActionResult> OnPostStartGame()
+    public async Task<IActionResult> OnPostStartGame(string imageIdentifier)
     {
+        ImageIdentifier = imageIdentifier;
+
         await LoadSessionData();
 
-        if (!Session.Options.IsGameMode(GameMode.SinglePlayer) && Session.SessionUsers.Count < 2)
+        var session = await _sessionService.GetSessionById(Id);
+
+        if (!session.Options.IsGameMode(GameMode.SinglePlayer) && session.SessionUsers.Count < 2)
         {
-            ModelState.AddModelError(string.Empty, "Need more players to start a game");
+            string[] missingRequirements = [
+                "Need more players to start a game",
+                "Duo requires two players",
+                "Free for all requires at least two players",
+            ];
+
+            foreach (var requirement in missingRequirements)
+            {
+                ModelState.AddModelError(string.Empty, requirement);
+            }
+        }
+        else if (ImageRecord == null && session.Options.PictureMode == PictureMode.Specific)
+        {
+            ModelState.AddModelError(string.Empty, "Please select an image to start the game");
         }
         else
         {
             _logger.LogInformation("{Name} started a game in a session with Id: {Id}", User.Identity?.Name, Id);
-            await _mediator.Publish(new CreateGame(Id));
+            await _mediator.Publish(new CreateGame(Id, ImageRecord?.Identifier));
         }
 
         return Page();
     }
 
-    public async Task OnPostCloseSession()
+    public async Task<IActionResult> OnPostOracleSelectedAnImage(string imageIdentifier)
     {
-        await _mediator.Publish(new SessionClosed(Id));
+        ImageIdentifier = imageIdentifier;
+
+        _logger.LogInformation("User Oracle - {Name} selected an image in sessions with Id: {Id}", User.Identity?.Name, Id);
+
+        await LoadSessionData();
+
+        return Page();
     }
 
-    public async Task OnPostRemoveUserFromSession(string userId)
+    public async Task<IActionResult> OnPostRefreshImagesAsync()
     {
-        await _mediator.Publish(new UserLeftSessionOrWasKicked(userId, Id));
+        await LoadSessionData();
+
+        await LoadImageRecords();
+
+        _logger.LogInformation("User Oracle - {Name} refreshed the image records in sessions with Id: {Id}", User.Identity?.Name, Id);
+
+        return Page();
     }
+
+    private async Task LoadImageRecords() => ImageRecords = await _imageService.GetXAmountOfImageRecords(AmountOfPicturesToLoad);
 
     private async Task LoadSessionData()
     {
@@ -73,13 +116,10 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
         SessionHost = await _userService.GetUserById(Session.SessionHostId.ToString());
         ChosenOracle = await _userService.GetUserById(Session.ChosenOracleId.ToString());
 
-        var identifier = Session.Options.ImageIdentifier;
-        if (identifier != string.Empty)
-        {
-            ImageRecord = await _imageService.GetImageRecordById(identifier);
-        }
+        if (ImageIdentifier != null) ImageRecord = await _imageService.GetImageRecordById(ImageIdentifier);
 
         Player = await _userService.GetUserByClaimsPrincipal(User);
-        _logger.LogInformation("{Name} entered the session page with Id: {Id}", Player.UserName, Id);
+        UserIsSessionHost = Session.UserIsSessionHost(Player.Id);
+        UserIsOracle = Session.UserIsOracle(Player.Id);
     }
 }

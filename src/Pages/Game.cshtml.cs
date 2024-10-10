@@ -1,11 +1,10 @@
 using Image_guesser.Core.Domain.GameContext;
-using Image_guesser.Core.Domain.GameContext.Events;
 using Image_guesser.Core.Domain.GameContext.Services;
 using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.OracleContext.Services;
-using Image_guesser.Core.Domain.SessionContext.Events;
+using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
@@ -127,12 +126,12 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     public async Task OnPostLeaveGame()
     {
         var user = await _userService.GetUserByClaimsPrincipal(User);
-        await _mediator.Publish(new UserLeftGame(user.Id.ToString(), Guesser?.Id, GameId, SessionId));
+        await _mediator.Publish(new PlayerLeftGame(user.Id.ToString(), Guesser?.Id, GameId, SessionId));
     }
 
     public async Task OnPostCreateGame()
     {
-        await _mediator.Publish(new CreateGame(SessionId));
+        await _mediator.Publish(new CreateGame(SessionId, null));
     }
 
     /* public IActionResult OnPostSetImageSize(int width, int height, List<string> imagePieceList)

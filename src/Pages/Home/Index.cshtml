@@ -5,15 +5,15 @@
 }
 
 <div class="text-center">
-    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    @if (User.Identity != null && User.Identity.IsAuthenticated && Model.User_ != null)
     {
         <p> Welcome to Image Guesser </p>
 
         <div class="d-flex justify-content-evenly">
             <form method="post" asp-page-handler="CreateSession">
                 <input name="Id" value="@Model.SessionId" hidden>
-                <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"> Create a
-                    Lobby </button>
+                <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"
+                    user-Id="@Model.User_.Id"> Create a Lobby </button>
             </form>
 
             <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>

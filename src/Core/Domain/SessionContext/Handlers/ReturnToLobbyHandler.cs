@@ -1,4 +1,3 @@
-using Image_guesser.Core.Domain.SessionContext.Events;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using MediatR;
 
@@ -9,6 +8,10 @@ public class ReturnToLobbyHandler(ISessionService sessionService) : INotificatio
     private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
     public async Task Handle(ReturnToLobby notification, CancellationToken cancellationToken)
     {
-        await _sessionService.BackToLobbyEvent(notification.SessionId);
+        var session = await _sessionService.GetSessionById(notification.SessionId);
+
+        session.InLobby();
+
+        await _sessionService.UpdateSession(session);
     }
 }

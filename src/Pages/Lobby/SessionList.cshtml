@@ -37,7 +37,7 @@
 
                         <tr>
                             <td> @session.Key.Options.GameMode </td>
-                            <td> @session.Key.Options.Oracle:
+                            <td> @session.Key.Options.OracleType:
                                 @(session.Key.Options.IsOracleAI() ? session.Key.Options.AI_Type :
                                     session.Value.ChosenOracle.UserName) </td>
                             <td> @session.Key.SessionUsers.Count / @session.Key.Options.LobbySize </td>

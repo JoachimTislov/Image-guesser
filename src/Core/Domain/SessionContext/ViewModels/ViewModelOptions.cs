@@ -9,23 +9,23 @@ public class ViewModelOptions
     {
         LobbySize = options.LobbySize;
         GameMode = options.GameMode;
-        RandomUserOracle = options.RandomUserOracle;
-        Oracle = options.Oracle;
+        OracleType = options.OracleType;
         AI_Type = options.AI_Type;
         PictureMode = options.PictureMode;
-        ImageIdentifier = options.ImageIdentifier;
     }
+
+    // Used temporary to assign values correctly in session's options
     public int LobbySize { get; set; }
     public GameMode GameMode { get; set; }
-    public bool RandomUserOracle { get; set; }
-    public OracleTypes Oracle { get; set; }
+    public OracleTypes OracleType { get; set; }
+    public UserOracleMode UserOracleMode { get; set; }
+    public string SelectedUserId { get; set; } = string.Empty;
     public AI_Type AI_Type { get; set; }
     public PictureMode PictureMode { get; set; }
-    public string ImageIdentifier { get; set; } = string.Empty;
 
     public bool IsOracleAI()
     {
-        return Oracle == OracleTypes.AI;
+        return OracleType == OracleTypes.AI;
     }
 
     public bool IsGameMode(GameMode gameMode)

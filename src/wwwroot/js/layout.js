@@ -1,4 +1,4 @@
-import { createGroup } from './gameHub.js'
+import { AddToGroup } from './gameHub.js'
 
 const activeLobbyLink = document.getElementById("ActiveLobby")
 
@@ -6,6 +6,7 @@ if (activeLobbyLink)
 {
     activeLobbyLink.addEventListener("click", () =>{
         var sessionId = activeLobbyLink.getAttribute("session-Id");
-        createGroup(sessionId)
+        var userId = activeLobbyLink.getAttribute("user-Id");
+        AddToGroup(sessionId, userId)
     })
 }

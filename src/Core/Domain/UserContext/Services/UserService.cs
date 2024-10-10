@@ -24,7 +24,7 @@ public class UserService(UserManager<User> userManager, IRepository repository) 
 
     public async Task<Guid?> GetSessionIdByUserId(Guid Id)
     {
-        return await _repository.WhereAndSelect_SingleOrDefault<User, Guid, Guid?>(u => u.Id == Id, u => u.SessionId, Id);
+        return await _repository.WhereAndSelect_SingleOrDefault<User, Guid?>(u => u.Id == Id, u => u.SessionId);
     }
 
     public async Task<User> GetUserByClaimsPrincipal(ClaimsPrincipal User)
@@ -32,10 +32,9 @@ public class UserService(UserManager<User> userManager, IRepository repository) 
         return await _userManager.GetUserAsync(User) ?? throw new EntityNotFoundException($"User with ClaimsPrincipal: {User} was not found");
     }
 
-    public Guid GetUserIdByClaimsPrincipal(ClaimsPrincipal User)
+    public string? GetUserIdByClaimsPrincipal(ClaimsPrincipal User)
     {
-        var Id = _userManager.GetUserId(User) ?? throw new EntityNotFoundException($"UserId with ClaimsPrincipal: {User} was not found");
-        return Guid.Parse(Id);
+        return _userManager.GetUserId(User);
     }
 
     public async Task<User> GetUserById(string Id)

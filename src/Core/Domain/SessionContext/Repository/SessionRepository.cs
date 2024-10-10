@@ -21,7 +21,8 @@ public class SessionRepository(IRepository repository) : ISessionRepository
 
     public async Task<List<User>> GetUsersInSessionById(Guid Id)
     {
-        return await _repository.WhereAndSelect_SingleOrDefault<Session, Guid, List<User>>(s => s.Id == Id, s => s.SessionUsers, Id);
+        return await _repository.WhereAndSelect_SingleOrDefault<Session, List<User>>(s => s.Id == Id, s => s.SessionUsers)
+         ?? throw new EntityNotFoundException($"List of users was not found in session with Id {Id}");
     }
 
     public async Task<Session> GetSessionById(Guid Id)
@@ -31,10 +32,10 @@ public class SessionRepository(IRepository repository) : ISessionRepository
 
     public async Task<Guid> GetSessionHostIdBySessionId(Guid Id)
     {
-        return await _repository.WhereAndSelect_SingleOrDefault<Session, Guid, Guid>(
+        return await _repository.WhereAndSelect_SingleOrDefault<Session, Guid?>(
                 /*Where*/    s => s.Id == Id,
-                /*Select*/   s => s.SessionHostId,
-                /*Identifier*/ Id);
+                /*Select*/   s => s.SessionHostId
+                ) ?? throw new EntityNotFoundException($"SessionHostId was not found by session Id: {Id}");
     }
 
     public List<Session> GetAllOpenSessions()

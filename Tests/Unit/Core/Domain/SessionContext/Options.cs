@@ -14,7 +14,6 @@ public class OptionsTests
         Assert.Equal(1, Options.LobbySize);
         Assert.Equal(GameMode.SinglePlayer, Options.GameMode);
         Assert.Equal(PictureMode.Random, Options.PictureMode);
-        Assert.False(Options.RandomUserOracle);
         Assert.True(Options.IsOracleAI());
 
     }
@@ -30,8 +29,7 @@ public class OptionsTests
             LobbySize = number,
             GameMode = GameMode.Duo,
             PictureMode = PictureMode.Specific,
-            RandomUserOracle = true,
-            Oracle = OracleTypes.User,
+            OracleType = OracleTypes.User,
             AI_Type = AI_Type.Random
         };
 
@@ -46,8 +44,5 @@ public class OptionsTests
 
         Assert.True(!Options.IsGameMode(GameMode.SinglePlayer));
         Assert.True(!Options.IsOracleAI());
-
-        Assert.True(Options.RandomUserOracle);
-
     }
 }

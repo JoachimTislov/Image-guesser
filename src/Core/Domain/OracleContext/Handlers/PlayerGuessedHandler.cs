@@ -1,4 +1,4 @@
-using Image_guesser.Core.Domain.GameContext.Events;
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Infrastructure.GenericRepository;

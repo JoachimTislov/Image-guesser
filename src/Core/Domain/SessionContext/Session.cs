@@ -17,7 +17,7 @@ public class Session : BaseEntity
 
     public Guid Id { get; private set; }
     public Guid SessionHostId { get; set; }
-    public Guid ChosenOracleId { get; set; } // Maybe change this to nullable, since it wont be used unless the session has an oracle
+    public Guid ChosenOracleId { get; set; }
     public List<User> SessionUsers { get; set; } = [];
     public Options Options { get; set; } = new();
     public DateTime TimeOfCreation { get; set; } = DateTime.Now;

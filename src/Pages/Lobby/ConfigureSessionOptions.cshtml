@@ -28,115 +28,56 @@
             var IsFreeForAll = Model.Options.IsGameMode(GameMode.FreeForAll);
         }
 
+        <div id="infoOracleType" class="d-flex input-group mt-2 @(IsFreeForAll ? hide : "")">
+            <label class="input-group-text" for="infoOracleInput">Oracle Type: </label>
+            <input id="infoOracleInput" class="form-control text-center" value="@Model.Options.OracleType" disabled>
+        </div>
+
         <div id="selectOracleTypeContainer" class="d-flex input-group mt-2 @(IsFreeForAll ? "" : hide)">
             <label class="input-group-text" for="selectOracleType"> Oracle Type: </label>
-            <select asp-for="Options.Oracle" asp-items="Html.GetEnumSelectList<OracleTypes>()" id="selectOracleType"
+            <select asp-for="Options.OracleType" asp-items="Html.GetEnumSelectList<OracleTypes>()" id="selectOracleType"
                 class="form-select text-center" onchange="OracleTypeChange()">
             </select>
         </div>
 
-        <div id="infoOracleType" class="d-flex input-group mt-2 @(IsFreeForAll ? hide : "")">
-            <label class="input-group-text" for="infoOracleInput">Oracle Type: </label>
-            <input id="infoOracleInput" class="form-control text-center" value="@Model.Options.Oracle" disabled>
-        </div>
-
-        @{
-            var randomUserOracleClass =
-            Model.Options.IsGameMode(GameMode.SinglePlayer) ||
-            Model.Options.IsOracleAI() ? hide : string.Empty;
-        }
-
-        <div class="form-check m-1 @randomUserOracleClass" id="RandomUserOracle">
-            <label for="randomUser"> Random User As Oracle </label>
-            <input type="checkbox" class="form-check-input" asp-for="Options.RandomUserOracle" id="randomUser">
-        </div>
-
-        @{
-            var pickAIClass = Model.Options.IsOracleAI() ? string.Empty : hide;
-        }
-
-        <div class="d-flex input-group mt-2 @pickAIClass" id="pickAI">
+        <div class="d-flex input-group mt-2 @(Model.Options.IsOracleAI() ? string.Empty : hide)" id="pickAI">
             <label class="input-group-text" for="selectAI"> Type of AI: </label>
             <select class="form-select text-center" asp-for="Options.AI_Type"
                 asp-items="Html.GetEnumSelectList<AI_Type>()" id="selectAI">
             </select>
         </div>
 
+        <div id="UserOracleMode" class="d-flex input-group mt-2  @(Model.Options.IsOracleAI() ? hide : string.Empty)">
+            <label class="input-group-text" for="selectUserOracleMode"> User-Oracle Mode: </label>
+            <select asp-for="Options.UserOracleMode" asp-items="Html.GetEnumSelectList<UserOracleMode>()"
+                id="selectUserOracleMode" class="form-select text-center" onchange="UserOracleModeChange()">
+            </select>
+
+            <div id="ListOfUsersInSession"
+                class="d-flex input-group mt-2 @(Model.Options.UserOracleMode == UserOracleMode.Chosen ? string.Empty : hide)">
+                <label class="input-group-text" for="selectPictureMode"> Oracle: </label>
+                <select asp-for="Options.SelectedUserId" class="form-select text-center">
+                    @foreach (var user in Model.Users)
+                    {
+                        if (user.Selected)
+                        {
+                            <option value="@user.Value" selected> @user.Text </option>
+                        }
+                        else
+                        {
+                            <option value="@user.Value"> @user.Text </option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
         <div id="PictureMode"
             class="d-flex input-group mt-2  @(Model.Options.IsGameMode(GameMode.SinglePlayer) ? hide : string.Empty)">
             <label class="input-group-text" for="selectPictureMode"> Picture Mode: </label>
             <select asp-for="Options.PictureMode" asp-items="Html.GetEnumSelectList<PictureMode>()"
-                id="selectPictureMode" class="form-select text-center" onchange="TogglePictureMode()">
+                id="selectPictureMode" class="form-select text-center">
             </select>
-        </div>
-
-        <div class="@(Model.Options.PictureMode == PictureMode.Random || Model.Options.IsGameMode(GameMode.SinglePlayer) ? hide : "")"
-            id="ImageContainer">
-
-            <input asp-for="Options.ImageIdentifier" value="@Model.Options.ImageIdentifier" id="imageIdentifier"
-                hidden />
-            <input asp-for="ImageRecord.Link" id="imageLink" hidden />
-
-            @{
-                var NotSelectedImage = Model.ImageRecord.Link == string.Empty;
-            }
-
-            <div id="selectedImageContainer" class="@(NotSelectedImage ? hide : "")">
-                <div class="d-flex input-group mt-2">
-                    <label class="input-group-text" for="selectedImageName"> Name: </label>
-                    <input asp-for="ImageRecord.Name" id="selectedImageName" class="form-control text-center"
-                        value="@Model.ImageRecord.Name" readonly>
-                </div>
-
-                <div class="d-flex justify-content-center p-3">
-                    <img class="rounded" id="selectedImageEL" src="~/@Model.ImageRecord.Link" width="380px"
-                        height="300px">
-                </div>
-            </div>
-
-            <div class="modal modal-lg fade" tabindex="-1" id="SelectImageModal">
-                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                    <div class="modal-content" style="max-height: 70%;">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Select an Image</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="d-flex flex-wrap justify-content-center align-content-center">
-                                @foreach (var image in Model.ImageRecords)
-                                {
-                                    <button type="button" data-bs-dismiss="modal" class="btn position-relative"
-                                        id="@image.Identifier"
-                                        onclick="UserSelectedImage('@image.Link.Replace("\\", "/")', '@image.Name', '@image.Identifier')">
-                                        <img src="~/@image.Link" class="rounded" width="100px" height="100px" />
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                        <div class="footer m-2">
-                            <div class="d-flex input-group mt-1 float-end" style="width: 350px">
-                                <label class="input-group-text" for="imageAmount"> Amount of Images: </label>
-
-                                <select id="imageAmount" class="form-select" asp-for="@Model.AmountOfPicturesToLoad">
-
-                                    @for (var i = 1; i <= 100; i++)
-                                    {
-                                        <option value="@i"> @i </option>
-                                    }
-
-                                </select>
-
-                                <button type="submit" asp-page-handler="RefreshImages" class="btn btn-primary"> Refresh
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button type="button" data-bs-toggle="modal" data-bs-target="#SelectImageModal"
-                asp-page-handler="RefreshImages" class="m-1 btn btn-primary">
-                Select an Image </button>
         </div>
 
         @{
@@ -166,18 +107,4 @@
 
 @section Scripts {
     <script src="~/js/ConfigureSessionOptions.js"></script>
-
-    <script>
-
-        // The code underneath shows the modal if the user clicked the refresh button
-        var showModal = @((Model.ShowSelectPictureModal.ToString().ToLower()));
-
-        if (showModal) {
-            var modalElement = document.getElementById('SelectImageModal');
-            var modal = new bootstrap.Modal(modalElement);
-            modal.show();
-        }
-
-    </script>
-
 }

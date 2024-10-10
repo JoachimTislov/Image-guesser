@@ -19,11 +19,9 @@ public class ViewModelOptionsTests
         Assert.Equal(number, ViewModelOptions.LobbySize);
         Assert.True(ViewModelOptions.IsGameMode(GameMode.SinglePlayer));
 
-        Assert.False(ViewModelOptions.RandomUserOracle);
         Assert.True(ViewModelOptions.IsOracleAI());
         Assert.Equal(AI_Type.Random, ViewModelOptions.AI_Type);
 
         Assert.Equal(PictureMode.Random, ViewModelOptions.PictureMode);
-        Assert.Empty(ViewModelOptions.ImageIdentifier);
     }
 }

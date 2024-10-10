@@ -1,14 +1,15 @@
 using System.Security.Claims;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Image_guesser.Core.Domain.SessionContext.Services;
 
 public interface ISessionService
 {
     Task CreateSession(ClaimsPrincipal User, Guid SessionId);
-    Task BackToLobbyEvent(Guid Id);
     Task<List<User>> GetUsersInSessionById(Guid Id);
+    Task<List<SelectListItem>> GetSelectListOfUsersById(Guid Id);
     Task<Session> GetSessionById(Guid Id);
     Task<Guid> GetSessionHostIdById(Guid Id);
     Task UpdateSession(Session session);
@@ -16,9 +17,8 @@ public interface ISessionService
     Task<bool> CheckIfOracleIsAI(Guid sessionId);
     Task<bool> CheckIfUserIsOracle(Guid sessionId, Guid userId);
     Task<bool> CheckIfUserIsSessionHost(Guid sessionId, Guid userId);
-    Task UpdateChosenOracleIfUserWasOracle(Guid sessionId, Guid userId);
     Task AddUserToSession(string userId, string SessionId);
-    Task RemoveUserFromSession(string userId, string SessionId);
+    Task RemoveUserFromSession(string userId, Guid SessionId);
     Task DeleteSessionById(Guid Id);
     List<Session> GetAllOpenSessions();
 

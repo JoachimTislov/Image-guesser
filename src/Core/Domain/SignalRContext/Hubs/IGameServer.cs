@@ -5,11 +5,14 @@ public interface IGameServer
 
     // Services invoked from client 
 
-    Task AddToGroup(string sessionId);
+    Task AddToGroup(string sessionId, string userId);
     Task JoinSession(string sessionId, string userId);
+    Task LeaveSession(string userId, string sessionId);
+    Task CloseSession(string sessionId);
     Task SendGuess(string guess, string userId, string sessionId, string oracleId,
             string gameId, string guesserId, string imageIdentifier);
     Task OracleRevealedATile(string oracleId);
     Task ShowThisPiece(string pieceId, string sessionId);
     Task ShowNextPieceForAll(string sessionId);
+
 }

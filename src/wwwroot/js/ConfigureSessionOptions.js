@@ -12,10 +12,13 @@ const hide = (divs) => {
 
 const loop = (arr, display) => {
     for (const div of arr) {
-        if(display) {
-            div.classList.remove("hide")
-        } else {
-            div.classList.add("hide")
+        if(div)
+        {
+            if(display) {
+                div.classList.remove("hide")
+            } else {
+                div.classList.add("hide")
+            }
         }
     }
 }
@@ -26,15 +29,15 @@ function gameModeChanged()
 
     const pickAI = EL("pickAI")
     const lobbySize = EL("lobbyPlayerLimit")
-    const RandomUserOracle = EL("RandomUserOracle")
     const PictureMode = EL("PictureMode")
-    const ImageContainer = EL("ImageContainer") 
+    const UserOracleMode = EL("UserOracleMode")
 
     const infoOracleType = EL("infoOracleType")
     const infoOracleInput = EL("infoOracleInput")
 
     const selectOracleTypeContainer = EL("selectOracleTypeContainer")
     const selectOracleType = EL("selectOracleType")
+    
     const selectPictureMode = EL("selectPictureMode")
 
     switch (parseInt(selectedGameMode.value)) {
@@ -45,7 +48,7 @@ function gameModeChanged()
             selectPictureMode.value = "0" // Index for random picture mode
 
             show([infoOracleType, pickAI])
-            hide([RandomUserOracle, PictureMode, lobbySize, ImageContainer, selectOracleTypeContainer])
+            hide([UserOracleMode, PictureMode, lobbySize, selectOracleTypeContainer])
             break
 
         case 1: //Duo
@@ -53,7 +56,7 @@ function gameModeChanged()
             infoOracleInput.value = "User"
             selectOracleType.value = "1" // Index for user in OracleTypes
 
-            show([infoOracleType, RandomUserOracle, PictureMode])
+            show([infoOracleType, UserOracleMode, PictureMode])
             hide([pickAI, lobbySize, selectOracleTypeContainer])
             break
 
@@ -67,63 +70,43 @@ function gameModeChanged()
         default:
             console.warn('GameMode invalid', selectedGameMode.value)
     }
-
-    // Adjust visibility of elements related to a 'parent'
-    TogglePictureMode()
 }
 
 function OracleTypeChange()
 {
     const selectOracleType = EL("selectOracleType")
 
-    const RandomUserOracle = EL("RandomUserOracle")
+    const UserOracleMode = EL("UserOracleMode")
     const pickAI = EL("pickAI")
 
     if (selectOracleType.value == "0")  // Index for AI in OracleTypes
     {
         show([pickAI])
-        hide([RandomUserOracle])
+        hide([UserOracleMode])
     }
 
     if (selectOracleType.value == "1")  // Index for user in OracleTypes
     {
-        show([RandomUserOracle])
+        show([UserOracleMode])
         hide([pickAI])
     }
 }
 
-function TogglePictureMode()
+function UserOracleModeChange()
 {
-    const selectPictureMode = EL("selectPictureMode")
-    const ImageContainer = EL("ImageContainer")
+    const selectUserOracleMode = EL("selectUserOracleMode")
 
-    const selectedGameMode = EL("selectedGameMode")
+    const ListOfUsersInSession = EL("ListOfUsersInSession")
 
-    // Checks if its Random picture mode or its singleplayer, 
-    //selectPicture should be random if the game mode is singleplayer
-    if(selectPictureMode.value == "0" || selectedGameMode.value == "0") {
-        hide([ImageContainer])
-    } else {
-        show([ImageContainer])
+    if(selectUserOracleMode.value == "0") // Index for random
+    {
+        hide([ListOfUsersInSession])
     }
-}
-
-function UserSelectedImage(Link, Name, Identifier)
-{
-    const selectedImageEL = EL("selectedImageEL")
-    const selectedImageName = EL("selectedImageName")
-    const selectedImageContainer = EL("selectedImageContainer")
- 
-    show([selectedImageContainer])
-
-    selectedImageEL.src = `/${Link}`
-    selectedImageName.value = Name
-
-    const imageLink = EL("imageLink")
-    const imageIdentifier = EL("imageIdentifier")
-
-    imageLink.value = Link
-    imageIdentifier.value = Identifier
+    
+    if (selectUserOracleMode.value == "1") // Index for chosen
+    {
+        show([ListOfUsersInSession])
+    }
 }
 
 function lobbySizeChange() {

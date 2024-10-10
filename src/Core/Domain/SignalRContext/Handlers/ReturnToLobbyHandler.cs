@@ -1,4 +1,4 @@
-using Image_guesser.Core.Domain.SessionContext.Events;
+using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using MediatR;
 

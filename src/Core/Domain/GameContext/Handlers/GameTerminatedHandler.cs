@@ -1,14 +1,13 @@
-using Image_guesser.Core.Domain.GameContext.Events;
 using Image_guesser.Core.Domain.GameContext.Services;
-using Image_guesser.Infrastructure.GenericRepository;
+using Image_guesser.Core.Domain.SessionContext;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.GameContext.Handlers;
 
-public class GameTerminatedHandler(IGameService gameService, IRepository repository) : INotificationHandler<GameTerminated>
+public class GameTerminatedHandler(IGameService gameService, IMediator mediator) : INotificationHandler<GameTerminated>
 {
     private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
-    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
 
     public async Task Handle(GameTerminated notification, CancellationToken cancellationToken)
     {
@@ -16,6 +15,8 @@ public class GameTerminatedHandler(IGameService gameService, IRepository reposit
 
         game.Terminated();
 
-        await _repository.Update(game);
+        await _gameService.UpdateGame(game);
+
+        await _mediator.Publish(new ReturnToLobby(notification.SessionId), cancellationToken);
     }
 }

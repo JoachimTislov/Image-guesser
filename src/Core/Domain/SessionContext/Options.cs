@@ -9,37 +9,31 @@ public class Options
 {
     public Options() { }
 
-    public Options(string randomImageIdentifier)
-    {
-        ImageIdentifier = randomImageIdentifier;
-    }
-
     // Init as SinglePlayer for new Sessions
     public int AmountOfGamesPlayed { get; private set; }
     public int LobbySize { get; private set; } = 1;
     public GameMode GameMode { get; private set; } = GameMode.SinglePlayer;
-    public bool RandomUserOracle { get; private set; }
-    public OracleTypes Oracle { get; private set; } = OracleTypes.AI;
+    public OracleTypes OracleType { get; private set; } = OracleTypes.AI;
+    public UserOracleMode UserOracleMode { get; private set; }
     public AI_Type AI_Type { get; private set; } = AI_Type.Random;
     public PictureMode PictureMode { get; private set; } = PictureMode.Random;
-    public string ImageIdentifier { get; set; } = string.Empty;
 
     public void SetOptionsValues(ViewModelOptions options)
     {
         switch (options.GameMode)
         {
             case GameMode.SinglePlayer:
-                Oracle = OracleTypes.AI;
+                OracleType = OracleTypes.AI;
                 LobbySize = 1;
                 break;
 
             case GameMode.Duo:
-                Oracle = OracleTypes.User;
+                OracleType = OracleTypes.User;
                 LobbySize = 2;
                 break;
 
             case GameMode.FreeForAll:
-                Oracle = options.Oracle;
+                OracleType = options.OracleType;
                 LobbySize = ValidateRange(options.LobbySize, 3, 10);
                 break;
 
@@ -49,14 +43,10 @@ public class Options
 
         GameMode = options.GameMode;
         AI_Type = options.AI_Type;
-
-        RandomUserOracle = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() && options.RandomUserOracle;
+        UserOracleMode = options.UserOracleMode;
 
         PictureMode = !IsGameMode(GameMode.SinglePlayer) ? options.PictureMode : PictureMode.Random;
-        ImageIdentifier = options.ImageIdentifier;
     }
-
-    public void ResetAmountOfGamesPlayed() => AmountOfGamesPlayed = 0;
 
     public void IncrementAmountOfGamesPlayed()
     {
@@ -65,7 +55,7 @@ public class Options
 
     public bool IsOracleAI()
     {
-        return Oracle == OracleTypes.AI;
+        return OracleType == OracleTypes.AI;
     }
 
     public bool IsGameMode(GameMode gameMode)

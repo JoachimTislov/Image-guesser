@@ -178,7 +178,7 @@ function InitGamePage()
     return;
   }
 
-  if (numberOfTilesRevealed == 0)
+  if (oracleIsAI && numberOfTilesRevealed == 0)
   {
       // initial load for Games with Oracle as AI
       ExecuteOracleRevealTile();

@@ -1,14 +1,11 @@
-using Image_guesser.Core.Domain.GameContext.Events;
 using Image_guesser.Core.Domain.GameContext.Services;
-using Image_guesser.Infrastructure.GenericRepository;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.GameContext.Handlers;
 
-public class PlayerGuessedIncorrectlyHandler(IGameService gameService, IRepository repository) : INotificationHandler<PlayerGuessedIncorrectly>
+public class PlayerGuessedIncorrectlyHandler(IGameService gameService) : INotificationHandler<PlayerGuessedIncorrectly>
 {
     private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
-    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
     public async Task Handle(PlayerGuessedIncorrectly notification, CancellationToken cancellationToken)
     {
@@ -28,6 +25,6 @@ public class PlayerGuessedIncorrectlyHandler(IGameService gameService, IReposito
 
         guesser.IncrementGuesses();
 
-        await _repository.Update(guesser);
+        await _gameService.UpdateGuesser(guesser);
     }
 }

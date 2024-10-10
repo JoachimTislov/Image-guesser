@@ -3,6 +3,7 @@ using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Image_guesser.Core.Domain.SessionContext.Services;
 
@@ -20,19 +21,22 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         await _sessionRepository.AddSession(session);
     }
 
-    public async Task BackToLobbyEvent(Guid Id)
-    {
-        var session = await GetSessionById(Id);
-
-        session.Options.ResetAmountOfGamesPlayed();
-        session.InLobby();
-
-        await UpdateSession(session);
-    }
-
     public async Task<List<User>> GetUsersInSessionById(Guid Id)
     {
         return await _sessionRepository.GetUsersInSessionById(Id);
+    }
+
+    public async Task<List<SelectListItem>> GetSelectListOfUsersById(Guid Id)
+    {
+        var session = await GetSessionById(Id);
+        var users = await GetUsersInSessionById(Id);
+
+        return users.Select(user => new SelectListItem
+        {
+            Value = user.Id.ToString(),
+            Text = session.UserIsOracle(user.Id) ? "You" : user.UserName,
+            Selected = session.UserIsOracle(user.Id)
+        }).ToList();
     }
 
     public async Task<Session> GetSessionById(Guid Id)
@@ -55,6 +59,26 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         var session = await GetSessionById(Id);
 
         session.Options.SetOptionsValues(options);
+
+        var canAssignNewUserOracle = options.OracleType == OracleContext.OracleTypes.User;
+        if (canAssignNewUserOracle && !string.IsNullOrEmpty(options.SelectedUserId))
+        {
+            Guid GetRandomUser()
+            {
+                var users = session.SessionUsers;
+                var usersLength = session.SessionUsers.Count;
+                var randomIndex = new Random().Next(usersLength);
+
+                return users.ElementAt(randomIndex).Id;
+            }
+
+            session.ChosenOracleId = options.UserOracleMode switch
+            {
+                UserOracleMode.Chosen => Guid.Parse(options.SelectedUserId),
+                UserOracleMode.Random => GetRandomUser(),
+                _ => session.ChosenOracleId
+            };
+        }
 
         await UpdateSession(session);
     }
@@ -80,16 +104,6 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         return session.UserIsSessionHost(userId);
     }
 
-    public async Task UpdateChosenOracleIfUserWasOracle(Guid sessionId, Guid userId)
-    {
-        var session = await GetSessionById(sessionId);
-
-        if (session.ChosenOracleId == userId)
-        {
-            session.ChosenOracleId = session.SessionHostId;
-        }
-    }
-
     public async Task AddUserToSession(string userId, string sessionId)
     {
         User user = await _userService.GetUserById(userId);
@@ -110,10 +124,22 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         await _userService.UpdateUser(user);
     }
 
-    public async Task RemoveUserFromSession(string userId, string sessionId)
+    private static void UpdateChosenOracleIfUserWasOracle(Session session, Guid userId)
+    {
+        if (session.ChosenOracleId == userId)
+        {
+            // Maybe add some more functionality, rather than assigning oracle role to session host
+
+            session.ChosenOracleId = session.SessionHostId;
+        }
+    }
+
+    public async Task RemoveUserFromSession(string userId, Guid sessionId)
     {
         User user = await _userService.GetUserById(userId);
-        var session = await GetSessionById(Guid.Parse(sessionId));
+        var session = await GetSessionById(sessionId);
+
+        UpdateChosenOracleIfUserWasOracle(session, Guid.Parse(userId));
 
         if (!session.RemoveUser(user))
         {

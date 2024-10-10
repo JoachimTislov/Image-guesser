@@ -202,6 +202,10 @@ namespace Image_guesser.Migrations
                     b.Property<int>("Correct_Guesses")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("CurrentPageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
@@ -470,23 +474,16 @@ namespace Image_guesser.Migrations
                             b1.Property<int>("GameMode")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<string>("ImageIdentifier")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
                             b1.Property<int>("LobbySize")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("NumberOfGamesToPlay")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Oracle")
+                            b1.Property<int>("OracleType")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<int>("PictureMode")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<bool>("RandomUserOracle")
+                            b1.Property<int>("UserOracleMode")
                                 .HasColumnType("INTEGER");
 
                             b1.HasKey("SessionId");

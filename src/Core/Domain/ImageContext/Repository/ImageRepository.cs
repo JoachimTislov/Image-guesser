@@ -1,3 +1,4 @@
+using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 
 namespace Image_guesser.Core.Domain.ImageContext.Repository;
@@ -24,10 +25,9 @@ public class ImageRepository(IRepository repository) : IImageRepository
 
     public async Task<int> GetImagePieceCountById(string ImageIdentifier)
     {
-        var ImagePieceCount = await _repository.WhereAndSelect_SingleOrDefault<ImageRecord, string, int>(
+        var ImagePieceCount = await _repository.WhereAndSelect_SingleOrDefault<ImageRecord, int?>(
         /*Where*/    i => i.Identifier == ImageIdentifier,
-        /*Select*/   i => i.PieceCount,
-        /*Identifier*/ ImageIdentifier);
+        /*Select*/   i => i.PieceCount) ?? throw new EntityNotFoundException($"Image Piece count was not found by image identifier: {ImageIdentifier}");
 
         return ImagePieceCount;
     }

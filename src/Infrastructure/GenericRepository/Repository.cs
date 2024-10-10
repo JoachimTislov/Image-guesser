@@ -58,9 +58,9 @@ public class Repository(ImageGameContext context) : IRepository
         return GetEntities<T>().Where(whereExp).Select(selectExp);
     }
 
-    public async Task<ReturnType> WhereAndSelect_SingleOrDefault<T, IdentifierType, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp, IdentifierType Id) where T : class
+    public async Task<ReturnType?> WhereAndSelect_SingleOrDefault<T, ReturnType>(Expression<Func<T, bool>> whereExp, Expression<Func<T, ReturnType>> selectExp) where T : class
     {
-        return await GetEntities<T>().Where(whereExp).Select(selectExp).SingleOrDefaultAsync() ?? throw new EntityNotFoundException($"Entity of type {typeof(T)} with where expression {whereExp}, select expression {selectExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
+        return await GetEntities<T>().Where(whereExp).Select(selectExp).SingleOrDefaultAsync();
     }
 
     public bool Any<T>() where T : BaseEntity

@@ -21,10 +21,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 
-services.AddMediatR(typeof(Program));
+services.AddDistributedMemoryCache();
+
+services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+services.AddHttpContextAccessor();
 
 // Add DI to builders
-
 services.AddScoped<IAI_Repository, AI_Repository>();
 services.AddScoped<IOracleService, OracleService>();
 
@@ -42,6 +50,8 @@ services.AddScoped<IRepository, Repository>();
 
 services.AddScoped<IHubService, HubService>();
 services.AddSingleton<IConnectionMappingService, ConnectionMappingService>();
+
+services.AddMediatR(typeof(Program));
 
 // Configure DbContext with SQLite
 services.AddDbContext<ImageGameContext>(options =>
@@ -67,7 +77,6 @@ if (app.Environment.IsDevelopment())
     {
         await _imageRepository.AddAllMappedImagesToDatabase();
     }
-
 }
 else
 {
@@ -80,6 +89,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

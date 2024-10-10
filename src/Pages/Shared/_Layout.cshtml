@@ -1,8 +1,10 @@
 ﻿@using Image_guesser.Core.Domain.UserContext.Services
 @using Microsoft.AspNetCore.Identity
 @using Image_guesser.Core.Domain.UserContext
+@using MediatR
 @inject IUserService UserService
 @inject SignInManager<User> SignInManager
+@inject IMediator mediator
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -14,6 +16,34 @@
     <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
+@{
+    // Used to allow a user to join a session after traversing from the session page
+    Guid? sessionId = null;
+    string? userId = null;
+    bool userIsAuthed = SignInManager.IsSignedIn(User);
+    if (User.Identity?.IsAuthenticated ?? false && userIsAuthed)
+    {
+        sessionId = await UserService.GetSessionIdForGivenUserWithClaimPrincipal(User);
+
+        // This code sets of an event each time the user visits a page
+        // This is helpful because we can then monitor where the user is at all times
+
+        var currentUrl = Context.GetEndpoint()?.DisplayName ?? "/Home/Index";
+
+        userId = UserService.GetUserIdByClaimsPrincipal(User);
+
+        if (Context.Session.GetString("LastPageUrl") != currentUrl && userId != null)
+        {
+            Context.Session.SetString("LastPageUrl", currentUrl);
+            await mediator.Publish(new UserNavigatedToPage(currentUrl, userId));
+        }
+
+        // I am not sure if theres a better place to do this.
+        // Atleast having it here saves writing it in every single OnGet function
+        // Maybe handle this at client side
+    }
+}
 
 <body>
     <header>
@@ -29,18 +59,10 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-page="/Home/Index">Home</a>
                         </li>
-                        @{
-                            Guid? sessionId = null;
-                            bool userIsAuthed = SignInManager.IsSignedIn(User);
-                            if (userIsAuthed)
-                            {
-                                sessionId = await UserService.GetSessionIdForGivenUserWithClaimPrincipal(User);
-                            }
-                        }
-                        @if (userIsAuthed && sessionId != null)
+                        @if (userIsAuthed && sessionId != null && userId != null)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-white" id="ActiveLobby" session-Id="@sessionId"
+                                <a class="nav-link text-white" id="ActiveLobby" session-Id="@sessionId" user-Id="@userId"
                                     asp-page="/Lobby/Session" asp-route-id="@sessionId"> Active
                                     Lobby
                                 </a>

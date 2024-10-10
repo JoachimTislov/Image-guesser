@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Image_guesser.Migrations
 {
     [DbContext(typeof(ImageGameContext))]
-    [Migration("20241006205904_MigIDUpdate")]
-    partial class MigIDUpdate
+    [Migration("20241010144200_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,6 +204,10 @@ namespace Image_guesser.Migrations
 
                     b.Property<int>("Correct_Guesses")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("CurrentPageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -473,23 +477,16 @@ namespace Image_guesser.Migrations
                             b1.Property<int>("GameMode")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<string>("ImageIdentifier")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
                             b1.Property<int>("LobbySize")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("NumberOfGamesToPlay")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Oracle")
+                            b1.Property<int>("OracleType")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<int>("PictureMode")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<bool>("RandomUserOracle")
+                            b1.Property<int>("UserOracleMode")
                                 .HasColumnType("INTEGER");
 
                             b1.HasKey("SessionId");

@@ -1,6 +1,6 @@
-using Image_guesser.Core.Domain.GameContext.Events;
 using MediatR;
 using Image_guesser.Core.Domain.SessionContext.Services;
+using Image_guesser.Core.Domain.GameContext;
 
 namespace Image_guesser.Core.Domain.SessionContext.Handlers;
 

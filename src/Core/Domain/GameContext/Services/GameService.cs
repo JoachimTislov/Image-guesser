@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Image_guesser.Core.Domain.GameContext.Responses;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext;
@@ -5,18 +6,19 @@ using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
+using Image_guesser.Core.Domain.UserContext.Services;
 using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 using Image_guesser.SharedKernel;
+using OneOf;
 
 namespace Image_guesser.Core.Domain.GameContext.Services;
 
-public class GameService(IOracleService oracleService, IRepository repository, IHubService hubService, IImageService imageService) : IGameService
+public class GameService(IOracleService oracleService, IRepository repository, IHubService hubService) : IGameService
 {
     private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
     private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IHubService _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
-    private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
 
     private async Task<InitializeGameResponse> InitializeGame<T>(Session session, Oracle<T> Oracle) where T : class
     {
@@ -27,35 +29,16 @@ public class GameService(IOracleService oracleService, IRepository repository, I
         return new InitializeGameResponse(game.Id, game.SessionId);
     }
 
-    private async Task<InitializeGameResponse> SetupGameWithAIAsOracle(Session session)
+    public async Task CreateGame(Session session, string imageIdentifier)
     {
-        var AIOracle = await _oracleService.CreateAIOracle(session.Options.ImageIdentifier, session.Options.AI_Type);
+        OneOf<Oracle<User>, Oracle<AI>> Oracle = await _oracleService.CreateOracle(session.ChosenOracleId, imageIdentifier, session.Options.AI_Type, session.Options.IsOracleAI());
 
-        return await InitializeGame(session, AIOracle);
-    }
+        var InitializeGameResult = await Oracle.Match(
+            async userOracle => await InitializeGame(session, userOracle),
+            async aiOracle => await InitializeGame(session, aiOracle)
+        );
 
-    private async Task<InitializeGameResponse> SetupGameWithUserAsOracle(Session session)
-    {
-        User chosenOracle = await _repository.GetById<User, Guid>(session.ChosenOracleId);
-        var UserOracle = _oracleService.CreateOracle(chosenOracle, session.Options.ImageIdentifier);
-
-        return await InitializeGame(session, UserOracle);
-    }
-
-    public async Task CreateGame(Session session)
-    {
-        var pastIdentifiers = _oracleService.GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(session.Id);
-        // Ensure the picture is random each game
-        if (session.Options.PictureMode == PictureMode.Random)
-        {
-            session.Options.ImageIdentifier = await _imageService.GetDifferentRandomImageIdentifier(pastIdentifiers);
-        }
-
-        var CreateGameResult = session.Options.IsOracleAI()
-        ? await SetupGameWithAIAsOracle(session)
-        : await SetupGameWithUserAsOracle(session);
-
-        await _hubService.RedirectGroupToPage(CreateGameResult.SessionId.ToString(), $"/Lobby/{session.Id}/Game/{CreateGameResult.Id}");
+        await _hubService.RedirectGroupToPage(InitializeGameResult.SessionId.ToString(), $"/Lobby/{session.Id}/Game/{InitializeGameResult.Id}");
     }
 
     public async Task AddGuesserFromGame(Guid guesserId, Guid gameId)
@@ -110,5 +93,10 @@ public class GameService(IOracleService oracleService, IRepository repository, I
     public async Task UpdateGame<TGame>(TGame game) where TGame : BaseEntity
     {
         await _repository.Update(game);
+    }
+
+    public async Task UpdateGuesser(Guesser guesser)
+    {
+        await _repository.Update(guesser);
     }
 }

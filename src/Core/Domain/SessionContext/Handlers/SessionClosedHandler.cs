@@ -1,4 +1,3 @@
-using Image_guesser.Core.Domain.SessionContext.Events;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using MediatR;
 
