@@ -13,7 +13,7 @@ public class BaseGameTests
         Assert.Equal(Guid.Empty, game.SessionId);
         Assert.Empty(game.Guessers);
         Assert.Equal(string.Empty, game.GameMode);
-        Assert.False(game.IsFinished);
+        Assert.False(game.IsFinished());
 
         var now = DateTime.Now;
         Assert.InRange(game.TimeOfCreation, now.AddSeconds(-1), now.AddSeconds(1));

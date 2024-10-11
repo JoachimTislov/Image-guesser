@@ -8,7 +8,7 @@ public class BaseGame : BaseEntity
 
     public Guid Id { get; private set; }
     public Guid SessionId { get; protected set; }
-    public Guid BaseOracleId { get; protected set; }
+    public Guid BaseOracleId { get; set; }
     public List<Guesser> Guessers { get; private set; } = [];
     public string GameMode { get; set; } = string.Empty;
     public GameStatus GameStatus { get; private set; } = GameStatus.Started;

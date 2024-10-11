@@ -9,9 +9,15 @@ public class OracleRevealedATileHandler(IOracleService oracleService) : INotific
 
     public async Task Handle(OracleRevealedATile notification, CancellationToken cancellationToken)
     {
-        var oracle = await _oracleService.GetBaseOracleById(notification.OracleId);
+        var (oracleId, imageId) = notification;
+
+        var oracle = await _oracleService.GetBaseOracleById(oracleId);
 
         oracle.IncrementTiles();
+        if (!oracle.ImageTileOrderLog.Contains(imageId))
+        {
+            oracle.ImageTileOrderLog.Add(imageId);
+        }
 
         await _oracleService.UpdateBaseOracle(oracle);
     }

@@ -6,18 +6,19 @@ using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SessionContext.Services;
+using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
+using Image_guesser.SharedKernel;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 
 namespace Image_guesser.Pages;
 
-[Authorize]
-public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleService, IUserService userService, ISessionService sessionService, IGameService gameService, IImageService imageService, IMediator mediator) : PageModel
+[RequireLogin]
+public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleService, IUserService userService, ISessionService sessionService, IGameService gameService, IImageService imageService, IMediator mediator, IHubService hubService) : PageModel
 {
     private readonly ILogger<ProfileModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
@@ -26,6 +27,7 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
     private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
     private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+    private readonly IHubService _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
 
     [BindProperty(SupportsGet = true)]
     public Guid SessionId { get; set; }
@@ -36,7 +38,7 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     public User Player { get; set; } = null!;
     public BaseGame BaseGame { get; set; } = null!;
     public BaseOracle BaseOracle { get; set; } = null!;
-    public Guesser? Guesser { get; set; } = null!;
+    public Guesser? Guesser { get; set; }
 
     public Guid SessionHostId { get; set; }
 
@@ -54,63 +56,12 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     public bool UserIsSessionHost { get; set; }
     public bool OracleIsAI { get; set; }
 
-    public async Task<IActionResult> OnGetAsync()
+    [BindProperty]
+    public AI_Type? Selected_AI_Type { get; set; }
+
+    public async Task OnGetAsync()
     {
-        if (!User.Identity?.IsAuthenticated ?? false)
-        {
-            return RedirectToPage("/Home/Index");
-        }
-        else
-        {
-            Player = await _userService.GetUserByClaimsPrincipal(User);
-
-            BaseGame = await _gameService.GetBaseGameById(GameId);
-
-            BaseOracle = await _oracleService.GetBaseOracleById(BaseGame.BaseOracleId);
-
-            SessionHostId = await _sessionService.GetSessionHostIdById(SessionId);
-
-            OracleIsAI = await _sessionService.CheckIfOracleIsAI(SessionId);
-
-            UserIsOracle = await _sessionService.CheckIfUserIsOracle(SessionId, Player.Id);
-
-            UserIsSessionHost = await _sessionService.CheckIfUserIsSessionHost(SessionId, Player.Id);
-
-            NumberOfTilesRevealed = BaseOracle.NumberOfTilesRevealed;
-
-            GameAI = await _gameService.GetGameById<AI>(GameId);
-
-            GameUser = await _gameService.GetGameById<User>(GameId);
-
-            Guesser = BaseGame.Guessers.FirstOrDefault(g => g.Name == Player.UserName);
-
-            if (Guesser != null)
-            {
-                _logger.LogInformation("Guesser: {Name} entered the game page, game id: {Id}", Guesser.Name, GameId);
-            }
-            else if (UserIsSessionHost || UserIsOracle)
-            {
-                _logger.LogInformation("Oracle/Host: {Name} entered the game page, game id: {Id}", Player.UserName, GameId);
-            }
-            else
-            {
-                _logger.LogWarning("User: {Name} is not allowed at game with id: {Id}", Player.Id, GameId);
-            }
-
-            var ImageIdentifier = BaseOracle.ImageIdentifier;
-
-            ImageRecord = await _imageService.GetImageRecordById(ImageIdentifier);
-
-            var imagePieceList = _imageService.GetFileNameOfImagePieces(ImageIdentifier);
-            ImagePieceList = JsonConvert.SerializeObject(imagePieceList);
-
-            if (UserIsOracle)
-            {
-                ImageCoordinates = JsonConvert.SerializeObject(_imageService.GetCoordinatesForImagePieces(imagePieceList));
-            }
-        }
-
-        return Page();
+        await LoadGameData();
     }
 
     public async Task OnPostReturnToLobby()
@@ -134,12 +85,62 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
         await _mediator.Publish(new CreateGame(SessionId, null));
     }
 
-    /* public IActionResult OnPostSetImageSize(int width, int height, List<string> imagePieceList)
-     {
-         _logger.LogInformation("Change the image size to; width: {width}, and height: {height}", width, height);
+    public async Task OnPostRestartGameWithNewOracle()
+    {
+        if (Selected_AI_Type != null)
+        {
+            await _gameService.RestartGameWithNewOracle(GameId, Selected_AI_Type.Value);
+        }
+    }
 
-         // _imageService.ChangeSizeOfImagePiece(imagePieceList, width, height);
+    public async Task OnPostSetImageSize(int imageSize, string imageIdentifier, int imageContainerWidth, int imageContainerHeight)
+    {
+        _logger.LogInformation("Image container size, width: {width}, and height: {height}. User selected size: {imageSize}", imageContainerWidth, imageContainerHeight, imageSize);
 
-         return new JsonResult(new { success = true, width = 30, height });
-     }*/
+        //await _mediator.Publish(new ChangeImageSizeRequest(imageSize, imageIdentifier, imageContainerWidth, imageContainerHeight));
+
+        _imageService.SetSizeOfImagePieces(imageIdentifier, imageContainerWidth, imageContainerHeight, imageSize / 100.0);
+
+        await _hubService.RedirectGroupToPage(SessionId.ToString(), $"/Lobby/{SessionId}/Game/{GameId}");
+    }
+
+
+    private async Task LoadGameData()
+    {
+        Player = await _userService.GetUserByClaimsPrincipal(User);
+        BaseGame = await _gameService.GetBaseGameById(GameId);
+        BaseOracle = await _oracleService.GetBaseOracleById(BaseGame.BaseOracleId);
+        SessionHostId = await _sessionService.GetSessionHostIdById(SessionId);
+        OracleIsAI = await _sessionService.CheckIfOracleIsAI(SessionId);
+        UserIsOracle = await _sessionService.CheckIfUserIsOracle(SessionId, Player.Id);
+        UserIsSessionHost = await _sessionService.CheckIfUserIsSessionHost(SessionId, Player.Id);
+        NumberOfTilesRevealed = BaseOracle.NumberOfTilesRevealed;
+        GameAI = await _gameService.GetGameById<AI>(GameId);
+        GameUser = await _gameService.GetGameById<User>(GameId);
+        Guesser = BaseGame.Guessers.FirstOrDefault(g => g.Name == Player.UserName);
+        Selected_AI_Type = GameAI?.Oracle.Entity.AI_Type;
+
+        if (Guesser != null)
+        {
+            _logger.LogInformation("Guesser: {Name} entered the game page, game id: {Id}", Guesser.Name, GameId);
+        }
+        else if (UserIsSessionHost || UserIsOracle)
+        {
+            _logger.LogInformation("Oracle/Host: {Name} entered the game page, game id: {Id}", Player.UserName, GameId);
+        }
+        else
+        {
+            _logger.LogWarning("User: {Name} is not allowed at game with id: {Id}", Player.Id, GameId);
+        }
+
+        ImageRecord = await _imageService.GetImageRecordById(BaseOracle.ImageIdentifier);
+
+        var imagePieceList = _imageService.GetFileNameOfImagePieces(BaseOracle.ImageIdentifier);
+        ImagePieceList = JsonConvert.SerializeObject(imagePieceList);
+
+        if (UserIsOracle)
+        {
+            ImageCoordinates = JsonConvert.SerializeObject(_imageService.GetCoordinatesForImagePieces(imagePieceList));
+        }
+    }
 }

@@ -1,5 +1,4 @@
 using Image_guesser.Core.Domain.GameContext;
-using Image_guesser.Core.Domain.GameContext.Events;
 
 namespace Tests.Unit.Core.Domain.GameContext.Events;
 
@@ -8,16 +7,12 @@ public class GameFinishedTests
     [Fact]
     public void ConstructorWithSession_ShouldAssignValues()
     {
-        Guid guesserId = Guid.NewGuid();
-        BaseGame baseGame = new();
-        int points = 1;
+        var GameId = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
 
-        var gameFinished = new GameFinished(baseGame, guesserId, points);
+        var gameFinished = new GameFinished(GameId, sessionId);
 
-        var now = DateTime.Now;
-        Assert.InRange(baseGame.TimeOfCreation, now.AddSeconds(-1), now.AddSeconds(1));
-
-        Assert.Equal(guesserId, gameFinished.GuesserId);
-        Assert.Equal(points, gameFinished.Points);
+        Assert.Equal(GameId, gameFinished.GameId);
+        Assert.Equal(sessionId, gameFinished.SessionId);
     }
 }

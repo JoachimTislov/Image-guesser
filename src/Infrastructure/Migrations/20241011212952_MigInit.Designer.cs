@@ -3,6 +3,7 @@ using System;
 using Image_guesser.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Image_guesser.Migrations
 {
     [DbContext(typeof(ImageGameContext))]
-    partial class ImageGameContextModelSnapshot : ModelSnapshot
+    [Migration("20241011212952_MigInit")]
+    partial class MigInit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -140,6 +143,10 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageIdentifier")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageTileOrderLog")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -403,7 +410,7 @@ namespace Image_guesser.Migrations
                 {
                     b.HasBaseType("Image_guesser.Core.Domain.GameContext.BaseGame");
 
-                    b.Property<Guid>("AIOracleId")
+                    b.Property<Guid?>("AIOracleId")
                         .HasColumnType("TEXT");
 
                     b.HasIndex("AIOracleId")
@@ -473,6 +480,10 @@ namespace Image_guesser.Migrations
 
                             b1.Property<int>("GameMode")
                                 .HasColumnType("INTEGER");
+
+                            b1.Property<string>("ImageIdentifier")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
 
                             b1.Property<int>("LobbySize")
                                 .HasColumnType("INTEGER");
@@ -562,8 +573,7 @@ namespace Image_guesser.Migrations
                     b.HasOne("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.OracleContext.AI>", "Oracle")
                         .WithOne()
                         .HasForeignKey("Image_guesser.Core.Domain.GameContext.Game<Image_guesser.Core.Domain.OracleContext.AI>", "AIOracleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_Oracle_AI");
 
                     b.Navigation("Oracle");

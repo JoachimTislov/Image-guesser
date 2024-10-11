@@ -6,7 +6,7 @@ namespace Image_guesser.Core.Domain.GameContext;
 
 public class Game<TOracle> : BaseGame where TOracle : class
 {
-    public Oracle<TOracle> Oracle { get; private set; } = default!;
+    public Oracle<TOracle> Oracle { get; set; } = default!;
 
     public Game() { }
 

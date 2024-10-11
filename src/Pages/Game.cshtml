@@ -1,10 +1,12 @@
 @page "/Lobby/{SessionId:guid}/Game/{GameId:guid}"
+@using Image_guesser.Core.Domain.OracleContext
+@using Image_guesser.SharedKernel
 @using Newtonsoft.Json
 @model GameModel
 @{
     ViewData["Title"] = "Game page";
 
-    var gamePageTitle = $"Game - {(Model.UserIsOracle ? "You are Oracle - " : "")}{Model.Player.UserName}";
+    var gamePageTitle = $"Game - {(Model.UserIsOracle && Model.GameAI == null ? "You are Oracle - " : "")}{Model.Player.UserName}";
 
     var gameIsSinglePlayer = Model.BaseGame.GameMode == "SinglePlayer";
     var gameIsFreeForAll = Model.BaseGame.GameMode == "FreeForAll";
@@ -33,26 +35,101 @@
                             <div class="card-footer">
                                 @{
                                     //Statement
-                                    var sm = Model.UserIsOracle || gameIsSinglePlayer || gameIsAIAndPlayerIsSessionHost;
+                                    var UserIsHostOrGameIsSingleplayer = Model.UserIsSessionHost || gameIsSinglePlayer;
                                 }
 
-                                <form method="post"
-                                    asp-page-handler="@(sm ? "ReturnToLobby" : "LeaveGame")">
-                                    <input class="btn btn-danger float-start" type="submit"
-                                        value=" @(sm ? "Return To Lobby" : "Leave Game")" />
-                                </form>
+                                <div class="d-flex flex-column">
 
-                                @if (gameIsAIAndPlayerIsSessionHost)
-                                {
-                                    <!--<input class="btn btn-success" type="button" id="RequestNewAI"
-                                                                        value="Restart game with new AI" />-->
+                                    <div class="d-flex justify-content-between">
+                                        <form method="post"
+                                            asp-page-handler="@(UserIsHostOrGameIsSingleplayer ? "ReturnToLobby" : "LeaveGame")">
+                                            <input class="btn btn-danger" type="submit"
+                                                value=" @(UserIsHostOrGameIsSingleplayer ? "Return To Lobby" : "Leave Game")" />
+                                        </form>
 
-                                    var NotFreeForAllOrIsSinglePlayer = !gameIsFreeForAll || gameIsSinglePlayer;
+                                        @if(Model.UserIsSessionHost)
+                                        {
+                                            <button class="btn btn-warning ms-2" data-bs-toggle="modal" data-bs-target="#setImageSizeModal" style="z-index: 100;"> Resize image </button>
+                                        }
 
-                                    <input class="btn btn-success" type="button"
-                                        id="@(NotFreeForAllOrIsSinglePlayer ? "showOneMore" : "ShowNextPieceForAll")"
-                                        value="@(NotFreeForAllOrIsSinglePlayer ? "Reveal Next Tile" : "Reveal Next Tile For All Players")" />
-                                }
+                                        <div class="modal fade" id="setImageSizeModal" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Select Image Size</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" asp-page-handler="SetImageSize">
+                                                        <div class="modal-body d-flex justify-content-center align-items-center">
+                                                            
+                                                            <div class="input-group">
+                                                                <label class="input-group-text" for="imageSize">Image Size</label>
+                                                                <input class="form-control" type="number" name="imageSize" id="imageSize" value="40" min="40" max="100" />
+                                                                <label class="input-group-text" for="imageSize"> % </label>
+                                                            </div>  
+                                                        
+                                                            <input type="string" name="imageIdentifier" value="@Model.ImageRecord.Identifier" hidden />
+                                                            
+                                                            @*Script is writting at bottom of the page, sets values*@
+                                                            <input type="number" name="imageContainerHeight" id="imageContainerHeight" hidden />
+                                                            <input type="number" name="imageContainerWidth" id="imageContainerWidth" hidden />
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" class="btn btn-success">Set Image Size</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        
+                                        @if (gameIsAIAndPlayerIsSessionHost)
+                                        {
+                                            <input class="btn btn-success" type="button"
+                                                id="@(gameIsSinglePlayer ? "showOneMore" : "ShowNextPieceForAll")"
+                                                value="@(gameIsSinglePlayer ? "Reveal Next Tile" : "Reveal Next Tile For All Players")" />
+
+                                            <input class="btn btn-secondary ms-2" type="button" data-bs-toggle="modal" data-bs-target="#switchAIModal"
+                                                value="Restart with new AI" />
+
+                                            <div class="modal fade" id="switchAIModal" tabindex="-1">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Select new AI</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" asp-page-handler="RestartGameWithNewOracle">
+                                                            <div class="modal-body">
+                                                                <div class="input-group">
+                                                                    <label class="input-group-text" for="selectAI">Type of AI:</label>
+                                                                    <select class="form-select text-center" asp-for="Selected_AI_Type"
+                                                                        asp-items="Html.GetEnumSelectList<AI_Type>()" id="selectAI">
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="btn btn-success">Switch AI</button>
+                                                            </div>
+                                                        </form>         
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                            
+                                    <div class="d-flex flex-wrap justify-content-center">
+
+                                        @if(Model.GameAI != null && Model.UserIsSessionHost)
+                                        {
+                                            <div class="input-group m-2">
+                                                <label class="input-group-text" for="AI_type">AI type: </label>
+                                                <input class="form-control" type="text" id="AI_type" value="@Model.GameAI.Oracle.Entity.AI_Type.GetDisplayName()" readonly />
+                                            </div>
+                                        }
+                                     
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -60,7 +137,7 @@
                         <div class="card" style="height: 100%;">
                             <div class="card-header">Guesses</div>
                             <div class="card-body">
-                                <div id="guessingDiv" style="max-height: 625px;" class="overflow-y-auto d-flex flex-column"></div>
+                                <div id="guessingDiv" style="max-height: 620px;" class="overflow-y-auto d-flex flex-column"></div>
                             </div>
                             @if (!Model.UserIsOracle || Model.OracleIsAI)
                             {
@@ -90,7 +167,7 @@
                     <h5 id="modalAnswer"></h5>
                 </div>
                 <div class="modal-footer">
-                    @if(sm)
+                    @if(UserIsHostOrGameIsSingleplayer)
                     {
                         <form method="post" asp-page-handler="ReturnToLobby">
                             <button type="submit" class="btn btn-danger">
@@ -112,13 +189,12 @@
 </div>
 
 @section Scripts {
-
-    @*Transfer variables to javascript*@
-
     <script>
+        @*Transfer variables to javascript*@
+
         var sessionId = '@Model.BaseGame.SessionId';
         var userId = '@Model.Player.Id';
-        var guesserId = '@(Model.Guesser != null ? Model.Guesser.Id : null)';
+        var guesserId = '@(Model.Guesser != null ? Model.Guesser.Id : "null")';
         var gameId = '@Model.BaseGame.Id';
         var imageIdentifier = '@Model.ImageRecord.Identifier';
         var gameMode = '@Model.BaseGame.GameMode';
@@ -127,6 +203,7 @@
         var oracleId = '@(Model.OracleIsAI ? Model.GameAI!.Oracle.Id : Model.GameUser!.Oracle.Id)';
         var oracleEntityId = '@(Model.OracleIsAI ? Model.GameAI!.Oracle.Entity.Id : Model.GameUser!.Oracle.Entity.Id)';
         var numberOfTilesRevealed = '@Model.NumberOfTilesRevealed';
+        var imageTileOrderLog = @Html.Raw(JsonConvert.SerializeObject(Model.BaseOracle.ImageTileOrderLog));
 
         var oracleAI_Array_NumbersForImagePieces = @(Model.GameAI != null ? Html.Raw(JsonConvert.SerializeObject(Model.GameAI.Oracle.Entity.NumbersForImagePieces)) : "null");
         /*oracleAI_Array_NumbersForImagePieces = oracleAI_Array_NumbersForImagePieces || "Oracle AI Array not found";
@@ -141,5 +218,5 @@
         console.log(imageCoordinates);*/
     </script>
 
-    <script type="module" src="~/js/game.js"></script>
+    <script type="module" src="~/js/Game.js"></script>
 }

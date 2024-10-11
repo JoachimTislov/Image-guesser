@@ -95,26 +95,46 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
     {
         List<(string ImageId, List<(int X, int Y)> Coordinates)> _imageCoordinates = [];
 
-        foreach (var image in ImagePieceList)
+        foreach (var imagePiecePath in ImagePieceList)
         {
-            var modifiedPath = image.Replace($"wwwroot{Path.DirectorySeparatorChar}", "");
-            var relativeImagePath = Path.Combine(_hostingEnvironment.WebRootPath, modifiedPath);
+            var relativeImagePath = GetRelativeImagePath(imagePiecePath);
 
-            ChangeSizeOfImagePiece(relativeImagePath);
-            _imageCoordinates.Add((image, GetNonTransparentPixelCoordinates(relativeImagePath)));
+            _imageCoordinates.Add((imagePiecePath, GetNonTransparentPixelCoordinates(relativeImagePath)));
         }
 
         return _imageCoordinates;
     }
 
+    private string GetRelativeImagePath(string imagePiecePath) => Path.Combine(_hostingEnvironment.WebRootPath, imagePiecePath.Replace($"wwwroot{Path.DirectorySeparatorChar}", ""));
 
-    private static void ChangeSizeOfImagePiece(string imagePiecePath)
+    public void SetSizeOfImagePieces(string imageIdentifier, int width, int height, double imageSize)
+    {
+        var imagePieceList = GetFileNameOfImagePieces(imageIdentifier);
+
+        // Calculating the percentage height and width of the image container size
+        var percentHeight = (int)Math.Round(height * imageSize);
+        var percentWidth = (int)Math.Round(width * imageSize);
+
+        foreach (var imagePiecePath in imagePieceList)
+        {
+            var relativeImagePath = GetRelativeImagePath(imagePiecePath);
+
+            ChangeSizeOfImagePiece(relativeImagePath, percentHeight, percentWidth);
+        }
+    }
+
+
+    private static void ChangeSizeOfImagePiece(string imagePiecePath, int height, int width)
     {
         using Image<Rgba32> image = Image.Load<Rgba32>(imagePiecePath);
 
-        image.Mutate(x => x.Resize(new Size(500, 500)));
+        Console.WriteLine($"Resizing image: {imagePiecePath} to width: {width} and height: {height}");
+
+        image.Mutate(x => x.Resize(new Size(width, height)));
 
         image.Save(imagePiecePath);
+
+        image.Dispose();
     }
 
     private static List<(int X, int Y)> GetNonTransparentPixelCoordinates(string imagePiecePath)

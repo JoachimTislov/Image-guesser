@@ -6,6 +6,8 @@ public enum SessionStatus
     [Display(Name = "In Lobby")]
     InLobby,
 
+    Idle,
+
     [Display(Name = "In Game")]
     InGame,
 

@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Image_guesser.Core.Domain.SessionContext;
+using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +15,6 @@ public class UserService(UserManager<User> userManager, IRepository repository) 
     public async Task<Guid?> GetSessionIdForGivenUserWithClaimPrincipal(ClaimsPrincipal User)
     {
         var user = await _userManager.GetUserAsync(User);
-
         if (user == null)
         {
             return null;

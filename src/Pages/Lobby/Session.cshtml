@@ -27,7 +27,7 @@
 
     <div class="d-flex flex-wrap justify-content-between">
         <div class="col-4">
-            @if (Model.Session.Options.PictureMode == PictureMode.Specific &&
+            @if (Model.Session.Options.IsPictureMode(PictureMode.Specific) &&
             !Model.Session.Options.IsGameMode(GameMode.SinglePlayer) && Model.UserIsOracle)
             {
                 <div class="card" style="min-height: 400px;">
@@ -41,43 +41,57 @@
                             <p class="card-text"> Piece Count: @Model.ImageRecord.PieceCount </p>
                         </div>
                     }
-                    else
-                    {
-                        <h3 class="card-title p-2"> Select Image </h3>
-                        <div class="card-body">
-                            <div class="d-flex flex-wrap justify-content-center align-content-center">
-                                @foreach (var image in Model.ImageRecords)
-                                {
-                                    <form method="post" asp-page-handler="OracleSelectedAnImage">
-                                        <button type="submit" class="btn position-relative">
-                                            <img src="~/@image.Link" class="rounded" width="100px" height="100px" />
 
-                                            <input name="imageIdentifier" value="@image.Identifier" hidden />
-                                        </button>
-                                    </form>
-                                }
+                    <div class="modal" id="selectImageModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title p-2"> Select Image </h3>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="d-flex flex-wrap justify-content-center align-content-center">
+                                        @foreach (var image in Model.ImageRecords)
+                                        {
+                                            <form method="post" asp-page-handler="OracleSelectedAnImage">
+                                                <button type="submit" class="btn position-relative">
+                                                    <img src="~/@image.Link" class="rounded" width="100px" height="100px" />
+
+                                                    <input name="imageIdentifier" value="@image.Identifier" hidden />
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="modal-footer d-flex justify-content-center">
+                                    <div style="width: 350px">
+                                        <form method="post" asp-page-handler="RefreshImages">
+                                            <div class="d-flex input-group">
+                                                <label class="input-group-text" for="imageAmount"> Amount of Images:
+                                                </label>
+                                                <select id="imageAmount" class="form-select"
+                                                    asp-for="@Model.AmountOfPicturesToLoad">
+
+                                                    @for (var i = 1; i <= 100; i++)
+                                                    {
+                                                        <option value="@i"> @i </option>
+                                                    }
+
+                                                </select>
+
+                                                <button type="submit" class="btn btn-primary"> Load Images </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    }
+                    </div>
+
                     <div class="card-footer d-flex justify-content-center">
-                        <div class="mt-1" style="width: 350px">
-                            <form method="post" asp-page-handler="RefreshImages">
-                                <div class="d-flex input-group">
-                                    <label class="input-group-text" for="imageAmount"> Amount of Images: </label>
-                                    <select id="imageAmount" class="form-select" asp-for="@Model.AmountOfPicturesToLoad">
-
-                                        @for (var i = 1; i <= 100; i++)
-                                        {
-                                            <option value="@i"> @i </option>
-                                        }
-
-                                    </select>
-
-
-                                    <button type="submit" class="btn btn-primary"> Load Images </button>
-                                </div>
-                            </form>
-                        </div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#selectImageModal">
+                            Select @(Model.ImageRecord != null ? "" : "new") Image
+                        </button>
                     </div>
                 </div>
             }
@@ -163,6 +177,10 @@
                                     </button>
                                 </td>
                             }
+                            else
+                            {
+                                <td></td>
+                            }
                         </tr>
                     }
                 </tbody>
@@ -187,22 +205,11 @@
                     <button type="button" class="btn btn-danger" id="CloseSession">
                         Close Lobby
                     </button>
-                }
-                else
-                {
-                    <button type="button" class="btn btn-danger removeUserButton" user-Id="@Model.Player.Id">
-                        Leave Lobby
-                    </button>
-                }
 
-                @if (Model.UserIsOracle)
-                {
                     <form method="post" class="ms-auto" asp-page-handler="Startgame">
                         <button type="submit" class="btn btn-success" id="startGameButton">
                             Start Game
                         </button>
-
-                        <input name="imageIdentifier" value="@Model.ImageIdentifier" hidden />
 
                         @*Persist imageRecord after post request*@
                         @for (var i = 0; i < Model.ImageRecords.Count; i++)
@@ -214,6 +221,12 @@
 
                     </form>
                 }
+                else
+                {
+                    <button type="button" class="btn btn-danger removeUserButton" user-Id="@Model.Player.Id">
+                        Leave Lobby
+                    </button>
+                }
             </div>
 
         </div>
@@ -223,6 +236,16 @@
 @section Scripts
 {
     <script>
+        const showModal = '@Model.ShowImageModal.ToString().ToLower()' === "true";
+
+        if (showModal) {
+            var modal = document.getElementById('selectImageModal')
+            if (modal) {
+                var modalInstance = new bootstrap.Modal(modal);
+                modalInstance.show();
+            }
+        }
+
         const sessionId = '@Model.Session.Id';
     </script>
 

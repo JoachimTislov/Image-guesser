@@ -52,8 +52,8 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
             .WithOne()
             .HasForeignKey<Game<AI>>("AIOracleId")
             .HasConstraintName("FK_Oracle_AI")
-            .OnDelete(DeleteBehavior.Cascade);
-
+            .IsRequired(false) // Since to delete an AI, we must let the Oracle be null
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Creates a TPH type hierarchy for the BaseOracle table
         modelBuilder.Entity<BaseOracle>()

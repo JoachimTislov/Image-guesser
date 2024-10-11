@@ -11,7 +11,7 @@ public interface IGameServer
     Task CloseSession(string sessionId);
     Task SendGuess(string guess, string userId, string sessionId, string oracleId,
             string gameId, string guesserId, string imageIdentifier);
-    Task OracleRevealedATile(string oracleId);
+    Task OracleRevealedATile(string oracleId, string imageId);
     Task ShowThisPiece(string pieceId, string sessionId);
     Task ShowNextPieceForAll(string sessionId);
 

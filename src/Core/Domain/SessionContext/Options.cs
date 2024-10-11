@@ -1,5 +1,6 @@
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Image_guesser.Core.Domain.SessionContext;
@@ -17,6 +18,10 @@ public class Options
     public UserOracleMode UserOracleMode { get; private set; }
     public AI_Type AI_Type { get; private set; } = AI_Type.Random;
     public PictureMode PictureMode { get; private set; } = PictureMode.Random;
+
+    // Required because Oracle needs to update selected image on the server
+    // The Oracle can't directly send the image to the Host, which need it to start a game
+    public string ImageIdentifier { get; private set; } = string.Empty;
 
     public void SetOptionsValues(ViewModelOptions options)
     {
@@ -48,6 +53,11 @@ public class Options
         PictureMode = !IsGameMode(GameMode.SinglePlayer) ? options.PictureMode : PictureMode.Random;
     }
 
+    public void SetImageIdentifier(string imageIdentifier)
+    {
+        ImageIdentifier = imageIdentifier;
+    }
+
     public void IncrementAmountOfGamesPlayed()
     {
         AmountOfGamesPlayed++;
@@ -61,6 +71,11 @@ public class Options
     public bool IsGameMode(GameMode gameMode)
     {
         return GameMode == gameMode;
+    }
+
+    public bool IsPictureMode(PictureMode pictureMode)
+    {
+        return PictureMode == pictureMode;
     }
 
     private static int ValidateRange(int number, int start, int end)

@@ -13,7 +13,7 @@ public class OptionsTests
 
         Assert.Equal(1, Options.LobbySize);
         Assert.Equal(GameMode.SinglePlayer, Options.GameMode);
-        Assert.Equal(PictureMode.Random, Options.PictureMode);
+        Assert.True(Options.IsPictureMode(PictureMode.Random));
         Assert.True(Options.IsOracleAI());
 
     }
@@ -40,7 +40,7 @@ public class OptionsTests
 
         Assert.Equal(GameMode.Duo, Options.GameMode);
 
-        Assert.Equal(PictureMode.Specific, Options.PictureMode);
+        Assert.True(Options.IsPictureMode(PictureMode.Specific));
 
         Assert.True(!Options.IsGameMode(GameMode.SinglePlayer));
         Assert.True(!Options.IsOracleAI());

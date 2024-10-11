@@ -40,8 +40,14 @@ public class SessionRepository(IRepository repository) : ISessionRepository
 
     public List<Session> GetAllOpenSessions()
     {
-        var sessions = _repository.Where<Session>(s => s.SessionStatus != SessionStatus.Closed && s.Options.GameMode != GameMode.SinglePlayer).ToList();
-        sessions.Reverse();
+        var sessions = _repository.Where<Session>
+        (
+            s => s.SessionStatus != SessionStatus.Closed
+            && s.Options.GameMode != GameMode.SinglePlayer
+            && s.SessionStatus != SessionStatus.Idle
+        ).ToList();
+
+        sessions.Reverse(); // show the most recent sessions first
         return sessions;
     }
 

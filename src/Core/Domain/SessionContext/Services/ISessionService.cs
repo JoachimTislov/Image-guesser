@@ -14,6 +14,7 @@ public interface ISessionService
     Task<Guid> GetSessionHostIdById(Guid Id);
     Task UpdateSession(Session session);
     Task UpdateSessionOptions(Guid Id, ViewModelOptions options);
+    Task SetImageIdentifier(Guid sessionId, string imageIdentifier);
     Task<bool> CheckIfOracleIsAI(Guid sessionId);
     Task<bool> CheckIfUserIsOracle(Guid sessionId, Guid userId);
     Task<bool> CheckIfUserIsSessionHost(Guid sessionId, Guid userId);

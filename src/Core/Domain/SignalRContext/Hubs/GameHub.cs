@@ -31,22 +31,32 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         {
             await _connectionMappingService.AddConnection(userId, Context.ConnectionId);
 
-            // Gets persisted sessionId from the database
+            // Gets persisted sessionId from the database, and only session hosts persists a sessionId.
             var sessionId = await _userService.GetSessionIdByUserId(Guid.Parse(userId));
             if (sessionId != null)
             {
                 await AddToGroup(sessionId.Value.ToString(), userId);
             }
+
+            Console.WriteLine($"User connected, userId: {userId}, connection: {Context.ConnectionId}, sessionId: {sessionId}");
         }
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        Console.WriteLine($"User disconnected, userId: {Context.UserIdentifier}, connection: {Context.ConnectionId}");
+
         var userId = Context.UserIdentifier;
         if (userId != null)
         {
             await _connectionMappingService.RemoveConnection(userId, Context.ConnectionId);
+
+            var sessionId = await _userService.GetSessionIdByUserId(Guid.Parse(userId));
+            if (sessionId != null)
+            {
+                await _hubService.RemoveFromGroupAsync(sessionId.Value.ToString(), userId);
+            }
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -55,46 +65,26 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
     public async Task AddToGroup(string sessionId, string userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
+        await _connectionMappingService.AddToGroup(sessionId, Context.ConnectionId);
     }
 
     public async Task JoinSession(string sessionId, string userId)
     {
         await AddToGroup(sessionId, userId);
 
-        await _sessionService.AddUserToSession(userId, sessionId);
+        await _mediator.Publish(new UserJoinedSession(sessionId, userId));
 
         await _hubService.RedirectGroupToPage(sessionId, $"/Lobby/{sessionId}");
     }
 
     public async Task LeaveSession(string userId, string sessionId)
     {
-        await RemoveFromGroupAsync(sessionId, Context.ConnectionId);
-
-        await _sessionService.RemoveUserFromSession(userId, Guid.Parse(sessionId));
-
-        // await _hubService.ReloadGroupPage(sessionId);
-        await _hubService.RedirectClientToPage(userId, "/");
-
-        await _hubService.ReloadGroupPage(sessionId);
-    }
-
-    private async Task RemoveFromGroupAsync(string sessionId, string connectionId)
-    {
-        await Groups.RemoveFromGroupAsync(connectionId, sessionId);
+        await _mediator.Publish(new UserLeftSession(Guid.Parse(sessionId), userId));
     }
 
     public async Task CloseSession(string sessionId)
     {
         await _mediator.Publish(new SessionClosed(Guid.Parse(sessionId)));
-
-        await _hubService.RedirectGroupToPage(sessionId, "/");
-
-        var sessionUsers = await _sessionService.GetUsersInSessionById(Guid.Parse(sessionId));
-        foreach (var user in sessionUsers)
-        {
-            var connectionId = _connectionMappingService.GetConnection(user.Id.ToString());
-            await RemoveFromGroupAsync(sessionId, connectionId);
-        }
     }
 
     public async Task SendGuess(
@@ -115,9 +105,9 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         }
     }
 
-    public async Task OracleRevealedATile(string oracleId)
+    public async Task OracleRevealedATile(string oracleId, string imageId)
     {
-        await _mediator.Publish(new OracleRevealedATile(Guid.Parse(oracleId)));
+        await _mediator.Publish(new OracleRevealedATile(Guid.Parse(oracleId), imageId));
     }
 
     public async Task ShowThisPiece(string pieceId, string sessionId)

@@ -30,6 +30,10 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         // Creating AI - which can easily be extended with more types
         return AI_Type switch
         {
+            AI_Type.Incremental => _AI_Repository.CreateIncrementalAI(pieceCount),
+            AI_Type.Decremental => _AI_Repository.CreateDecrementalAI(pieceCount),
+            AI_Type.OddEvenOrder => _AI_Repository.CreateOddEvenOrderAI(pieceCount),
+            AI_Type.EvenOddOrder => _AI_Repository.CreateEvenOddOrderAI(pieceCount),
             AI_Type.Random => _AI_Repository.CreateRandomNumbersAI(pieceCount),
             _ => _AI_Repository.CreateRandomNumbersAI(pieceCount)
         };
@@ -38,8 +42,14 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
     public async Task<OneOf<Oracle<User>, Oracle<AI>>> CreateOracle(Guid ChosenOracleId, string imageIdentifier, AI_Type AI_Type, bool OracleIsAI)
     {
         return OracleIsAI
-        ? CreateGenericOracle(CreateAI(AI_Type, await _imageService.GetImagePieceCountById(imageIdentifier)), imageIdentifier)
+        ? await CreateAIOracle(imageIdentifier, AI_Type)
         : CreateGenericOracle(await _userService.GetUserById(ChosenOracleId.ToString()), imageIdentifier);
+    }
+
+    public async Task<Oracle<AI>> CreateAIOracle(string imageIdentifier, AI_Type AI_Type)
+    {
+        var AI = CreateAI(AI_Type, await _imageService.GetImagePieceCountById(imageIdentifier));
+        return CreateGenericOracle(AI, imageIdentifier);
     }
 
     public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class
@@ -87,6 +97,12 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         }
 
         return (false, string.Empty);
+    }
+
+    public async Task DeleteOracle<T>(Guid Id) where T : class
+    {
+        var oracle = await GetOracleById<T>(Id);
+        await _repository.Delete(oracle);
     }
 
     public async Task UpdateBaseOracle(BaseOracle baseOracle)

@@ -3,13 +3,13 @@ using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
+using Image_guesser.SharedKernel;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Image_guesser.Pages.Lobby;
 
-[Authorize]
+[RequireLogin]
 public class SessionListModel(ILogger<SessionListModel> logger, ISessionService sessionService, IUserService userService, IHubService hubService, IMediator mediator) : PageModel
 {
     private readonly ILogger<SessionListModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));

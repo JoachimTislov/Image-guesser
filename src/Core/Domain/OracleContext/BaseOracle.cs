@@ -10,6 +10,7 @@ public class BaseOracle : BaseEntity
     public int TotalGuesses { get; private set; }
     public int NumberOfTilesRevealed { get; private set; }
     public string ImageIdentifier { get; protected set; } = string.Empty;
+    public List<string> ImageTileOrderLog { get; private set; } = [];
 
     public void IncrementTiles()
     {

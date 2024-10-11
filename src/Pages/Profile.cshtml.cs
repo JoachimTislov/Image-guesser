@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Image_guesser.Core.Domain.UserContext;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Pages;
 
-[Authorize]
+[RequireLogin]
 public class ProfileModel(ILogger<ProfileModel> logger, UserManager<User> userManager, SignInManager<User> signInManager) : PageModel
 {
     private readonly ILogger<ProfileModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -27,11 +27,6 @@ public class ProfileModel(ILogger<ProfileModel> logger, UserManager<User> userMa
 
     public async Task<IActionResult> OnGet()
     {
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            return RedirectToPage("/Home/Index");
-        }
-
         var username = User.Identity?.Name!;
 
         _logger.LogInformation("User: {User} Viewed their profile", username);
@@ -56,8 +51,8 @@ public class ProfileModel(ILogger<ProfileModel> logger, UserManager<User> userMa
 
         if (string.IsNullOrEmpty(username))
         {
-            _logger.LogWarning("Attempt to delete account failed: no user is logged in.");
-            return BadRequest(new { message = "User is not logged in." });
+            _logger.LogWarning("Attempt to delete account failed: username not found");
+            return BadRequest(new { message = "Username not found" });
         }
 
         _logger.LogInformation("User with name: {username} is attempting to delete their account", username);

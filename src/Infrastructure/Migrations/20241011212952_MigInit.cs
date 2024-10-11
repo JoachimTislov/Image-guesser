@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Image_guesser.Migrations
 {
     /// <inheritdoc />
-    public partial class InitCreate : Migration
+    public partial class MigInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,6 +68,7 @@ namespace Image_guesser.Migrations
                     Options_UserOracleMode = table.Column<int>(type: "INTEGER", nullable: false),
                     Options_AI_Type = table.Column<int>(type: "INTEGER", nullable: false),
                     Options_PictureMode = table.Column<int>(type: "INTEGER", nullable: false),
+                    Options_ImageIdentifier = table.Column<string>(type: "TEXT", nullable: false),
                     TimeOfCreation = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SessionStatus = table.Column<int>(type: "INTEGER", nullable: false)
                 },
@@ -226,6 +227,7 @@ namespace Image_guesser.Migrations
                     TotalGuesses = table.Column<int>(type: "INTEGER", nullable: false),
                     NumberOfTilesRevealed = table.Column<int>(type: "INTEGER", nullable: false),
                     ImageIdentifier = table.Column<string>(type: "TEXT", nullable: false),
+                    ImageTileOrderLog = table.Column<string>(type: "TEXT", nullable: false),
                     Type = table.Column<string>(type: "TEXT", maxLength: 13, nullable: false),
                     AI_Id = table.Column<Guid>(type: "TEXT", nullable: true),
                     UserId = table.Column<Guid>(type: "TEXT", nullable: true)
@@ -269,7 +271,7 @@ namespace Image_guesser.Migrations
                         column: x => x.AIOracleId,
                         principalTable: "Oracles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Oracle_User",
                         column: x => x.UserOracleId,

@@ -16,7 +16,7 @@ public class GameTests
         Assert.Equal(Guid.Empty, game.SessionId);
         Assert.Empty(game.Guessers);
         Assert.Equal(string.Empty, game.GameMode);
-        Assert.False(game.IsFinished);
+        Assert.False(game.IsFinished());
 
         Assert.IsType<Game<object>>(game);
 
@@ -31,23 +31,24 @@ public class GameTests
     public void ConstructorWithOracleTypeUser_ShouldSetPropertiesCorrectly()
     {
         var sessionId = Guid.NewGuid();
-        var gameMode = GameMode.SinglePlayer.ToString();
 
         User user = new()
         {
             UserName = "Peddi"
         };
-        List<User> users = [user];
+        var session = new Session(user, sessionId);
 
-        var oracle = new Oracle<User>(user);
+        var imageIdentifier = "imageIdentifier";
+        var oracle = new Oracle<User>(user, imageIdentifier);
 
-        var game = new Game<User>(sessionId, users, gameMode, oracle);
+        var game = new Game<User>(session, oracle);
 
         Assert.Equal(sessionId, game.SessionId);
         Assert.Single(game.Guessers);
         Assert.Equal(game.Id, game.Guessers[0].GameId);
-        Assert.Equal(gameMode, game.GameMode);
-        Assert.Equal(user.Id, game.Oracle.Id);
+        Assert.Equal(session.Options.GameMode.ToString(), game.GameMode);
+        Assert.Equal(user.Id, game.Oracle.Entity.Id);
+        Assert.Equal(imageIdentifier, game.Oracle.ImageIdentifier);
 
         Assert.IsType<Game<User>>(game);
         Assert.IsType<Oracle<User>>(game.Oracle);
@@ -57,31 +58,28 @@ public class GameTests
     public void ConstructorWithOracleTypeAI_ShouldSetPropertiesCorrectly()
     {
         var sessionId = Guid.NewGuid();
-        var gameMode = GameMode.SinglePlayer.ToString();
-
         User user = new()
         {
             UserName = "Peddi"
         };
-        List<User> users = [user];
+        var session = new Session(user, sessionId);
 
         int[] numbersForImagePieces = [1, 2, 3];
         var AI = new AI(numbersForImagePieces, AI_Type.Random);
 
-        var oracle = new Oracle<AI>(AI);
+        var imageIdentifier = "imageIdentifier";
+        var oracle = new Oracle<AI>(AI, imageIdentifier);
 
-        var game = new Game<AI>(sessionId, users, gameMode, oracle);
+        var game = new Game<AI>(session, oracle);
 
         Assert.Equal(sessionId, game.SessionId);
         Assert.Single(game.Guessers);
         Assert.Equal(user.UserName, game.Guessers[0].Name);
-        Assert.Equal(gameMode, game.GameMode);
+        Assert.Equal(session.Options.GameMode.ToString(), game.GameMode);
+        Assert.Equal(imageIdentifier, game.Oracle.ImageIdentifier);
 
         // Assert Oracle is created correctly
         Assert.Equal(numbersForImagePieces, game.Oracle.Entity.NumbersForImagePieces);
-
-        // ??
-        Assert.Equal(game.Oracle.Id, game.Oracle.Entity.Id);
 
         Assert.Equal(AI.Id, game.Oracle.Entity.Id);
 

@@ -39,9 +39,24 @@ public class Session : BaseEntity
         return SessionUsers.Remove(user);
     }
 
+    public void ClearUsers()
+    {
+        SessionUsers.Clear();
+    }
+
+    public bool IsClosed()
+    {
+        return SessionStatus == SessionStatus.Closed;
+    }
+
     public void InGame()
     {
         UpdateStatus(SessionStatus.InGame);
+    }
+
+    public void Idle()
+    {
+        UpdateStatus(SessionStatus.Idle);
     }
 
     public void InLobby()

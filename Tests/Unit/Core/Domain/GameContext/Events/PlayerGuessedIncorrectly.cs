@@ -1,4 +1,4 @@
-using Image_guesser.Core.Domain.GameContext.Events;
+using Image_guesser.Core.Domain.GameContext;
 
 namespace Tests.Unit.Core.Domain.GameContext.Events;
 

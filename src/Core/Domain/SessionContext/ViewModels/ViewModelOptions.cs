@@ -14,7 +14,7 @@ public class ViewModelOptions
         PictureMode = options.PictureMode;
     }
 
-    // Used temporary to assign values correctly in session's options
+    // Used to assign values correctly in session's options
     public int LobbySize { get; set; }
     public GameMode GameMode { get; set; }
     public OracleTypes OracleType { get; set; }

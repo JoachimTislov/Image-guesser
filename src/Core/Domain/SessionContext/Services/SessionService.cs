@@ -83,6 +83,14 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         await UpdateSession(session);
     }
 
+    public async Task SetImageIdentifier(Guid sessionId, string imageIdentifier)
+    {
+        var session = await GetSessionById(sessionId);
+        session.Options.SetImageIdentifier(imageIdentifier);
+
+        await UpdateSession(session);
+    }
+
     public async Task<bool> CheckIfOracleIsAI(Guid sessionId)
     {
         var session = await GetSessionById(sessionId);

@@ -3,9 +3,35 @@ import {
     connection, isConnected, showPieceForAllPlayers
 } from "./gameHub.js";
 
-const imageContainer = document.getElementById('imageList');
-const displayedImages = [];
 
+//************************* Image size logic ***************************************/
+window.addEventListener('resize', function () {
+   // console.log('The window was resized', 'width: ' + window.innerWidth, 'height: ', window.innerHeight);
+
+    updateImageContainerSizeValues()
+});
+
+function updateImageContainerSizeValues()
+{
+    var imageContainerHeightEL = document.getElementById("imageContainerHeight");
+    var imageContainerWidthEL = document.getElementById("imageContainerWidth");
+
+    var imageList = document.getElementById("imageList");
+    if(imageList && imageContainerHeightEL && imageContainerWidthEL)
+    {
+        imageContainerHeightEL.value = imageList.offsetHeight;
+        imageContainerWidthEL.value = imageList.offsetWidth;
+
+        console.log('ImageContainer; height: ' + imageContainerHeightEL.value, 'width: ' + imageContainerWidthEL.value);
+    }
+}
+
+updateImageContainerSizeValues()
+/****************************************************/
+
+const imageContainer = document.getElementById('imageList');
+
+const UserIsOracle = oracleEntityId == userId;
 const userIsAGuesser = guesserId != null; 
 
 if(userIsAGuesser) {
@@ -25,22 +51,9 @@ if(userIsAGuesser) {
 };
 
 connection.on("ShowPiece", (piece) => {
-
   const chosenImage = availablePiecesOfImage.find(p => p == piece);
-  const imgIndex = availablePiecesOfImage.indexOf(chosenImage);
 
-  if (imgIndex == -1) return;
-
-  availablePiecesOfImage.splice(imgIndex, 1);
-
-  displayedImages.push(chosenImage);
-
-  if (userIsAGuesser) {
-    renderImages();
-  } else {
-    renderUserOracleImage();
-  }
-
+  AddNextImageTile(createImgElement(chosenImage))
 });
 
 connection.on("CorrectGuess", (winnerText, answer) => {
@@ -62,22 +75,11 @@ connection.on("ShowNextPieceForAll", () => {
     ExecuteOracleRevealTile()
 });
 
-// Renders guessers image
-function renderImages() {
-  imageContainer.innerHTML = '';
-
-  displayedImages.forEach(image => {
-    imageContainer.appendChild(createImgElement(image));
-  });
-
-  return imageContainer
-}
-
 const createImgElement = (image, opacity = 1) => {
     const imageElement = document.createElement('img');
     const relativeImagePiecePath = image.replace('wwwroot', '');
     
-    imageElement.src = relativeImagePiecePath;
+    imageElement.src = `${relativeImagePiecePath}?v=${new Date().getTime()}`; // to prevent caching, lets user change size of image and get new images
     imageElement.style.position = 'absolute';
     imageElement.style.opacity = opacity;
 
@@ -86,12 +88,8 @@ const createImgElement = (image, opacity = 1) => {
     return imageElement
 }
 
-function renderUserOracleImage() {
-  const image_container = renderImages()
-
-  availablePiecesOfImage.forEach(image => {
-    image_container.appendChild(createImgElement(image, 0.1));
-  });
+function AddNextImageTile(imgElement) {
+  imageContainer.appendChild(imgElement);
 }
 
 function InitUserAsOracle() { // imageInteractionInitializer
@@ -103,57 +101,57 @@ function InitUserAsOracle() { // imageInteractionInitializer
       let x = event.offsetX;
       let y = event.offsetY;
 
-      for (let piece of imageCoordinates) {
+      for (let i = 0; i < imageCoordinates.length; i++) {
+          let piece = imageCoordinates[i];
+
           if (isPointInNonTransparentArea(x, y, piece.Item2)) {
 
               showThisPiece(piece.Item1, sessionId);
 
-              oracleRevealedATile(oracleId);
+              oracleRevealedATile(oracleId, piece.Item1);
+              
+              imageCoordinates.splice(i, 1);
+              break;
           }
       }
   })
 
-  renderUserOracleImage()
+  availablePiecesOfImage.forEach(image => {
+    AddNextImageTile(createImgElement(image, 0.1));
+  });
+}
+
+function AIGetImageTile()
+{
+  const newImagePiece = getRandomImage();
+  if(newImagePiece)
+  {
+    return newImagePiece;
+  }
 }
 
 function ExecuteOracleRevealTile() {
-  const result = AddNextImageTile()
-  if(result)
-  {
-    oracleRevealedATile(oracleId);
-
-    renderImages();
-  }
+  var imageId = OracleRevealTile()
+  oracleRevealedATile(oracleId, imageId);
 }
 
-function AddNextImageTile()
-{
-  const newImagePiece = getRandomImage();
+function OracleRevealTile() {
+  var newImagePiece = AIGetImageTile();
+  AddNextImageTile(createImgElement(newImagePiece));
 
-  if (newImagePiece != null) {
-    displayedImages.push(newImagePiece);
-    return true
-  }
-  else
-  {
-    return false
-  }
-}
+  return newImagePiece;
+} 
 
 function getRandomImage() {
-    if (availablePiecesOfImage.length == 0) {
-        console.warn("No more images to show");
-        return null;
-    }
-
     if (Array.isArray(oracleAI_Array_NumbersForImagePieces))
     {
         const randomIndex = oracleAI_Array_NumbersForImagePieces.shift();
         return availablePiecesOfImage[randomIndex];
-    } else {
-        console.error('AI_Array_NumbersForImagePieces is not an array: ', oracleAI_Array_NumbersForImagePieces);
-        return null;
-    }   
+    }
+    if (availablePiecesOfImage.length == 0) {
+        console.warn("No more images to show");
+    }
+    return null;
 }
 
 var showNextPieceForAllButton = document.getElementById("ShowNextPieceForAll");
@@ -172,26 +170,48 @@ if (oracleIsAI && showOneMoreButton) {
 
 function InitGamePage()
 {
+  // Load tile-log from server
+  for(var i = 0; i < imageTileOrderLog.length; i++)
+  { 
+    var newImagePiece = createImgElement(imageTileOrderLog[i]);
+    AddNextImageTile(newImagePiece)
+
+    // Remove the image from the available pieces
+    var pieceIndex = availablePiecesOfImage.indexOf(imageTileOrderLog[i])
+    if(pieceIndex != -1)
+    {
+      // Remove the image tile indexes from the AI array
+      if(oracleIsAI && oracleAI_Array_NumbersForImagePieces)
+      {
+        var indexToRemove = oracleAI_Array_NumbersForImagePieces.indexOf(availablePiecesOfImage.length - 1);
+        oracleAI_Array_NumbersForImagePieces.splice(indexToRemove, 1);
+      }
+
+      availablePiecesOfImage.splice(pieceIndex, 1);
+    }
+
+    if(imageCoordinates != "ImageCoordinates not found")
+    { 
+      for(var j = 0; j < imageCoordinates.length; j++)
+      { 
+        if(imageCoordinates[j].Item1 == imageTileOrderLog[i])
+        {
+          imageCoordinates.splice(j, 1);
+        }
+      }
+    }
+  }
+
   // User is Oracle
-  if(!userIsAGuesser) {
+  if(UserIsOracle) {
     InitUserAsOracle();
     return;
   }
+  else if(oracleIsAI && numberOfTilesRevealed == 0) {
+    ExecuteOracleRevealTile();
+  }
 
-  if (oracleIsAI && numberOfTilesRevealed == 0)
-  {
-      // initial load for Games with Oracle as AI
-      ExecuteOracleRevealTile();
-  }
-  else
-  {
-    // Loads the correct amount of tiles
-    for(var i = 0; i < numberOfTilesRevealed; i++)
-    {
-        AddNextImageTile()
-    }
-    renderImages();
-  }
+  console.log("Game initialized")
 }
 
 window.onload = function() {

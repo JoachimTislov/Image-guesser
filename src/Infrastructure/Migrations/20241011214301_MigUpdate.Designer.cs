@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Image_guesser.Migrations
 {
     [DbContext(typeof(ImageGameContext))]
-    [Migration("20241010144200_InitCreate")]
-    partial class InitCreate
+    [Migration("20241011214301_MigUpdate")]
+    partial class MigUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -143,6 +143,10 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageIdentifier")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageTileOrderLog")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -406,7 +410,7 @@ namespace Image_guesser.Migrations
                 {
                     b.HasBaseType("Image_guesser.Core.Domain.GameContext.BaseGame");
 
-                    b.Property<Guid>("AIOracleId")
+                    b.Property<Guid?>("AIOracleId")
                         .HasColumnType("TEXT");
 
                     b.HasIndex("AIOracleId")
@@ -476,6 +480,10 @@ namespace Image_guesser.Migrations
 
                             b1.Property<int>("GameMode")
                                 .HasColumnType("INTEGER");
+
+                            b1.Property<string>("ImageIdentifier")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
 
                             b1.Property<int>("LobbySize")
                                 .HasColumnType("INTEGER");
@@ -565,8 +573,7 @@ namespace Image_guesser.Migrations
                     b.HasOne("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.OracleContext.AI>", "Oracle")
                         .WithOne()
                         .HasForeignKey("Image_guesser.Core.Domain.GameContext.Game<Image_guesser.Core.Domain.OracleContext.AI>", "AIOracleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_Oracle_AI");
 
                     b.Navigation("Oracle");

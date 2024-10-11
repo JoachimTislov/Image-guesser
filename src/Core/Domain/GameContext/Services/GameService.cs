@@ -41,6 +41,24 @@ public class GameService(IOracleService oracleService, IRepository repository, I
         await _hubService.RedirectGroupToPage(InitializeGameResult.SessionId.ToString(), $"/Lobby/{session.Id}/Game/{InitializeGameResult.Id}");
     }
 
+    public async Task RestartGameWithNewOracle(Guid gameId, AI_Type AI_Type)
+    {
+        var game = await GetGameById<AI>(gameId) ?? throw new EntityNotFoundException($"Game with Id: {gameId} was not found, cannot restart game with new oracle");
+
+        var imageIdentifier = game.Oracle.ImageIdentifier;
+
+        // Clean up old AI
+        await _oracleService.DeleteOracle<AI>(game.Oracle.Id);
+
+        game.Oracle = await _oracleService.CreateAIOracle(imageIdentifier, AI_Type);
+        game.BaseOracleId = game.Oracle.Id;
+
+        await UpdateGame(game);
+
+
+        await _hubService.RedirectGroupToPage(game.SessionId.ToString(), $"/Lobby/{game.SessionId}/Game/{gameId}");
+    }
+
     public async Task AddGuesserFromGame(Guid guesserId, Guid gameId)
     {
         var game = await GetBaseGameById(gameId);

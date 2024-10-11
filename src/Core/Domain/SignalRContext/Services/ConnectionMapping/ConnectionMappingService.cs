@@ -5,6 +5,7 @@ namespace Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 public class ConnectionMappingService : IConnectionMappingService
 {
     private readonly ConcurrentDictionary<string, string> _connections = new();
+    private readonly ConcurrentDictionary<string, HashSet<string>> _groups = new();
 
     public Task AddConnection(string userId, string connectionId)
     {
@@ -34,4 +35,42 @@ public class ConnectionMappingService : IConnectionMappingService
             return string.Empty;
         }
     }
+
+    public Task AddToGroup(string sessionId, string connectionId)
+    {
+        if (!_groups.ContainsKey(sessionId))
+        {
+            _groups[sessionId] = [];
+        }
+
+        _groups[sessionId].Add(connectionId);
+
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveFromGroup(string sessionId, string connectionId)
+    {
+        if (_groups.ContainsKey(sessionId))
+        {
+            _groups[sessionId].Remove(connectionId);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteGroup(string sessionId)
+    {
+        if (_groups.ContainsKey(sessionId))
+        {
+            _groups.TryRemove(sessionId, out _);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public HashSet<string>? GetGroupConnections(string sessionId)
+    {
+        return _groups.TryGetValue(sessionId, out var value) ? value : null;
+    }
+
 }

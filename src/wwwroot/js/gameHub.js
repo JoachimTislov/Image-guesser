@@ -18,6 +18,10 @@ export function joinSession(sessionId, userId) {
     connection.invoke("JoinSession", sessionId, userId).catch(err => console.error(err.toString()));
 }
 
+export function updateSessionSettings(options, sessionId) {
+    connection.invoke("UpdateSessionSettings", options, sessionId).catch(err => console.error(err.toString()));
+}
+
 export function leaveSession(sessionId, userId) {
     connection.invoke("LeaveSession", sessionId, userId).catch(err => console.error(err.toString()));
 }
@@ -31,9 +35,9 @@ export function sendGuess(message, userId, sessionId, oracleId, gameId, guesserI
     connection.invoke("SendGuess", message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier).catch(err => console.error(err.toString()));
 }
 
-export function oracleRevealedATile(oracleId) {
-    console.log("Oracle with Id: " + oracleId + " revealed a tile");
-    connection.invoke("OracleRevealedATile", oracleId).catch(err => console.error(err.toString()));
+export function oracleRevealedATile(oracleId, imageId) {
+    console.log("Oracle with Id: " + oracleId + " revealed a tile", "ImageId: " + imageId);
+    connection.invoke("OracleRevealedATile", oracleId, imageId).catch(err => console.error(err.toString()));
 }
 
 export function showThisPiece(pieceId, sessionId) {
@@ -73,17 +77,38 @@ connection.on("ReceiveGuess", (guess, playerName) => {
     var guessingDiv = document.getElementById("guessingDiv");
 
     var guessContainer = document.createElement("div");
+    guessContainer.classList.add("d-flex");
+
     var playerNameP = document.createElement("p");
-    playerNameP.classList.add("ms-auto");
-    playerNameP.textContent = playerName + ": ";
+    playerNameP.classList.add("me-auto");
+    playerNameP.textContent = `[ ${getTime()} ] ${playerName}:`;
     guessContainer.appendChild(playerNameP);
 
     var guessP = document.createElement("p");
-    guessP.classList.add("me-auto");
+    guessP.classList.add("ms-auto");
     guessP.textContent = guess;
     guessContainer.appendChild(guessP);
 
     guessingDiv.appendChild(guessContainer);
+
+    guessingDiv.scrollTop = guessingDiv.scrollHeight;
 })
+
+function getTime()
+{
+    const now = new Date();
+    const hours = now.getHours(); 
+    const minutes = now.getMinutes(); 
+    const seconds = now.getSeconds(); 
+
+    return `${AddAZeroIfUnderTen(hours)}:${AddAZeroIfUnderTen(minutes)}:${AddAZeroIfUnderTen(seconds)}`;
+}
+
+function AddAZeroIfUnderTen(value) {
+    if (value < 10) {
+        return "0" + value;
+    }
+    return value;
+}
 
 export { connection };
