@@ -1,4 +1,3 @@
-using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
@@ -24,14 +23,6 @@ public class IndexModel(ILogger<IndexModel> logger, ISessionService sessionServi
         if (User.Identity?.IsAuthenticated ?? false)
         {
             User_ = await _userService.GetUserByClaimsPrincipal(User);
-
-            // Override the SessionId if the user is already a session host
-            var potentialSessionId = await _userService.GetSessionIdForGivenUserWithClaimPrincipal(User);
-            if (potentialSessionId != null)
-            {
-                UserIsAlreadySessionHost = true;
-                SessionId = potentialSessionId.Value;
-            }
         }
     }
 

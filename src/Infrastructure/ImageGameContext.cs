@@ -24,7 +24,7 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
             .HasMany(s => s.SessionUsers)
             .WithOne()
             .HasForeignKey(u => u.SessionId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Prevent duplicate foreign keys for game table
         modelBuilder.Entity<BaseGame>()
@@ -52,8 +52,7 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
             .WithOne()
             .HasForeignKey<Game<AI>>("AIOracleId")
             .HasConstraintName("FK_Oracle_AI")
-            .IsRequired(false) // Since to delete an AI, we must let the Oracle be null
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false); // Since to delete an AI, we must let the Oracle be null
 
         // Creates a TPH type hierarchy for the BaseOracle table
         modelBuilder.Entity<BaseOracle>()
@@ -65,9 +64,7 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
         modelBuilder.Entity<Oracle<User>>()
             .HasOne(o => o.Entity)
             .WithMany()
-            .HasForeignKey("UserId")
-            .HasConstraintName("FK_User")
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey("UserId");
 
         // Configure the foreign key for Oracle<AI>
         modelBuilder.Entity<Oracle<AI>>()

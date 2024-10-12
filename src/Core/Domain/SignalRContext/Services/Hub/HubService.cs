@@ -14,9 +14,10 @@ public class HubService(IHubContext<GameHub, IGameClient> hubContext, IConnectio
         await _hubContext.Clients.Groups(sessionId).RedirectToLink(link);
     }
 
-    public async Task RedirectOthersInGroupToPage(string sessionId, string hostConnectionId, string link)
+    public async Task RedirectOthersInGroupToPage(string sessionId, string userId, string link)
     {
-        await _hubContext.Clients.GroupExcept(sessionId, hostConnectionId).RedirectToLink(link);
+        var IgnoreThisConnection = _connectionMappingService.GetConnection(userId);
+        await _hubContext.Clients.GroupExcept(sessionId, IgnoreThisConnection).RedirectToLink(link);
     }
 
     public async Task RedirectClientToPage(string userId, string link)
@@ -32,6 +33,11 @@ public class HubService(IHubContext<GameHub, IGameClient> hubContext, IConnectio
     public async Task ReloadClientPage(string userId)
     {
         await _hubContext.Clients.User(userId).ReloadPage();
+    }
+
+    public async Task ReloadConnectionPage(string connectionId)
+    {
+        await _hubContext.Clients.Client(connectionId).ReloadPage();
     }
 
     public async Task RemoveFromGroup(string connectionId, string sessionId)

@@ -8,7 +8,7 @@ public interface IImageService
     Task<string> GetDifferentRandomImageIdentifier(List<string> imageIdentifiers);
     Task<string> GetRandomImageIdentifier();
     Task<List<ImageRecord>> GetXAmountOfImageRecords(int amount);
-    List<string> GetFileNameOfImagePieces(string imageIdentifier);
+    Task<List<string>> GetFileNameOfImagePieces(string imageIdentifier);
     List<(string ImageId, List<(int X, int Y)> Coordinates)> GetCoordinatesForImagePieces(List<string> ImagePieceList);
-    void SetSizeOfImagePieces(string imageIdentifier, int width, int height, double imageSize);
+    Task SetSizeOfImagePieces(string imageIdentifier, int width, int height, double imageSize);
 }

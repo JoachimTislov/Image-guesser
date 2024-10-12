@@ -34,7 +34,7 @@ public class ImageRepository(IRepository repository) : IImageRepository
 
     public async Task<string> GetRandomImageIdentifier()
     {
-        var MappedImagesFile = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DataSet", "Mapped_Images.csv");
+        var MappedImagesFile = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DataSet", "Image_dictionary.csv");
 
         if (!File.Exists(MappedImagesFile))
         {
@@ -53,32 +53,30 @@ public class ImageRepository(IRepository repository) : IImageRepository
         return image_Identifier;
     }
 
-    public async Task Map_Images()
+    public async Task CreateImageDictionary()
     {
         var DataSetPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DataSet");
 
         var image_mapping_lines = await File.ReadAllLinesAsync(Path.Combine(DataSetPath, "image_mapping.csv"));
 
-        var imagePath = Path.Combine(DataSetPath, "ScatteredImages");
-
-        string[] subdirectories = Directory.GetDirectories(imagePath);
+        string[] subdirectories = Directory.GetDirectories(Path.Combine(DataSetPath, "Scattered_Images"));
 
         // Print the names of all subdirectories
-        for (var i = 0; i < subdirectories.Length; i++)
+        foreach (var subdirectory in subdirectories)
         {
-            var split2 = subdirectories[i].Split('\\');
-            var name = split2[^1];
-            for (var j = 0; j < image_mapping_lines.Length; j++)
-            {
-                var Line = image_mapping_lines[j];
-                var split = Line.Split(' ');
-                var imageIdentifier = split[0];
-                var image_Label = split.Length > 1 ? split[1] : null;
+            var name = subdirectory.Split('\\')[^1];
 
-                if (name == $"{imageIdentifier}_scattered" && image_Label != null)
+            foreach (var line in image_mapping_lines)
+            {
+                var split = line.Split(' ');
+                var imageIdentifier = split[0];
+                var image_Label = split[1];
+
+                var imageName = await GetImageNameBy_Label_Mapping(DataSetPath, image_Label);
+
+                if (name == $"{imageIdentifier}_scattered" && !string.IsNullOrEmpty(imageName))
                 {
-                    var imageName = await GetImageNameBy_Label_Mapping(image_Label, DataSetPath);
-                    Console.WriteLine($"{imageIdentifier}_scattered, {imageName}");
+                    File.AppendAllLines(Path.Combine(DataSetPath, "Image_dictionary.csv"), [$"{imageIdentifier}_scattered {imageName}"]);
                 }
             }
         }
@@ -93,7 +91,7 @@ public class ImageRepository(IRepository repository) : IImageRepository
         {
             var split = line.Split(' ');
             var nameId = split[0];
-            var image_name = split[1];
+            var image_name = string.Join(" ", split.Skip(1));
 
             if (nameId == ImageLabel)
             {
@@ -106,26 +104,31 @@ public class ImageRepository(IRepository repository) : IImageRepository
     public async Task AddAllMappedImagesToDatabase()
     {
         var DataSetFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DataSet");
-        var Mapped_ImagesFile = Path.Combine(DataSetFolder, "Mapped_Images.csv");
+        var Image_dictionary = Path.Combine(DataSetFolder, "Image_dictionary.csv");
 
-        if (File.Exists(Mapped_ImagesFile))
+        if (!File.Exists(Image_dictionary))
         {
-            var Mapped_Images_Lines = await File.ReadAllLinesAsync(Mapped_ImagesFile);
+            await CreateImageDictionary();
+        }
 
-            foreach (var line in Mapped_Images_Lines)
+        foreach (var line in await File.ReadAllLinesAsync(Image_dictionary))
+        {
+            var split = line.Split(' ');
+            var image_Identifier = split[0];
+            var image_Name = string.Join(" ", split.Skip(1));
+
+            var pathToImagePieces = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "DataSet", "Scattered_Images", image_Identifier);
+            if (Directory.Exists(pathToImagePieces))
             {
-                var split = line.Split(' ');
-                var image_Identifier = split[0];
-                var image_Name = split[1];
-
-                var ImageLink = Path.Combine("DataSet", "MergedImages", image_Identifier + ".png");
-
-                var ImagePiecesFolderLink = Path.Combine("DataSet", "ScatteredImages", image_Identifier);
+                var ImageLink = Path.Combine("DataSet", "MergedImages", $"{image_Identifier}.png");
+                var ImagePiecesFolderLink = Path.Combine("DataSet", "Scattered_Images", image_Identifier);
                 var pieceCount = Directory.GetFiles(Path.Combine("wwwroot", ImagePiecesFolderLink)).Length;
 
-                var ImageRecord = new ImageRecord(image_Name, image_Identifier, ImageLink, ImagePiecesFolderLink, pieceCount);
-
-                AddImageRecord(ImageRecord);
+                AddImageRecord(new ImageRecord(image_Name, image_Identifier, ImageLink, ImagePiecesFolderLink, pieceCount));
+            }
+            else
+            {
+                Console.WriteLine($"ImagePiecesFolder with identifier {image_Identifier} was not found in the DataSet folder with path: {pathToImagePieces}");
             }
         }
     }

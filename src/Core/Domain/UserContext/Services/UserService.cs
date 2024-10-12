@@ -1,16 +1,20 @@
 using System.Security.Claims;
-using Image_guesser.Core.Domain.SessionContext;
-using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 using Microsoft.AspNetCore.Identity;
 
 namespace Image_guesser.Core.Domain.UserContext.Services;
 
-public class UserService(UserManager<User> userManager, IRepository repository) : IUserService
+public class UserService(UserManager<User> userManager, IRepository repository, SignInManager<User> signInManager) : IUserService
 {
+    private readonly SignInManager<User> _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+
+    public async Task<bool> CheckIfClientHasAnAccount(string userId)
+    {
+        return await _userManager.FindByIdAsync(userId) != null;
+    }
 
     public async Task<Guid?> GetSessionIdForGivenUserWithClaimPrincipal(ClaimsPrincipal User)
     {

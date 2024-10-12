@@ -77,10 +77,10 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
         return Link.Replace("\\", Path.DirectorySeparatorChar.ToString());
     }
 
-    public List<string> GetFileNameOfImagePieces(string imageIdentifier)
+    public async Task<List<string>> GetFileNameOfImagePieces(string imageIdentifier)
     {
-        var imagePiecesFolderPath = Path.Combine("wwwroot", "DataSet", "ScatteredImages", imageIdentifier);
-        var imagePieceFileNames = Directory.GetFiles(imagePiecesFolderPath).ToList();
+        var ImageRecord = await GetImageRecordById(imageIdentifier);
+        var imagePieceFileNames = Directory.GetFiles(Path.Combine("wwwroot", ImageRecord.FolderWithImagePiecesLink)).ToList();
 
         //Filter out all files that are not images
         //This is needed because the folder contains a .DS_Store file
@@ -95,53 +95,53 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
     {
         List<(string ImageId, List<(int X, int Y)> Coordinates)> _imageCoordinates = [];
 
-        foreach (var imagePiecePath in ImagePieceList)
+        foreach (var imageName in ImagePieceList)
         {
-            var relativeImagePath = GetRelativeImagePath(imagePiecePath);
+            var relativeImagePath = GetRelativeImagePath(imageName);
 
-            _imageCoordinates.Add((imagePiecePath, GetNonTransparentPixelCoordinates(relativeImagePath)));
+            _imageCoordinates.Add((imageName, GetNonTransparentPixelCoordinates(relativeImagePath)));
         }
 
         return _imageCoordinates;
     }
 
-    private string GetRelativeImagePath(string imagePiecePath) => Path.Combine(_hostingEnvironment.WebRootPath, imagePiecePath.Replace($"wwwroot{Path.DirectorySeparatorChar}", ""));
+    private string GetRelativeImagePath(string imageName) => Path.Combine(_hostingEnvironment.WebRootPath, imageName.Replace($"wwwroot{Path.DirectorySeparatorChar}", ""));
 
-    public void SetSizeOfImagePieces(string imageIdentifier, int width, int height, double imageSize)
+    public async Task SetSizeOfImagePieces(string imageIdentifier, int width, int height, double imageSize)
     {
-        var imagePieceList = GetFileNameOfImagePieces(imageIdentifier);
+        var imagePieceList = await GetFileNameOfImagePieces(imageIdentifier);
 
         // Calculating the percentage height and width of the image container size
         var percentHeight = (int)Math.Round(height * imageSize);
         var percentWidth = (int)Math.Round(width * imageSize);
 
-        foreach (var imagePiecePath in imagePieceList)
+        foreach (var imageName in imagePieceList)
         {
-            var relativeImagePath = GetRelativeImagePath(imagePiecePath);
+            var relativeImagePath = GetRelativeImagePath(imageName);
 
             ChangeSizeOfImagePiece(relativeImagePath, percentHeight, percentWidth);
         }
     }
 
 
-    private static void ChangeSizeOfImagePiece(string imagePiecePath, int height, int width)
+    private static void ChangeSizeOfImagePiece(string imageName, int height, int width)
     {
-        using Image<Rgba32> image = Image.Load<Rgba32>(imagePiecePath);
+        using Image<Rgba32> image = Image.Load<Rgba32>(imageName);
 
-        Console.WriteLine($"Resizing image: {imagePiecePath} to width: {width} and height: {height}");
+        Console.WriteLine($"Resizing image: {imageName} to width: {width} and height: {height}");
 
         image.Mutate(x => x.Resize(new Size(width, height)));
 
-        image.Save(imagePiecePath);
+        image.Save(imageName);
 
         image.Dispose();
     }
 
-    private static List<(int X, int Y)> GetNonTransparentPixelCoordinates(string imagePiecePath)
+    private static List<(int X, int Y)> GetNonTransparentPixelCoordinates(string imageName)
     {
         List<(int X, int Y)> nonTransparentPixels = [];
 
-        using (Image<Rgba32> image = Image.Load<Rgba32>(imagePiecePath))
+        using (Image<Rgba32> image = Image.Load<Rgba32>(imageName))
         {
             for (int y = 0; y < image.Height; y++)
             {

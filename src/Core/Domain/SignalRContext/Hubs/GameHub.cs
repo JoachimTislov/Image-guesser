@@ -8,6 +8,7 @@ using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.OracleContext;
+using Image_guesser.Core.Domain.UserContext;
 
 namespace Image_guesser.Core.Domain.SignalRContext.Hubs;
 
@@ -62,6 +63,14 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
         await base.OnDisconnectedAsync(exception);
     }
 
+    public async Task ClientNavigatedToPage(string pathName)
+    {
+        var userId = Context.UserIdentifier;
+        if (userId == null) return;
+
+        await _mediator.Publish(new UserNavigatedToPage(pathName, userId));
+    }
+
     public async Task AddToGroup(string sessionId, string userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
@@ -84,6 +93,7 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
 
     public async Task CloseSession(string sessionId)
     {
+        await _hubService.RedirectGroupToPage(sessionId, "/");
         await _mediator.Publish(new SessionClosed(Guid.Parse(sessionId)));
     }
 

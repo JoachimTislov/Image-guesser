@@ -1,7 +1,6 @@
 using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
-using Image_guesser.Core.Domain.UserContext.Services;
 using MediatR;
 
 namespace Image_guesser.Core.Domain.SessionContext.Handlers;
@@ -29,8 +28,6 @@ public class SessionClosedHandler(ISessionService sessionService, IHubService hu
 
             await _sessionService.UpdateSession(session);
         }
-
-        await _hubService.RedirectGroupToPage(sessionId.ToString(), "/");
 
         var groupConnections = _connectionMappingService.GetGroupConnections(sessionId.ToString());
         if (groupConnections != null)

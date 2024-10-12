@@ -511,7 +511,7 @@ namespace Image_guesser.Migrations
                     b.HasOne("Image_guesser.Core.Domain.SessionContext.Session", null)
                         .WithMany("SessionUsers")
                         .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -570,7 +570,6 @@ namespace Image_guesser.Migrations
                     b.HasOne("Image_guesser.Core.Domain.OracleContext.Oracle<Image_guesser.Core.Domain.OracleContext.AI>", "Oracle")
                         .WithOne()
                         .HasForeignKey("Image_guesser.Core.Domain.GameContext.Game<Image_guesser.Core.Domain.OracleContext.AI>", "AIOracleId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_Oracle_AI");
 
                     b.Navigation("Oracle");
@@ -606,8 +605,7 @@ namespace Image_guesser.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_User");
+                        .IsRequired();
 
                     b.Navigation("Entity");
                 });

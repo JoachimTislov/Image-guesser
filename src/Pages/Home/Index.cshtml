@@ -9,25 +9,17 @@
     {
         <p> Welcome to Image Guesser </p>
 
-        @if (!Model.UserIsAlreadySessionHost)
-        {
-            <div class="d-flex justify-content-evenly">
-                <form method="post" asp-page-handler="CreateSession">
-                    <input name="Id" value="@Model.SessionId" hidden>
-                    <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"
-                        user-Id="@Model.User_.Id"> Create a Lobby </button>
-                </form>
 
-                <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>
-            </div>
-        }
-        else
-        {
-            <div class="d-flex justify-content-evenly">
-                <a class="btn btn-success" asp-page="/Lobby/Session" asp-route-id="@Model.SessionId"> Go to your Lobby </a>
-                <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>
-            </div>
-        }
+        <div class="d-flex justify-content-evenly">
+            <form method="post" asp-page-handler="CreateSession">
+                <input name="Id" value="@Model.SessionId" hidden>
+                <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"
+                    user-Id="@Model.User_.Id"> Create a Lobby </button>
+            </form>
+
+            <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>
+        </div>
+
 
         <p> *Future Leaderboards* </p>
     }

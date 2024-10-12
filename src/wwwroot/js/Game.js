@@ -77,6 +77,8 @@ connection.on("ShowNextPieceForAll", () => {
 
 const createImgElement = (image, opacity = 1) => {
     const imageElement = document.createElement('img');
+
+    console.log("Image: " + image);
     const relativeImagePiecePath = image.replace('wwwroot', '');
     
     imageElement.src = `${relativeImagePiecePath}?v=${new Date().getTime()}`; // to prevent caching, lets user change size of image and get new images
@@ -137,6 +139,8 @@ function ExecuteOracleRevealTile() {
 
 function OracleRevealTile() {
   var newImagePiece = AIGetImageTile();
+
+  console.log("OracleRevealTile: " + newImagePiece);
   AddNextImageTile(createImgElement(newImagePiece));
 
   return newImagePiece;

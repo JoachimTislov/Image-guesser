@@ -4,7 +4,7 @@ public interface IGameServer
     //--------------- Client To Server ---------------//
 
     // Services invoked from client 
-
+    Task ClientNavigatedToPage(string pathName);
     Task AddToGroup(string sessionId, string userId);
     Task JoinSession(string sessionId, string userId);
     Task LeaveSession(string userId, string sessionId);

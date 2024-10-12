@@ -7,5 +7,6 @@ public interface IImageRepository
     List<ImageRecord> GetImageRecordsByIds(List<string> ImageIdentifiers);
     Task<int> GetImagePieceCountById(string ImageIdentifier);
     Task<string> GetRandomImageIdentifier();
+    Task CreateImageDictionary();
     Task AddAllMappedImagesToDatabase();
 }

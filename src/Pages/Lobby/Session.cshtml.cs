@@ -47,7 +47,7 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
     {
         await LoadSessionData();
 
-        _logger.LogInformation("{Name} entered the session page with Id: {Id}", Player.UserName, Id);
+        _logger.LogInformation("{Name} entered the session page with Id: {Id}", User.Identity?.Name, Id);
     }
 
     public async Task OnPostStartGame()
@@ -78,26 +78,22 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
         }
     }
 
-    public async Task<IActionResult> OnPostOracleSelectedAnImage(string imageIdentifier)
+    public async Task OnPostOracleSelectedAnImage(string imageIdentifier)
     {
         await _sessionService.SetImageIdentifier(Id, imageIdentifier);
 
         await LoadSessionData();
 
         _logger.LogInformation("User Oracle - {Name} selected an image in sessions with Id: {Id}", User.Identity?.Name, Id);
-
-        return Page();
     }
 
-    public async Task<IActionResult> OnPostRefreshImagesAsync()
+    public async Task OnPostRefreshImagesAsync()
     {
         ShowImageModal = true;
 
         await LoadSessionData();
 
         _logger.LogInformation("User Oracle - {Name} refreshed the image records in sessions with Id: {Id}", User.Identity?.Name, Id);
-
-        return Page();
     }
 
     private async Task LoadImageRecords() => ImageRecords = await _imageService.GetXAmountOfImageRecords(AmountOfPicturesToLoad);

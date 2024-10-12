@@ -8,6 +8,7 @@ const connection = new signalR.HubConnectionBuilder()
 connection.start().then(()=> {
     console.log("SignalR Connected");
     isConnected = true;
+     connection.invoke("ClientNavigatedToPage", window.location.pathname).catch(err => console.error(err.toString()));
 }).catch(err => console.error(err.toString()));
 
 export function AddToGroup(sessionId, userId) {
@@ -16,10 +17,6 @@ export function AddToGroup(sessionId, userId) {
 
 export function joinSession(sessionId, userId) {
     connection.invoke("JoinSession", sessionId, userId).catch(err => console.error(err.toString()));
-}
-
-export function updateSessionSettings(options, sessionId) {
-    connection.invoke("UpdateSessionSettings", options, sessionId).catch(err => console.error(err.toString()));
 }
 
 export function leaveSession(sessionId, userId) {

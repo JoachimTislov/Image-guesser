@@ -55,7 +55,6 @@ public class GameService(IOracleService oracleService, IRepository repository, I
 
         await UpdateGame(game);
 
-
         await _hubService.RedirectGroupToPage(game.SessionId.ToString(), $"/Lobby/{game.SessionId}/Game/{gameId}");
     }
 

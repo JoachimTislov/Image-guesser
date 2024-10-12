@@ -99,13 +99,13 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
         //await _mediator.Publish(new ChangeImageSizeRequest(imageSize, imageIdentifier, imageContainerWidth, imageContainerHeight));
 
-        _imageService.SetSizeOfImagePieces(imageIdentifier, imageContainerWidth, imageContainerHeight, imageSize / 100.0);
+        await _imageService.SetSizeOfImagePieces(imageIdentifier, imageContainerWidth, imageContainerHeight, imageSize / 100.0);
 
         await _hubService.RedirectGroupToPage(SessionId.ToString(), $"/Lobby/{SessionId}/Game/{GameId}");
     }
 
 
-    private async Task LoadGameData()
+    private async Task<IActionResult> LoadGameData()
     {
         Player = await _userService.GetUserByClaimsPrincipal(User);
         BaseGame = await _gameService.GetBaseGameById(GameId);
@@ -135,12 +135,14 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
         ImageRecord = await _imageService.GetImageRecordById(BaseOracle.ImageIdentifier);
 
-        var imagePieceList = _imageService.GetFileNameOfImagePieces(BaseOracle.ImageIdentifier);
+        var imagePieceList = await _imageService.GetFileNameOfImagePieces(BaseOracle.ImageIdentifier);
         ImagePieceList = JsonConvert.SerializeObject(imagePieceList);
 
         if (UserIsOracle)
         {
             ImageCoordinates = JsonConvert.SerializeObject(_imageService.GetCoordinatesForImagePieces(imagePieceList));
         }
+
+        return Page();
     }
 }

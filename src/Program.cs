@@ -16,7 +16,6 @@ using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
