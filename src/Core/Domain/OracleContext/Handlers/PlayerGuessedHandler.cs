@@ -27,8 +27,7 @@ public class PlayerGuessedHandler(IRepository repository, IImageService imageSer
             //Calculating amount of unrevealed tiles
             var points = _oracleService.CalculatePoints(ImageRecord.PieceCount, oracle.NumberOfTilesRevealed);
 
-            await _mediator.Publish(new PlayerGuessedCorrectly(notification.GuesserId, points, notification.GameId), cancellationToken);
-            await _mediator.Publish(new GameFinished(notification.GameId, notification.SessionId));
+            await _mediator.Publish(new PlayerGuessedCorrectly(notification.GuesserId, points, notification.GameId, notification.SessionId), cancellationToken);
         }
         else
         {

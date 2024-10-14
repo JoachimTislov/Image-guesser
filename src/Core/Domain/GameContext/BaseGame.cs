@@ -1,3 +1,4 @@
+using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Core.Domain.GameContext;
@@ -10,8 +11,9 @@ public class BaseGame : BaseEntity
     public Guid SessionId { get; protected set; }
     public Guid BaseOracleId { get; set; }
     public List<Guesser> Guessers { get; private set; } = [];
-    public string GameMode { get; set; } = string.Empty;
+    public GameMode GameMode { get; set; }
     public GameStatus GameStatus { get; private set; } = GameStatus.Started;
+    public List<Guess> GuessLog { get; private set; } = [];
     public DateTime TimeOfCreation { get; private set; } = DateTime.Now;
 
     public bool AddGuesser(Guesser guesser)
@@ -31,9 +33,14 @@ public class BaseGame : BaseEntity
         return Guessers.Remove(guesser);
     }
 
-    public static Guesser CreateGuesser(string username, Guid gameId)
+    public static Guesser CreateGuesser(string username)
     {
-        return new Guesser(username, gameId);
+        return new Guesser(username);
+    }
+
+    public void CreateAndAddGuess(string guess, string nameOfGuesser, string timeOfGuess)
+    {
+        GuessLog.Add(new Guess(guess, nameOfGuesser, timeOfGuess));
     }
 
     public void GameOver() => GameStatus = GameStatus.Finished;

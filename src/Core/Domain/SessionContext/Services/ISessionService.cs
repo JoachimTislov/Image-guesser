@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,7 @@ namespace Image_guesser.Core.Domain.SessionContext.Services;
 public interface ISessionService
 {
     Task CreateSession(ClaimsPrincipal User, Guid SessionId);
+    List<BaseGame> GetGamesInSessionById(Guid Id);
     Task<List<User>> GetUsersInSessionById(Guid Id);
     Task<List<SelectListItem>> GetSelectListOfUsersById(Guid Id);
     Task<Session> GetSessionById(Guid Id);

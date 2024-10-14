@@ -23,8 +23,6 @@ public class PlayerGuessedIncorrectlyHandler(IGameService gameService) : INotifi
             guesser.IncrementWrongGuessCounter();
         }
 
-        guesser.IncrementGuesses();
-
         await _gameService.UpdateGuesser(guesser);
     }
 }

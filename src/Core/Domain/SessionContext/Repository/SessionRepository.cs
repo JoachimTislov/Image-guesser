@@ -1,4 +1,5 @@
 
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
@@ -28,6 +29,11 @@ public class SessionRepository(IRepository repository) : ISessionRepository
     public async Task<Session> GetSessionById(Guid Id)
     {
         return await _repository.WhereAndInclude_SingleOrDefault<Session, List<User>>(s => s.Id == Id, s => s.SessionUsers) ?? throw new EntityNotFoundException($"Session with Id {Id} was not found");
+    }
+
+    public List<BaseGame> GetGamesInSessionById(Guid Id)
+    {
+        return _repository.WhereAndInclude<BaseGame, List<Guesser>>(s => s.SessionId == Id, s => s.Guessers);
     }
 
     public async Task<Guid> GetSessionHostIdBySessionId(Guid Id)

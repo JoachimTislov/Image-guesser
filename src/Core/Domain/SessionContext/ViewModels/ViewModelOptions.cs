@@ -10,6 +10,7 @@ public class ViewModelOptions
         LobbySize = options.LobbySize;
         GameMode = options.GameMode;
         OracleType = options.OracleType;
+        UserOracleMode = options.UserOracleMode;
         AI_Type = options.AI_Type;
         PictureMode = options.PictureMode;
     }

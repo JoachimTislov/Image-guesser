@@ -50,7 +50,7 @@ public class Options
         AI_Type = options.AI_Type;
         UserOracleMode = options.UserOracleMode;
 
-        PictureMode = !IsGameMode(GameMode.SinglePlayer) ? options.PictureMode : PictureMode.Random;
+        PictureMode = !IsGameMode(GameMode.SinglePlayer) && !IsOracleAI() ? options.PictureMode : PictureMode.Random;
     }
 
     public void SetImageIdentifier(string imageIdentifier)

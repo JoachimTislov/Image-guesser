@@ -35,6 +35,11 @@ public class HubService(IHubContext<GameHub, IGameClient> hubContext, IConnectio
         await _hubContext.Clients.User(userId).ReloadPage();
     }
 
+    public async Task ReloadAllClientsPageAtGivenPathName(string pathName)
+    {
+        await _hubContext.Clients.All.RefreshThisPageIfClientPresent(pathName);
+    }
+
     public async Task ReloadConnectionPage(string connectionId)
     {
         await _hubContext.Clients.Client(connectionId).ReloadPage();

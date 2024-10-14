@@ -82,7 +82,7 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
     public async Task OnPostCreateGame()
     {
-        await _mediator.Publish(new CreateGame(SessionId, null));
+        await _mediator.Publish(new CreateGame(SessionId));
     }
 
     public async Task OnPostRestartGameWithNewOracle()

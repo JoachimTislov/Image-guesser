@@ -78,16 +78,17 @@ function OracleTypeChange()
 
     const UserOracleMode = EL("UserOracleMode")
     const pickAI = EL("pickAI")
+    const PictureMode = EL("PictureMode")
 
     if (selectOracleType.value == "0")  // Index for AI in OracleTypes
     {
         show([pickAI])
-        hide([UserOracleMode])
+        hide([UserOracleMode, PictureMode])
     }
 
     if (selectOracleType.value == "1")  // Index for user in OracleTypes
     {
-        show([UserOracleMode])
+        show([UserOracleMode, PictureMode])
         hide([pickAI])
     }
 }

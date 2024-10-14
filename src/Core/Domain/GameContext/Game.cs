@@ -17,18 +17,18 @@ public class Game<TOracle> : BaseGame where TOracle : class
     {
         SessionId = session.Id;
         BaseOracleId = oracle.Id;
-        GameMode = session.Options.GameMode.ToString();
+        GameMode = session.Options.GameMode;
         Oracle = oracle;
 
-        Guessers.AddRange(CreateGuesserList(Id, session.Options.IsOracleAI(), session.SessionUsers, session.ChosenOracleId));
+        Guessers.AddRange(CreateGuesserList(session.Options.IsOracleAI(), session.SessionUsers, session.ChosenOracleId));
     }
 
-    private static IEnumerable<Guesser> CreateGuesserList(Guid gameId, bool gameIsAI, List<User> users, Guid chosenOracleId)
+    private static IEnumerable<Guesser> CreateGuesserList(bool gameIsAI, List<User> users, Guid chosenOracleId)
     {
         var filteredUsers = !gameIsAI
             ? users.Where(u => u.Id != chosenOracleId)
             : users;
 
-        return filteredUsers.Select(user => CreateGuesser(user.UserName!, gameId));
+        return filteredUsers.Select(user => CreateGuesser(user.UserName!));
     }
 }

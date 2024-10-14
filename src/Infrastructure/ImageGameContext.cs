@@ -1,5 +1,6 @@
 using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.ImageContext;
+using Image_guesser.Core.Domain.LeaderboardContext;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
@@ -17,20 +18,20 @@ public class ImageGameContext(DbContextOptions<ImageGameContext> options) : Iden
     public DbSet<BaseOracle> Oracles { get; set; }
     public DbSet<Guesser> Guessers { get; set; }
     public DbSet<ImageRecord> ImageRecords { get; set; }
+
+    public DbSet<LeaderboardEntry> LeaderboardEntries { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<LeaderboardEntry>()
+            .HasKey(l => new { l.Name, l.Oracle }); // Composite key
+
         // Prevents foreign key errors when deleting a session
         modelBuilder.Entity<Session>()
             .HasMany(s => s.SessionUsers)
             .WithOne()
             .HasForeignKey(u => u.SessionId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Prevent duplicate foreign keys for game table
-        modelBuilder.Entity<BaseGame>()
-            .HasMany(bg => bg.Guessers)
-            .WithOne()
-            .HasForeignKey(g => g.GameId);
 
         // Creates a TPH type hierarchy for the BaseGame table
         modelBuilder.Entity<BaseGame>()

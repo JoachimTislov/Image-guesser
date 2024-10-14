@@ -1,12 +1,10 @@
-using System.Text.RegularExpressions;
 using Image_guesser.Core.Domain.GameContext.Responses;
-using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
+using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
-using Image_guesser.Core.Domain.UserContext.Services;
 using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 using Image_guesser.SharedKernel;
@@ -39,6 +37,12 @@ public class GameService(IOracleService oracleService, IRepository repository, I
         );
 
         await _hubService.RedirectGroupToPage(InitializeGameResult.SessionId.ToString(), $"/Lobby/{session.Id}/Game/{InitializeGameResult.Id}");
+    }
+
+    public async Task CreateAndAddGuess(string guess, string nameOfGuesser, string timeOfGuess, Guid gameId)
+    {
+        var game = await GetBaseGameById(gameId);
+        game.CreateAndAddGuess(guess, nameOfGuesser, timeOfGuess);
     }
 
     public async Task RestartGameWithNewOracle(Guid gameId, AI_Type AI_Type)
@@ -99,12 +103,17 @@ public class GameService(IOracleService oracleService, IRepository repository, I
 
     public async Task<BaseGame> GetBaseGameById(Guid Id)
     {
-        return await _repository.WhereAndInclude_SingleOrDefault<BaseGame, List<Guesser>>(bg => bg.Id == Id, bg => bg.Guessers) ?? throw new EntityNotFoundException($"BaseGame with Id: {Id} was not found");
+        return await _repository.WhereAndInclude2x_SingleOrDefault<BaseGame, List<Guesser>, List<Guess>>(bg => bg.Id == Id, bg => bg.Guessers, bg => bg.GuessLog) ?? throw new EntityNotFoundException($"BaseGame with Id: {Id} was not found");
     }
 
     public async Task<Guesser> GetGuesserById(Guid GuesserId)
     {
         return await _repository.GetById<Guesser, Guid>(GuesserId);
+    }
+
+    public List<BaseGame> GetGames()
+    {
+        return _repository.GetAll<BaseGame>();
     }
 
     public async Task UpdateGame<TGame>(TGame game) where TGame : BaseEntity

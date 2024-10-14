@@ -4,6 +4,7 @@ using Image_guesser.Core.Domain.OracleContext.AI_Repository;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
+using Image_guesser.Core.Exceptions;
 using Image_guesser.Infrastructure.GenericRepository;
 using OneOf;
 
@@ -54,12 +55,12 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
 
     public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class
     {
-        return await _repository.GetSingleWhere<Oracle<T>, Guid>(o => o.Id == Id, Id);
+        return await _repository.GetSingleWhere<Oracle<T>>(o => o.Id == Id) ?? throw new EntityNotFoundException($"Oracle was not found by id: {Id}");
     }
 
     public async Task<BaseOracle> GetBaseOracleById(Guid Id)
     {
-        return await _repository.GetSingleWhere<BaseOracle, Guid>(o => o.Id == Id, Id);
+        return await _repository.GetSingleWhere<BaseOracle>(o => o.Id == Id) ?? throw new EntityNotFoundException($"Base Oracle was not found by id: {Id}");
     }
 
     public List<string> GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(Guid sessionId)
@@ -76,10 +77,27 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
 
     public bool CheckGuess(string guess, string imageName)
     {
-        return guess.Equals(imageName, StringComparison.CurrentCultureIgnoreCase);
+        var trimmedGuess = guess.Trim();
+
+        // Comparing the guess with the image name
+        if (trimmedGuess.Equals(imageName, StringComparison.CurrentCultureIgnoreCase))
+        {
+            return true;
+        }
+
+        // Comparing the guess with the image name words
+        foreach (var word in imageName.Split(" "))
+        {
+            if (word.Trim().Equals(trimmedGuess, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public async Task<(bool IsGuessCorrect, string WinnerText)> HandleGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode gameMode)
+    public async Task<(bool IsGuessCorrect, string WinnerText, string ImageName)> HandleGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode gameMode)
     {
         var ImageRecord = await _imageService.GetImageRecordById(ImageIdentifier);
 
@@ -93,10 +111,10 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
                 winnerText += $" and {ChosenOracle.UserName}";
             }
 
-            return (true, winnerText);
+            return (true, winnerText, ImageRecord.Name);
         }
 
-        return (false, string.Empty);
+        return (false, string.Empty, string.Empty);
     }
 
     public async Task DeleteOracle<T>(Guid Id) where T : class

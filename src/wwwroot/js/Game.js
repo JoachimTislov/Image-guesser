@@ -40,7 +40,7 @@ if(userIsAGuesser) {
      if(guessButton && answerInput) {
         guessButton.addEventListener("click", () => {
             var message = answerInput.value;
-            sendGuess(message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier);
+            sendGuess(message, userId, sessionId, oracleId, gameId, guesserId, imageIdentifier, getTime());
         })
         answerInput.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
@@ -56,9 +56,66 @@ connection.on("ShowPiece", (piece) => {
   AddNextImageTile(createImgElement(chosenImage))
 });
 
-connection.on("CorrectGuess", (winnerText, answer) => {
+// Handles functions for receiving and displaying guesses
+connection.on("ReceiveGuess", (guess, playerName) => {
+    AddGuessToChat(guess, playerName, getTime());
+})
+
+function AddGuessToChat(guess, playerName, timeOfGuess) {
+  var guessingDiv = document.getElementById("guessingDiv");
+
+  var guessContainer = CreateElement("div");
+  guessContainer.classList.add("d-flex");
+
+  guessContainer.appendChild(InitPlayerPElement(playerName, timeOfGuess));
+  guessContainer.appendChild(InitGuessPElement(guess));
+  guessingDiv.appendChild(guessContainer);
+
+  guessingDiv.scrollTop = guessingDiv.scrollHeight;
+}
+
+function InitPlayerPElement(playerName, timeOfGuess)
+{
+  var playerNameP = CreateElement("p");
+  playerNameP.classList.add("me-auto");
+
+  playerNameP.textContent = `[ ${timeOfGuess} ] ${playerName}:`;
+
+  return playerNameP;
+}
+
+function InitGuessPElement(guess)
+{
+  var guessP = CreateElement("p");
+  guessP.classList.add("ms-auto");
+  guessP.textContent = guess;
+
+  return guessP;
+}
+
+const CreateElement = (elementName) => document.createElement(elementName);
+
+function getTime()
+{
+    const now = new Date();
+    const hours = now.getHours(); 
+    const minutes = now.getMinutes(); 
+    const seconds = now.getSeconds(); 
+
+    const AddAZeroIfUnderTen = (value) => {
+        if (value < 10) {
+            return "0" + value;
+        }
+        return value;
+    }
+
+    return `${AddAZeroIfUnderTen(hours)}:${AddAZeroIfUnderTen(minutes)}:${AddAZeroIfUnderTen(seconds)}`;
+}
+
+connection.on("CorrectGuess", (winnerText, guess, nameOfImage) => {
     document.getElementById("winningPlayer").textContent = winnerText;
-    document.getElementById("modalAnswer").textContent = answer;
+    document.getElementById("modalAnswer").textContent = `Answer: ${nameOfImage}`;
+    document.getElementById("modalGuess").textContent = `Guess: ${guess}`;
 
     var myModal = document.getElementById("victoryModal")
     if(myModal)
@@ -78,7 +135,6 @@ connection.on("ShowNextPieceForAll", () => {
 const createImgElement = (image, opacity = 1) => {
     const imageElement = document.createElement('img');
 
-    console.log("Image: " + image);
     const relativeImagePiecePath = image.replace('wwwroot', '');
     
     imageElement.src = `${relativeImagePiecePath}?v=${new Date().getTime()}`; // to prevent caching, lets user change size of image and get new images
@@ -140,7 +196,6 @@ function ExecuteOracleRevealTile() {
 function OracleRevealTile() {
   var newImagePiece = AIGetImageTile();
 
-  console.log("OracleRevealTile: " + newImagePiece);
   AddNextImageTile(createImgElement(newImagePiece));
 
   return newImagePiece;
@@ -172,39 +227,57 @@ if (oracleIsAI && showOneMoreButton) {
   });
 }
 
-function InitGamePage()
+function InitImageLog()
 {
-  // Load tile-log from server
-  for(var i = 0; i < imageTileOrderLog.length; i++)
-  { 
-    var newImagePiece = createImgElement(imageTileOrderLog[i]);
-    AddNextImageTile(newImagePiece)
+  if(imageTileOrderLog != null)
+  {
+    // Load tile-log from server
+    for(var i = 0; i < imageTileOrderLog.length; i++)
+    { 
+      var newImagePiece = createImgElement(imageTileOrderLog[i]);
+      AddNextImageTile(newImagePiece)
 
-    // Remove the image from the available pieces
-    var pieceIndex = availablePiecesOfImage.indexOf(imageTileOrderLog[i])
-    if(pieceIndex != -1)
-    {
-      // Remove the image tile indexes from the AI array
-      if(oracleIsAI && oracleAI_Array_NumbersForImagePieces)
+      // Remove the image from the available pieces
+      var pieceIndex = availablePiecesOfImage.indexOf(imageTileOrderLog[i])
+      if(pieceIndex != -1)
       {
-        var indexToRemove = oracleAI_Array_NumbersForImagePieces.indexOf(availablePiecesOfImage.length - 1);
-        oracleAI_Array_NumbersForImagePieces.splice(indexToRemove, 1);
+        // Remove the image tile indexes from the AI array
+        if(oracleIsAI && oracleAI_Array_NumbersForImagePieces)
+        {
+          var indexToRemove = oracleAI_Array_NumbersForImagePieces.indexOf(availablePiecesOfImage.length - 1);
+          oracleAI_Array_NumbersForImagePieces.splice(indexToRemove, 1);
+        }
+
+        availablePiecesOfImage.splice(pieceIndex, 1);
       }
 
-      availablePiecesOfImage.splice(pieceIndex, 1);
-    }
-
-    if(imageCoordinates != "ImageCoordinates not found")
-    { 
-      for(var j = 0; j < imageCoordinates.length; j++)
+      // Remove the correlating coordinates
+      if(imageCoordinates != "ImageCoordinates not found" && imageCoordinates != null)
       { 
-        if(imageCoordinates[j].Item1 == imageTileOrderLog[i])
-        {
-          imageCoordinates.splice(j, 1);
+        for(var j = 0; j < imageCoordinates.length; j++)
+        { 
+          if(imageCoordinates[j].Item1 == imageTileOrderLog[i])
+          {
+            imageCoordinates.splice(j, 1);
+          }
         }
       }
     }
   }
+}
+
+function InitGuessLog()
+{
+  for(var i = 0; i < guessLog.length; i++)
+  {
+    AddGuessToChat(guessLog[i].GuessMessage, guessLog[i].NameOfGuesser, guessLog[i].TimeOfGuess);
+  }
+}
+
+function InitGamePage()
+{
+  InitImageLog()
+  InitGuessLog()
 
   // User is Oracle
   if(UserIsOracle) {

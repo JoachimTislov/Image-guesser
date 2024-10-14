@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
@@ -19,6 +20,11 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         Session session = new(user, Id);
 
         await _sessionRepository.AddSession(session);
+    }
+
+    public List<BaseGame> GetGamesInSessionById(Guid Id)
+    {
+        return _sessionRepository.GetGamesInSessionById(Id);
     }
 
     public async Task<List<User>> GetUsersInSessionById(Guid Id)

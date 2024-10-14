@@ -1,4 +1,5 @@
 
+using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.SessionContext.ViewModels;
 using Image_guesser.Core.Domain.UserContext;
 
@@ -13,6 +14,8 @@ public interface ISessionRepository
     Task<List<User>> GetUsersInSessionById(Guid Id);
 
     Task<Session> GetSessionById(Guid Id);
+
+    List<BaseGame> GetGamesInSessionById(Guid Id);
 
     Task<Guid> GetSessionHostIdBySessionId(Guid Id);
 

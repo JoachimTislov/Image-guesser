@@ -15,7 +15,7 @@ public class GameTests
         Assert.Equal(Guid.Empty, game.Id);
         Assert.Equal(Guid.Empty, game.SessionId);
         Assert.Empty(game.Guessers);
-        Assert.Equal(string.Empty, game.GameMode);
+        Assert.Equal(GameMode.SinglePlayer, game.GameMode);
         Assert.False(game.IsFinished());
 
         Assert.IsType<Game<object>>(game);
@@ -46,7 +46,7 @@ public class GameTests
         Assert.Equal(sessionId, game.SessionId);
         Assert.Single(game.Guessers);
         Assert.Equal(game.Id, game.Guessers[0].GameId);
-        Assert.Equal(session.Options.GameMode.ToString(), game.GameMode);
+        Assert.Equal(session.Options.GameMode, game.GameMode);
         Assert.Equal(user.Id, game.Oracle.Entity.Id);
         Assert.Equal(imageIdentifier, game.Oracle.ImageIdentifier);
 
@@ -75,7 +75,7 @@ public class GameTests
         Assert.Equal(sessionId, game.SessionId);
         Assert.Single(game.Guessers);
         Assert.Equal(user.UserName, game.Guessers[0].Name);
-        Assert.Equal(session.Options.GameMode.ToString(), game.GameMode);
+        Assert.Equal(session.Options.GameMode, game.GameMode);
         Assert.Equal(imageIdentifier, game.Oracle.ImageIdentifier);
 
         // Assert Oracle is created correctly

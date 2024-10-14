@@ -2,13 +2,11 @@ using Image_guesser.SharedKernel;
 
 namespace Image_guesser.Core.Domain.GameContext;
 
-public class Guesser(string name, Guid gameId) : BaseEntity
+public class Guesser(string name) : BaseEntity
 {
     public Guid Id { get; private set; }
-    public Guid GameId { get; private set; } = gameId;
     public string Name { get; private set; } = name;
     public int Points { get; set; }
-    public TimeSpan TimeSpan { get; set; } = new();
     public int Guesses { get; private set; }
     public int WrongGuessCounter { get; private set; }
 

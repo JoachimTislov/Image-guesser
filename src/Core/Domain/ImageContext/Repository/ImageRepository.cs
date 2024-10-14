@@ -14,8 +14,7 @@ public class ImageRepository(IRepository repository) : IImageRepository
 
     public async Task<ImageRecord> GetImageRecordById(string ImageIdentifier)
     {
-        var ImageRecord = await _repository.GetSingleWhere<ImageRecord, string>(i => i.Identifier == ImageIdentifier, ImageIdentifier);
-        return ImageRecord;
+        return await _repository.GetSingleWhere<ImageRecord>(i => i.Identifier == ImageIdentifier) ?? throw new EntityNotFoundException($"Image Record was not found by image identifier: {ImageIdentifier}");
     }
 
     public List<ImageRecord> GetImageRecordsByIds(List<string> ImageIdentifiers)

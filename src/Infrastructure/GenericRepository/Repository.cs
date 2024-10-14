@@ -36,16 +36,29 @@ public class Repository(ImageGameContext context) : IRepository
         return await _context.FindAsync<T>(Id) ?? throw new EntityNotFoundException($"Entity of type {typeof(T)} and Id of type {typeof(I)} with value {Id} was not found");
     }
 
-    public async Task<T?> WhereAndInclude_SingleOrDefault<T, I>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp) where T : BaseEntity
+    public List<T> WhereAndInclude<T, I>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp) where T : BaseEntity
     {
-        return await GetEntities<T>().Where(whereExp).Include(includeExp).SingleOrDefaultAsync();
-        // An exception is not thrown here since in the game page we attempting to get both types of games; User And AI, but it should only find one of them
+        return [.. GetEntities<T>().Where(whereExp).Include(includeExp)];
+        // An exception is not thrown here since in the game page we are attempting to get both types of games; User And AI and it should only find one of them
         //?? throw new EntityNotFoundException($"Entity not found with where statement: {whereExp} and include expression: {includeExp}")
     }
 
-    public async Task<T> GetSingleWhere<T, IdentifierType>(Expression<Func<T, bool>> whereExp, IdentifierType Id) where T : BaseEntity
+    public async Task<T?> WhereAndInclude_SingleOrDefault<T, I>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp) where T : BaseEntity
     {
-        return await GetEntities<T>().Where(whereExp).SingleOrDefaultAsync() ?? throw new EntityNotFoundException($"Entity of type {typeof(T)} with where expression {whereExp} and Identifier: {Id} of type: {typeof(IdentifierType)}, was not found");
+        return await GetEntities<T>().Where(whereExp).Include(includeExp).SingleOrDefaultAsync();
+        // An exception is not thrown here since in the game page we are attempting to get both types of games; User And AI and it should only find one of them
+        //?? throw new EntityNotFoundException($"Entity not found with where statement: {whereExp} and include expression: {includeExp}")
+    }
+
+    public async Task<T?> WhereAndInclude2x_SingleOrDefault<T, I, J>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp, Expression<Func<T, J>> includeExp2) where T : BaseEntity
+    {
+        return await GetEntities<T>().Where(whereExp).Include(includeExp).Include(includeExp2).SingleOrDefaultAsync();
+    }
+
+    public async Task<T?> GetSingleWhere<T>(Expression<Func<T, bool>> whereExp) where T : BaseEntity
+    {
+        return await GetEntities<T>().Where(whereExp).SingleOrDefaultAsync();
+        //?? throw new EntityNotFoundException($"Entity of type {typeof(T)} with where expression {whereExp} and Identifier: {Id}, was not found");
     }
 
     public IEnumerable<T> Where<T>(Expression<Func<T, bool>> exp) where T : BaseEntity

@@ -16,6 +16,10 @@ using Image_guesser.Core.Domain.ImageContext;
 using Image_guesser.Core.Domain.SessionContext.Repository;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
+using Image_guesser.Core.Domain.LeaderboardContext.Repository;
+using Image_guesser.Core.Domain.LeaderboardContext.Services;
+using Image_guesser.Core.Domain.LeaderboardContext;
+using Image_guesser.Core.Domain.GameContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +39,9 @@ services.AddHttpContextAccessor();
 // Add DI to builders
 services.AddScoped<IAI_Repository, AI_Repository>();
 services.AddScoped<IOracleService, OracleService>();
+
+services.AddScoped<ILeaderboardRepository, LeaderboardRepository>();
+services.AddScoped<ILeaderboardService, LeaderboardService>();
 
 services.AddScoped<IGameService, GameService>();
 
@@ -72,11 +79,17 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var DbRepository = scope.ServiceProvider.GetRequiredService<IRepository>();
     var _imageRepository = scope.ServiceProvider.GetRequiredService<IImageRepository>();
+    var _leaderboardService = scope.ServiceProvider.GetRequiredService<ILeaderboardService>();
 
     if (!DbRepository.Any<ImageRecord>())
     {
         await _imageRepository.AddAllMappedImagesToDatabase();
     }
+
+    /*if (!DbRepository.Any<BaseLeaderboardEntry>() && DbRepository.Any<BaseGame>())
+    {
+        await _leaderboardService.InitializeLeaderboards();
+    }*/
 }
 else
 {

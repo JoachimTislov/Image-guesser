@@ -73,7 +73,7 @@
         </div>
 
         <div id="PictureMode"
-            class="d-flex input-group mt-2  @(Model.Options.IsGameMode(GameMode.SinglePlayer) ? hide : string.Empty)">
+            class="d-flex input-group mt-2  @(Model.Options.IsGameMode(GameMode.SinglePlayer) || Model.Options.IsOracleAI() ? hide : string.Empty)">
             <label class="input-group-text" for="selectPictureMode"> Picture Mode: </label>
             <select asp-for="Options.PictureMode" asp-items="Html.GetEnumSelectList<PictureMode>()"
                 id="selectPictureMode" class="form-select text-center">
@@ -103,7 +103,6 @@
         display: none !important;
     }
 </style>
-
 
 @section Scripts {
     <script src="~/js/ConfigureSessionOptions.js"></script>
