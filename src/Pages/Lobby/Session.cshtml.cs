@@ -56,16 +56,7 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
         if (!Session.Options.IsGameMode(GameMode.SinglePlayer) && Session.SessionUsers.Count < 2)
         {
-            string[] missingRequirements = [
-                "Need more players to start a game",
-                "Duo requires two players",
-                "Free for all requires at least two players",
-            ];
-
-            foreach (var requirement in missingRequirements)
-            {
-                ModelState.AddModelError(string.Empty, requirement);
-            }
+            ModelState.AddModelError(string.Empty, $"Need at least two players to start a {Session.Options.GameMode.GetDisplayName()} game");
         }
         else if (ImageRecord == null && Session.Options.IsPictureMode(PictureMode.Specific))
         {

@@ -99,19 +99,19 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
 
     public async Task SendGuess(
             string guess, string userId, string sessionId, string oracleId,
-            string gameId, string guesserId, string imageIdentifier)
+            string gameId, string guesserId, string imageIdentifier, string timeOfGuess)
     {
         string userName = await _userService.GetUserNameByUserId(userId);
 
         await Clients.Group(sessionId).ReceiveGuess(guess, userName);
 
-        await _mediator.Publish(new PlayerGuessed(Guid.Parse(oracleId), guess, Guid.Parse(guesserId), Guid.Parse(gameId), Guid.Parse(sessionId)));
+        await _mediator.Publish(new PlayerGuessed(Guid.Parse(oracleId), guess, Guid.Parse(guesserId), Guid.Parse(gameId), Guid.Parse(sessionId), userName, timeOfGuess));
 
         var session = await _sessionService.GetSessionById(Guid.Parse(sessionId));
-        var (IsGuessCorrect, WinnerText) = await _oracleService.HandleGuess(guess, imageIdentifier, userName, session.ChosenOracleId, session.Options.GameMode);
+        var (IsGuessCorrect, WinnerText, nameOfImage) = await _oracleService.HandleGuess(guess, imageIdentifier, userName, session.ChosenOracleId, session.Options.GameMode);
         if (IsGuessCorrect)
         {
-            await Clients.Group(sessionId).CorrectGuess(WinnerText, guess);
+            await Clients.Group(sessionId).CorrectGuess(WinnerText, guess, nameOfImage);
         }
     }
 

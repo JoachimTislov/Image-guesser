@@ -9,6 +9,7 @@ public interface IHubService
     Task RedirectClientToPage(string userId, string link);
     Task ReloadGroupPage(string sessionId);
     Task ReloadClientPage(string userId);
+    Task ReloadAllClientsPageAtGivenPathName(string pathName);
     Task ReloadConnectionPage(string connectionId);
     Task RemoveFromGroup(string connectionId, string sessionId);
     Task RemoveConnectionsFromGroup(HashSet<string> connectionIds, string sessionId);

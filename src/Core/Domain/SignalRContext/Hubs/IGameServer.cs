@@ -10,7 +10,7 @@ public interface IGameServer
     Task LeaveSession(string userId, string sessionId);
     Task CloseSession(string sessionId);
     Task SendGuess(string guess, string userId, string sessionId, string oracleId,
-            string gameId, string guesserId, string imageIdentifier);
+            string gameId, string guesserId, string imageIdentifier, string timeOfGuess);
     Task OracleRevealedATile(string oracleId, string imageId);
     Task ShowThisPiece(string pieceId, string sessionId);
     Task ShowNextPieceForAll(string sessionId);

@@ -13,7 +13,7 @@ namespace Image_guesser.Core.Domain.OracleContext.Services
         List<string> GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(Guid sessionId);
         int CalculatePoints(int pieceCount, int numberOfTilesRevealed);
         bool CheckGuess(string guess, string imageName);
-        Task<(bool IsGuessCorrect, string WinnerText)> HandleGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode GameMode);
+        Task<(bool IsGuessCorrect, string WinnerText, string ImageName)> HandleGuess(string Guess, string ImageIdentifier, string Username, Guid ChosenOracleId, GameMode GameMode);
         Task DeleteOracle<T>(Guid Id) where T : class;
         Task UpdateBaseOracle(BaseOracle baseOracle);
     }
