@@ -206,23 +206,33 @@
                         Close Lobby
                     </button>
 
-                    <form method="post" class="ms-auto" asp-page-handler="Startgame">
-                        <button type="submit" class="btn btn-success" id="startGameButton">
-                            Start Game
-                        </button>
+                    @if (!Model.Session.IsInGame())
+                    {
+                        <form method="post" class="ms-auto" asp-page-handler="Startgame">
+                            <button type="submit" class="btn btn-success" id="startGameButton">
+                                Start Game
+                            </button>
 
-                        @*Persist imageRecord after post request*@
-                        @for (var i = 0; i < Model.ImageRecords.Count; i++)
-                        {
-                            <input type="hidden" name="ImageRecords[@i].Identifier" value="@Model.ImageRecords[i].Identifier"
-                                hidden />
-                            <input type="hidden" name="ImageRecords[@i].Link" value="@Model.ImageRecords[i].Link" hidden />
-                        }
-                    </form>
+                            @*Persist imageRecord after post request*@
+                            @for (var i = 0; i < Model.ImageRecords.Count; i++)
+                            {
+                                <input type="hidden" name="ImageRecords[@i].Identifier" value="@Model.ImageRecords[i].Identifier"
+                                    hidden />
+                                <input type="hidden" name="ImageRecords[@i].Link" value="@Model.ImageRecords[i].Link" hidden />
+                            }
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-success" asp-page="/Game" asp-route-sessionId="@Model.Session.Id"
+                            asp-route-gameId="@Model.Session.CurrentGameId">
+                            Continue Game
+                        </a>
+                    }
                 }
                 else
                 {
-                    <button type="button" class="btn btn-danger removeUserButton" user-Id="@Model.Player.Id">
+                    <button type="button" class="ms-auto btn btn-danger removeUserButton" user-Id="@Model.Player.Id">
                         Leave Lobby
                     </button>
                 }

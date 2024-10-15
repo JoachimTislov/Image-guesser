@@ -19,6 +19,6 @@ public class OracleRevealedATileHandler(IOracleService oracleService) : INotific
             oracle.ImageTileOrderLog.Add(imageId);
         }
 
-        await _oracleService.UpdateBaseOracle(oracle);
+        await _oracleService.UpdateOracle(oracle);
     }
 }

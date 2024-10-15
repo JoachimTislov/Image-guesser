@@ -15,6 +15,6 @@ public class PlayerGuessedHandler(IGameService gameService) : INotificationHandl
 
         guesser.IncrementGuesses();
 
-        await _gameService.UpdateGuesser(guesser);
+        await _gameService.UpdateGameOrGuesser(guesser);
     }
 }

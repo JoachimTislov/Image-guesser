@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using MediatR;
 using Image_guesser.Core.Domain.UserContext.Services;
-using Image_guesser.Core.Domain.SessionContext.Services;
-using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.SignalRContext.Services.ConnectionMapping;
@@ -12,12 +10,10 @@ using Image_guesser.Core.Domain.UserContext;
 
 namespace Image_guesser.Core.Domain.SignalRContext.Hubs;
 
-public class GameHub(IConnectionMappingService connectionMappingService, IUserService userService, ISessionService sessionService, IMediator mediator, IOracleService oracleService, IHubService hubService) : Hub<IGameClient>, IGameServer
+public class GameHub(IConnectionMappingService connectionMappingService, IUserService userService, IMediator mediator, IHubService hubService) : Hub<IGameClient>, IGameServer
 {
     private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-    private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
     private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-    private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
     private readonly IHubService _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
 
     // To keep SignalR connection consistency across the application we had to implement a ConnectionMappingService.
@@ -105,14 +101,7 @@ public class GameHub(IConnectionMappingService connectionMappingService, IUserSe
 
         await Clients.Group(sessionId).ReceiveGuess(guess, userName);
 
-        await _mediator.Publish(new PlayerGuessed(Guid.Parse(oracleId), guess, Guid.Parse(guesserId), Guid.Parse(gameId), Guid.Parse(sessionId), userName, timeOfGuess));
-
-        var session = await _sessionService.GetSessionById(Guid.Parse(sessionId));
-        var (IsGuessCorrect, WinnerText, nameOfImage) = await _oracleService.HandleGuess(guess, imageIdentifier, userName, session.ChosenOracleId, session.Options.GameMode);
-        if (IsGuessCorrect)
-        {
-            await Clients.Group(sessionId).CorrectGuess(WinnerText, guess, nameOfImage);
-        }
+        await _mediator.Publish(new PlayerGuessed(imageIdentifier, Guid.Parse(oracleId), guess, Guid.Parse(guesserId), Guid.Parse(gameId), Guid.Parse(sessionId), userName, timeOfGuess));
     }
 
     public async Task OracleRevealedATile(string oracleId, string imageId)

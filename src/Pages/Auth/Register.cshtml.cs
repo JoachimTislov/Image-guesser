@@ -1,59 +1,37 @@
-using System.ComponentModel.DataAnnotations;
-using Image_guesser.Core.Domain.UserContext;
-using Microsoft.AspNetCore.Identity;
+using Image_guesser.Core.Domain.UserContext.Services;
+using Image_guesser.Core.Domain.UserContext.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Image_guesser.Pages.Auth;
 
-public class RegisterModel(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<RegisterModel> logger) : PageModel
+public class RegisterModel(IUserService userService, ILogger<RegisterModel> logger) : PageModel
 {
     private readonly ILogger<RegisterModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-    private readonly SignInManager<User> _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
+    private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
     [BindProperty]
-    [Required(ErrorMessage = "Username is required")]
-    public string Username { get; set; } = string.Empty;
-
-    [BindProperty]
-    [Required(ErrorMessage = "Password is required")]
-    public string Password { get; set; } = string.Empty;
-
-    [BindProperty]
-    [Required(ErrorMessage = "Repeat Password is required")]
-    public string Repeat_Password { get; set; } = string.Empty;
-
-    public string RegisterErrorMessage { get; set; } = string.Empty;
-
-    public IdentityError[] Errors { get; private set; } = [];
+    public RegisterViewModel ViewModel { get; set; } = new();
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (ModelState.IsValid)
         {
-            if (Password != Repeat_Password)
+            if (ViewModel.Password != ViewModel.Repeat_Password)
             {
-                RegisterErrorMessage = "Passwords do not match";
+                ViewModel.RegisterErrorMessage = "Passwords do not match";
                 return Page();
             }
 
-            var user = new User
+            var (Succeeded, errors) = await _userService.Register(ViewModel.Username, ViewModel.Password);
+            if (Succeeded)
             {
-                UserName = Username
-            };
-
-            var createUserResult = await _userManager.CreateAsync(user, Password);
-
-            if (createUserResult.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                _logger.LogInformation("{Name} registered", ViewModel.Username);
                 return RedirectToPage("/Home/Index");
             }
             else
             {
-                RegisterErrorMessage = "Missing requirements:";
-                Errors = createUserResult.Errors.ToArray();
+                ViewModel.Errors = errors;
             }
         }
 

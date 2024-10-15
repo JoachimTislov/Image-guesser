@@ -20,6 +20,8 @@ public class Session : BaseEntity
     public Guid SessionHostId { get; set; }
     public Guid ChosenOracleId { get; set; }
     public List<User> SessionUsers { get; set; } = [];
+    public Guid? CurrentGameId { get; set; }
+    public List<BaseGame> Games { get; set; } = [];
     public Options Options { get; set; } = new();
     public DateTime TimeOfCreation { get; set; } = DateTime.Now;
     public SessionStatus SessionStatus { get; private set; } = SessionStatus.InLobby;
@@ -45,19 +47,42 @@ public class Session : BaseEntity
         SessionUsers.Clear();
     }
 
+    public bool AddGame(BaseGame game)
+    {
+        if (!Games.Contains(game))
+        {
+            Games.Add(game);
+
+            // Set the current game to the newly added game
+            CurrentGameId = game.Id;
+            return true;
+        }
+        return false;
+    }
+
     public bool IsClosed()
     {
-        return SessionStatus == SessionStatus.Closed;
+        return CheckStatus(SessionStatus.Closed);
+    }
+
+    public bool IsInGame()
+    {
+        return CheckStatus(SessionStatus.InGame);
+    }
+
+    public bool IsInLobby()
+    {
+        return CheckStatus(SessionStatus.InLobby);
+    }
+
+    private bool CheckStatus(SessionStatus status)
+    {
+        return SessionStatus == status;
     }
 
     public void InGame()
     {
         UpdateStatus(SessionStatus.InGame);
-    }
-
-    public void Idle()
-    {
-        UpdateStatus(SessionStatus.Idle);
     }
 
     public void InLobby()

@@ -3,7 +3,6 @@ using System;
 using Image_guesser.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,11 +10,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Image_guesser.Migrations
 {
     [DbContext(typeof(ImageGameContext))]
-    [Migration("20241014114022_GuessesToGame")]
-    partial class GuessesToGame
+    partial class ImageGameContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -47,6 +44,8 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
 
                     b.ToTable("Games");
 
@@ -227,6 +226,9 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ChosenOracleId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CurrentGameId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SessionHostId")
@@ -506,6 +508,15 @@ namespace Image_guesser.Migrations
                     b.HasDiscriminator().HasValue("User");
                 });
 
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.BaseGame", b =>
+                {
+                    b.HasOne("Image_guesser.Core.Domain.SessionContext.Session", null)
+                        .WithMany("Games")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guess", b =>
                 {
                     b.HasOne("Image_guesser.Core.Domain.GameContext.BaseGame", null)
@@ -677,6 +688,8 @@ namespace Image_guesser.Migrations
 
             modelBuilder.Entity("Image_guesser.Core.Domain.SessionContext.Session", b =>
                 {
+                    b.Navigation("Games");
+
                     b.Navigation("SessionUsers");
                 });
 #pragma warning restore 612, 618

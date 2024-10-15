@@ -13,7 +13,7 @@ public class PlayerGuessedCorrectlyHandler(IGameService gameService, IMediator m
 
         guesser.Points = notification.Points;
 
-        await _gameService.UpdateGuesser(guesser);
+        await _gameService.UpdateGameOrGuesser(guesser);
 
         await _mediator.Publish(new GameFinished(notification.GameId, notification.SessionId), cancellationToken);
     }

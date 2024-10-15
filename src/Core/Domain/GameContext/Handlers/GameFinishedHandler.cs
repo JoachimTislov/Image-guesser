@@ -13,6 +13,6 @@ public class GameFinishedHandler(IGameService gameService) : INotificationHandle
 
         game.GameOver();
 
-        await _gameService.UpdateGame(game);
+        await _gameService.UpdateGameOrGuesser(game);
     }
 }

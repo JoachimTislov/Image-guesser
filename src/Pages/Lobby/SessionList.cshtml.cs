@@ -19,7 +19,7 @@ public class SessionListModel(ILogger<SessionListModel> logger, ISessionService 
 
     public User Player { get; set; } = null!;
 
-    public async Task<IActionResult> OnGet()
+    public async Task OnGet()
     {
         var Sessions = _sessionService.GetAllOpenSessions();
 
@@ -37,7 +37,5 @@ public class SessionListModel(ILogger<SessionListModel> logger, ISessionService 
         Player = await _userService.GetUserByClaimsPrincipal(User);
 
         _logger.LogInformation("{Name} viewed the session list", Player.UserName);
-
-        return Page();
     }
 }

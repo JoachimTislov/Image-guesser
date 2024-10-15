@@ -19,6 +19,7 @@ connection.start().then(()=> {
     sessionStorage.setItem("pathName", window.location.pathname);
 }).catch(err => console.error(err.toString()));
 
+
 export function AddToGroup(sessionId, userId) {
     connection.invoke("AddToGroup", sessionId, userId).catch(err => console.error(err.toString()));
 }

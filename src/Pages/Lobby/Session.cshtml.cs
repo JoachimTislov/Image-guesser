@@ -43,16 +43,26 @@ public class SessionModel(ILogger<SessionModel> logger, ISessionService sessionS
 
     public User Player { get; set; } = null!;
 
-    public async Task OnGet()
+    public async Task<IActionResult> OnGet()
     {
         await LoadSessionData();
 
+        if (Session.IsClosed()) return RedirectToPage("/Home/Index");
+
         _logger.LogInformation("{Name} entered the session page with Id: {Id}", User.Identity?.Name, Id);
+
+        return Page();
     }
 
     public async Task OnPostStartGame()
     {
         await LoadSessionData();
+
+        // Handles spamming the start game button
+        if (Session.IsInGame())
+        {
+            ModelState.AddModelError(string.Empty, "Game is already in progress");
+        }
 
         if (!Session.Options.IsGameMode(GameMode.SinglePlayer) && Session.SessionUsers.Count < 2)
         {

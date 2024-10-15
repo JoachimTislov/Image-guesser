@@ -1,27 +1,28 @@
 using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext.AI_Repository;
+using Image_guesser.Core.Domain.OracleContext.Repositories.Repository;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
 using Image_guesser.Core.Exceptions;
-using Image_guesser.Infrastructure.GenericRepository;
+using Image_guesser.SharedKernel;
 using OneOf;
 
 namespace Image_guesser.Core.Domain.OracleContext.Services;
 
-public class OracleService(IAI_Repository AI_Repository, IImageService imageService, IRepository repository, IUserService userService) : IOracleService
+public class OracleService(IAI_Repository AI_Repository, IImageService imageService, IOracleRepository oracleRepository, IUserService userService) : IOracleService
 {
     private readonly IAI_Repository _AI_Repository = AI_Repository ?? throw new ArgumentNullException(nameof(AI_Repository));
     private readonly IImageService _imageService = imageService ?? throw new ArgumentNullException(nameof(imageService));
-    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IOracleRepository _oracleRepository = oracleRepository ?? throw new ArgumentNullException(nameof(oracleRepository));
     private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
     private Oracle<T> CreateGenericOracle<T>(T Oracle, string imageIdentifier) where T : class
     {
         var oracle = new Oracle<T>(Oracle, imageIdentifier);
 
-        _repository.Add(oracle);
+        _oracleRepository.AddOracle(oracle);
 
         return oracle;
     }
@@ -53,21 +54,19 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         return CreateGenericOracle(AI, imageIdentifier);
     }
 
-    public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : class
+    public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : BaseEntity
     {
-        return await _repository.GetSingleWhere<Oracle<T>>(o => o.Id == Id) ?? throw new EntityNotFoundException($"Oracle was not found by id: {Id}");
+        return await _oracleRepository.GetOracleById<T>(Id);
     }
 
     public async Task<BaseOracle> GetBaseOracleById(Guid Id)
     {
-        return await _repository.GetSingleWhere<BaseOracle>(o => o.Id == Id) ?? throw new EntityNotFoundException($"Base Oracle was not found by id: {Id}");
+        return await _oracleRepository.GetBaseOracleById(Id);
     }
 
     public List<string> GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(Guid sessionId)
     {
-        IQueryable<Guid> BaseOracleIds = _repository.WhereAndSelect<BaseGame, Guid>(g => g.SessionId == sessionId, g => g.BaseOracleId);
-
-        return [.. _repository.WhereAndSelect<BaseOracle, string>(b => BaseOracleIds.Contains(b.Id), b => b.ImageIdentifier)];
+        return _oracleRepository.GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(sessionId);
     }
 
     public int CalculatePoints(int pieceCount, int numberOfTilesRevealed)
@@ -107,7 +106,7 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         {
             if (gameMode == GameMode.Duo)
             {
-                User ChosenOracle = await _repository.GetById<User, Guid>(ChosenOracleId);
+                User ChosenOracle = await _userService.GetUserById(ChosenOracleId.ToString());
                 winnerText += $" and {ChosenOracle.UserName}";
             }
 
@@ -117,14 +116,13 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         return (false, string.Empty, string.Empty);
     }
 
-    public async Task DeleteOracle<T>(Guid Id) where T : class
+    public async Task DeleteOracle<T>(Guid Id) where T : BaseEntity
     {
-        var oracle = await GetOracleById<T>(Id);
-        await _repository.Delete(oracle);
+        await _oracleRepository.DeleteOracle<T>(Id);
     }
 
-    public async Task UpdateBaseOracle(BaseOracle baseOracle)
+    public async Task UpdateOracle<T>(T baseOracle) where T : BaseEntity
     {
-        await _repository.Update(baseOracle);
+        await _oracleRepository.UpdateOracle(baseOracle);
     }
 }

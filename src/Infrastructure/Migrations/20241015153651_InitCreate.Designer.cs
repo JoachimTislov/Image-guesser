@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Image_guesser.Migrations
 {
     [DbContext(typeof(ImageGameContext))]
-    [Migration("20241013234409_MigInit")]
-    partial class MigInit
+    [Migration("20241015153651_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -57,13 +57,41 @@ namespace Image_guesser.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guess", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("BaseGameId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GuessMessage")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NameOfGuesser")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TimeOfGuess")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BaseGameId");
+
+                    b.ToTable("Guess");
+                });
+
             modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guesser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("GameId")
+                    b.Property<Guid?>("BaseGameId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Guesses")
@@ -81,7 +109,7 @@ namespace Image_guesser.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameId");
+                    b.HasIndex("BaseGameId");
 
                     b.ToTable("Guessers");
                 });
@@ -201,6 +229,9 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ChosenOracleId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CurrentGameId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SessionHostId")
@@ -489,13 +520,18 @@ namespace Image_guesser.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guess", b =>
+                {
+                    b.HasOne("Image_guesser.Core.Domain.GameContext.BaseGame", null)
+                        .WithMany("GuessLog")
+                        .HasForeignKey("BaseGameId");
+                });
+
             modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.Guesser", b =>
                 {
                     b.HasOne("Image_guesser.Core.Domain.GameContext.BaseGame", null)
                         .WithMany("Guessers")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BaseGameId");
                 });
 
             modelBuilder.Entity("Image_guesser.Core.Domain.SessionContext.Session", b =>
@@ -648,6 +684,8 @@ namespace Image_guesser.Migrations
 
             modelBuilder.Entity("Image_guesser.Core.Domain.GameContext.BaseGame", b =>
                 {
+                    b.Navigation("GuessLog");
+
                     b.Navigation("Guessers");
                 });
 

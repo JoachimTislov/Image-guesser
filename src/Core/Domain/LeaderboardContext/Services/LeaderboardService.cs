@@ -13,16 +13,23 @@ public class LeaderboardService(ILeaderboardRepository leaderBoardRepository, IG
     private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
     private readonly IHubService _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
 
+    private async Task<(string? oracle, string? oracleType)> GetNameAndTypeOfOracle(BaseGame baseGame)
+    {
+        var userOracle = (await _gameService.GetGameById<User>(baseGame.Id))?.Oracle.Entity;
+        var AIOracle = (await _gameService.GetGameById<AI>(baseGame.Id))?.Oracle.Entity;
+        var OracleUsername = userOracle?.UserName;
+        var OracleAIType = AIOracle?.AI_Type;
+        var oracleType = userOracle?.GetType().Name ?? AIOracle?.GetType().Name;
+        var oracle = OracleUsername ?? OracleAIType.ToString();
+
+        return (oracle, oracleType);
+    }
+
     public async Task EvaluateSessionGamesForLeaderboard(List<BaseGame> baseGames)
     {
         foreach (var baseGame in baseGames)
         {
-            var userOracle = (await _gameService.GetGameById<User>(baseGame.Id))?.Oracle.Entity;
-            var AIOracle = (await _gameService.GetGameById<AI>(baseGame.Id))?.Oracle.Entity;
-            var OracleUsername = userOracle?.UserName;
-            var OracleAIType = AIOracle?.AI_Type;
-            var oracleType = userOracle?.GetType().Name ?? AIOracle?.GetType().Name;
-            var oracle = OracleUsername ?? OracleAIType.ToString();
+            var (oracle, oracleType) = await GetNameAndTypeOfOracle(baseGame);
 
             baseGame.Guessers.ForEach(async guesser =>
             {

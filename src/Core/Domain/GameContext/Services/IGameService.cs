@@ -16,6 +16,5 @@ public interface IGameService
     Task<BaseGame> GetBaseGameById(Guid gameId);
     Task<Guesser> GetGuesserById(Guid Id);
     List<BaseGame> GetGames();
-    Task UpdateGame<TGame>(TGame game) where TGame : BaseEntity;
-    Task UpdateGuesser(Guesser guesser);
+    Task UpdateGameOrGuesser<TGame>(TGame game) where TGame : BaseEntity;
 }

@@ -1,3 +1,4 @@
+using Image_guesser.Core.Domain.GameContext.Repository;
 using Image_guesser.Core.Domain.GameContext.Responses;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.OracleContext.Services;
@@ -6,23 +7,23 @@ using Image_guesser.Core.Domain.SessionContext.Services;
 using Image_guesser.Core.Domain.SignalRContext.Services.Hub;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Exceptions;
-using Image_guesser.Infrastructure.GenericRepository;
 using Image_guesser.SharedKernel;
 using OneOf;
 
 namespace Image_guesser.Core.Domain.GameContext.Services;
 
-public class GameService(IOracleService oracleService, IRepository repository, IHubService hubService) : IGameService
+public class GameService(IOracleService oracleService, IHubService hubService, IGameRepository gameRepository, ISessionService sessionService) : IGameService
 {
     private readonly IOracleService _oracleService = oracleService ?? throw new ArgumentNullException(nameof(oracleService));
-    private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     private readonly IHubService _hubService = hubService ?? throw new ArgumentNullException(nameof(hubService));
+    private readonly IGameRepository _gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
+    private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
 
     private async Task<InitializeGameResponse> InitializeGame<T>(Session session, Oracle<T> Oracle) where T : class
     {
         var game = new Game<T>(session, Oracle);
 
-        await _repository.Add(game);
+        await _sessionService.AddGameToSession(session, game);
 
         return new InitializeGameResponse(game.Id, game.SessionId);
     }
@@ -43,6 +44,8 @@ public class GameService(IOracleService oracleService, IRepository repository, I
     {
         var game = await GetBaseGameById(gameId);
         game.CreateAndAddGuess(guess, nameOfGuesser, timeOfGuess);
+
+        await UpdateGameOrGuesser(game);
     }
 
     public async Task RestartGameWithNewOracle(Guid gameId, AI_Type AI_Type)
@@ -57,7 +60,7 @@ public class GameService(IOracleService oracleService, IRepository repository, I
         game.Oracle = await _oracleService.CreateAIOracle(imageIdentifier, AI_Type);
         game.BaseOracleId = game.Oracle.Id;
 
-        await UpdateGame(game);
+        await UpdateGameOrGuesser(game);
 
         await _hubService.RedirectGroupToPage(game.SessionId.ToString(), $"/Lobby/{game.SessionId}/Game/{gameId}");
     }
@@ -73,7 +76,7 @@ public class GameService(IOracleService oracleService, IRepository repository, I
             return;
         }
 
-        await UpdateGame(game);
+        await UpdateGameOrGuesser(game);
     }
 
     public async Task RemoveGuesserFromGame(Guid guesserId, Guid gameId)
@@ -87,42 +90,36 @@ public class GameService(IOracleService oracleService, IRepository repository, I
             return;
         }
 
-        await UpdateGame(game);
+        await UpdateGameOrGuesser(game);
     }
 
     public async Task<Game<T>?> GetGameById<T>(Guid Id) where T : class
     {
-        return await _repository.WhereAndInclude_SingleOrDefault<Game<T>, T>(g => g.Id == Id, g => g.Oracle.Entity);
+        return await _gameRepository.GetGameById<T>(Id);
     }
 
     public async Task DeleteGuesserById(Guid Id)
     {
-        var guesser = await GetGuesserById(Id);
-        await _repository.Delete(guesser);
+        await _gameRepository.DeleteGuesserById(Id);
     }
 
     public async Task<BaseGame> GetBaseGameById(Guid Id)
     {
-        return await _repository.WhereAndInclude2x_SingleOrDefault<BaseGame, List<Guesser>, List<Guess>>(bg => bg.Id == Id, bg => bg.Guessers, bg => bg.GuessLog) ?? throw new EntityNotFoundException($"BaseGame with Id: {Id} was not found");
+        return await _gameRepository.GetBaseGameById(Id);
     }
 
     public async Task<Guesser> GetGuesserById(Guid GuesserId)
     {
-        return await _repository.GetById<Guesser, Guid>(GuesserId);
+        return await _gameRepository.GetGuesserById(GuesserId);
     }
 
     public List<BaseGame> GetGames()
     {
-        return _repository.GetAll<BaseGame>();
+        return _gameRepository.GetGames();
     }
 
-    public async Task UpdateGame<TGame>(TGame game) where TGame : BaseEntity
+    public async Task UpdateGameOrGuesser<TGameOrGuesser>(TGameOrGuesser game) where TGameOrGuesser : BaseEntity
     {
-        await _repository.Update(game);
-    }
-
-    public async Task UpdateGuesser(Guesser guesser)
-    {
-        await _repository.Update(guesser);
+        await _gameRepository.UpdateGameOrGuesser(game);
     }
 }

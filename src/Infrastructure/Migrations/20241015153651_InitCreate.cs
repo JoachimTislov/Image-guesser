@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Image_guesser.Migrations
 {
     /// <inheritdoc />
-    public partial class MigInit : Migration
+    public partial class InitCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -77,6 +77,7 @@ namespace Image_guesser.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     SessionHostId = table.Column<Guid>(type: "TEXT", nullable: false),
                     ChosenOracleId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CurrentGameId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Options_AmountOfGamesPlayed = table.Column<int>(type: "INTEGER", nullable: false),
                     Options_LobbySize = table.Column<int>(type: "INTEGER", nullable: false),
                     Options_GameMode = table.Column<int>(type: "INTEGER", nullable: false),
@@ -302,25 +303,44 @@ namespace Image_guesser.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Guess",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    GuessMessage = table.Column<string>(type: "TEXT", nullable: false),
+                    NameOfGuesser = table.Column<string>(type: "TEXT", nullable: false),
+                    TimeOfGuess = table.Column<string>(type: "TEXT", nullable: false),
+                    BaseGameId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Guess", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Guess_Games_BaseGameId",
+                        column: x => x.BaseGameId,
+                        principalTable: "Games",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Guessers",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Points = table.Column<int>(type: "INTEGER", nullable: false),
                     Guesses = table.Column<int>(type: "INTEGER", nullable: false),
-                    WrongGuessCounter = table.Column<int>(type: "INTEGER", nullable: false)
+                    WrongGuessCounter = table.Column<int>(type: "INTEGER", nullable: false),
+                    BaseGameId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Guessers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Guessers_Games_GameId",
-                        column: x => x.GameId,
+                        name: "FK_Guessers_Games_BaseGameId",
+                        column: x => x.BaseGameId,
                         principalTable: "Games",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -382,9 +402,14 @@ namespace Image_guesser.Migrations
                 column: "UserOracleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Guessers_GameId",
+                name: "IX_Guess_BaseGameId",
+                table: "Guess",
+                column: "BaseGameId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Guessers_BaseGameId",
                 table: "Guessers",
-                column: "GameId");
+                column: "BaseGameId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Oracles_AI_Id",
@@ -415,6 +440,9 @@ namespace Image_guesser.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Guess");
 
             migrationBuilder.DropTable(
                 name: "Guessers");

@@ -15,7 +15,7 @@ public class GameTerminatedHandler(IGameService gameService, IMediator mediator)
 
         game.Terminated();
 
-        await _gameService.UpdateGame(game);
+        await _gameService.UpdateGameOrGuesser(game);
 
         await _mediator.Publish(new ReturnToLobby(notification.SessionId), cancellationToken);
     }

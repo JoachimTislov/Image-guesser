@@ -22,6 +22,13 @@ public class SessionService(ISessionRepository sessionRepository, IUserService u
         await _sessionRepository.AddSession(session);
     }
 
+    public async Task AddGameToSession(Session session, BaseGame game)
+    {
+        session.AddGame(game);
+
+        await UpdateSession(session);
+    }
+
     public List<BaseGame> GetGamesInSessionById(Guid Id)
     {
         return _sessionRepository.GetGamesInSessionById(Id);

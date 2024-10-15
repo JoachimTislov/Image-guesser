@@ -65,4 +65,8 @@ public class HubService(IHubContext<GameHub, IGameClient> hubContext, IConnectio
         await _connectionMappingService.RemoveFromGroup(sessionId, connectionId);
     }
 
+    public async Task AlertGroupCorrectGuess(string sessionId, string winnerText, string guess, string nameOfImage)
+    {
+        await _hubContext.Clients.Group(sessionId).CorrectGuess(winnerText, guess, nameOfImage);
+    }
 }

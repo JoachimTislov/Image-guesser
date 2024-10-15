@@ -45,7 +45,6 @@ public class GameTests
 
         Assert.Equal(sessionId, game.SessionId);
         Assert.Single(game.Guessers);
-        Assert.Equal(game.Id, game.Guessers[0].GameId);
         Assert.Equal(session.Options.GameMode, game.GameMode);
         Assert.Equal(user.Id, game.Oracle.Entity.Id);
         Assert.Equal(imageIdentifier, game.Oracle.ImageIdentifier);

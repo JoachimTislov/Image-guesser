@@ -59,9 +59,9 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     [BindProperty]
     public AI_Type? Selected_AI_Type { get; set; }
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
-        await LoadGameData();
+        return await LoadGameData();
     }
 
     public async Task OnPostReturnToLobby()
@@ -107,8 +107,15 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
     private async Task<IActionResult> LoadGameData()
     {
-        Player = await _userService.GetUserByClaimsPrincipal(User);
         BaseGame = await _gameService.GetBaseGameById(GameId);
+
+        if (BaseGame.IsFinished())
+        {
+            _logger.LogWarning("Game with id: {Id} is already finished", GameId);
+            return RedirectToPage("/Lobby/Session", new { Id = SessionId });
+        }
+
+        Player = await _userService.GetUserByClaimsPrincipal(User);
         BaseOracle = await _oracleService.GetBaseOracleById(BaseGame.BaseOracleId);
         SessionHostId = await _sessionService.GetSessionHostIdById(SessionId);
         OracleIsAI = await _sessionService.CheckIfOracleIsAI(SessionId);

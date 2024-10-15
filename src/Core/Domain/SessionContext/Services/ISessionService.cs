@@ -9,6 +9,7 @@ namespace Image_guesser.Core.Domain.SessionContext.Services;
 public interface ISessionService
 {
     Task CreateSession(ClaimsPrincipal User, Guid SessionId);
+    Task AddGameToSession(Session session, BaseGame game);
     List<BaseGame> GetGamesInSessionById(Guid Id);
     Task<List<User>> GetUsersInSessionById(Guid Id);
     Task<List<SelectListItem>> GetSelectListOfUsersById(Guid Id);

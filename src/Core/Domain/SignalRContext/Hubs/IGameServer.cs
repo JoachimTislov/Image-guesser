@@ -3,6 +3,9 @@ public interface IGameServer
 {
     //--------------- Client To Server ---------------//
 
+    Task OnConnectedAsync();
+    Task OnDisconnectedAsync(Exception? exception);
+
     // Services invoked from client 
     Task ClientNavigatedToPage(string pathName);
     Task AddToGroup(string sessionId, string userId);

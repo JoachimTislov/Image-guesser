@@ -14,4 +14,5 @@ public interface IHubService
     Task RemoveFromGroup(string connectionId, string sessionId);
     Task RemoveConnectionsFromGroup(HashSet<string> connectionIds, string sessionId);
     Task RemoveFromGroupAsync(string sessionId, string userId);
+    Task AlertGroupCorrectGuess(string sessionId, string winnerText, string guess, string nameOfImage);
 }

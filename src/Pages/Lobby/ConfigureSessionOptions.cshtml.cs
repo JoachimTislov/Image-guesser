@@ -26,14 +26,15 @@ public class ConfigureSessionOptionsModel(ILogger<ConfigureSessionOptionsModel> 
 
     public List<SelectListItem> Users { get; set; } = [];
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
         var userId = _userService.GetUserIdByClaimsPrincipal(User);
         var session = await _sessionService.GetSessionById(Id);
 
-        if (userId != null && !session.UserIsSessionHost(Guid.Parse(userId)))
+        if (userId == null || session.IsClosed() || !session.UserIsSessionHost(Guid.Parse(userId)))
         {
-            await _hubService.RedirectClientToPage(userId, $"/Lobby/{Id}");
+            var url = userId == null || session.IsClosed() ? "/Home/Index" : $"/Lobby/Session/{Id}"; // "/" is index page
+            return RedirectToPage(url);
         }
 
         Options = new(session.Options);
@@ -41,6 +42,8 @@ public class ConfigureSessionOptionsModel(ILogger<ConfigureSessionOptionsModel> 
         Users = await _sessionService.GetSelectListOfUsersById(Id);
 
         _logger.LogInformation("{Name} visited the options page for session with Id: {Id}", User.Identity?.Name, Id);
+
+        return Page();
     }
 
     public async Task OnPostModifyAsync()

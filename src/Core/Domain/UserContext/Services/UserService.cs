@@ -11,6 +11,35 @@ public class UserService(UserManager<User> userManager, IRepository repository, 
     private readonly UserManager<User> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     private readonly IRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
+    private static User CreateUser(string username)
+    {
+        return new User(username);
+    }
+
+    public async Task<(bool Succeeded, IdentityError[] Errors)> Register(string username, string password)
+    {
+        var user = CreateUser(username);
+        var createUserResult = await _userManager.CreateAsync(user, password);
+        if (createUserResult.Succeeded)
+        {
+            await _signInManager.SignInAsync(user, isPersistent: false);
+
+            return (true, Array.Empty<IdentityError>());
+        }
+        else
+        {
+            return (false, createUserResult.Errors.ToArray());
+        }
+    }
+
+    public async Task<(bool Succeeded, string ErrorMessage)> Login(string username, string password, bool rememberMe)
+    {
+        var signInResult = await _signInManager.PasswordSignInAsync(username, password, rememberMe, lockoutOnFailure: false);
+        var user = await _userManager.FindByNameAsync(username);
+
+        return signInResult.Succeeded ? (true, string.Empty) : (false, user != null ? "Wrong password" : "Invalid username");
+    }
+
     public async Task<bool> CheckIfClientHasAnAccount(string userId)
     {
         return await _userManager.FindByIdAsync(userId) != null;
