@@ -17,7 +17,8 @@ namespace Image_guesser.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     NumbersForImagePieces = table.Column<string>(type: "TEXT", nullable: false),
-                    AI_Type = table.Column<int>(type: "INTEGER", nullable: false)
+                    AI_Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,8 +47,8 @@ namespace Image_guesser.Migrations
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Identifier = table.Column<string>(type: "TEXT", nullable: false),
                     Link = table.Column<string>(type: "TEXT", nullable: false),
-                    FolderWithImagePiecesLink = table.Column<string>(type: "TEXT", nullable: false),
-                    PieceCount = table.Column<int>(type: "INTEGER", nullable: false)
+                    PieceCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,7 +64,8 @@ namespace Image_guesser.Migrations
                     OracleType = table.Column<string>(type: "TEXT", nullable: false),
                     Score = table.Column<int>(type: "INTEGER", nullable: false),
                     GamesPlayed = table.Column<int>(type: "INTEGER", nullable: false),
-                    GamesWon = table.Column<int>(type: "INTEGER", nullable: false)
+                    GamesWon = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -87,7 +89,8 @@ namespace Image_guesser.Migrations
                     Options_PictureMode = table.Column<int>(type: "INTEGER", nullable: false),
                     Options_ImageIdentifier = table.Column<string>(type: "TEXT", nullable: false),
                     TimeOfCreation = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    SessionStatus = table.Column<int>(type: "INTEGER", nullable: false)
+                    SessionStatus = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -247,7 +250,8 @@ namespace Image_guesser.Migrations
                     ImageTileOrderLog = table.Column<string>(type: "TEXT", nullable: false),
                     Type = table.Column<string>(type: "TEXT", maxLength: 13, nullable: false),
                     AI_Id = table.Column<Guid>(type: "TEXT", nullable: true),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -275,10 +279,10 @@ namespace Image_guesser.Migrations
                     BaseOracleId = table.Column<Guid>(type: "TEXT", nullable: false),
                     GameMode = table.Column<int>(type: "INTEGER", nullable: false),
                     GameStatus = table.Column<int>(type: "INTEGER", nullable: false),
-                    TimeOfCreation = table.Column<DateTime>(type: "TEXT", nullable: false),
                     OracleType = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
                     AIOracleId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    UserOracleId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    UserOracleId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -310,7 +314,8 @@ namespace Image_guesser.Migrations
                     GuessMessage = table.Column<string>(type: "TEXT", nullable: false),
                     NameOfGuesser = table.Column<string>(type: "TEXT", nullable: false),
                     TimeOfGuess = table.Column<string>(type: "TEXT", nullable: false),
-                    BaseGameId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    BaseGameId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -331,7 +336,8 @@ namespace Image_guesser.Migrations
                     Points = table.Column<int>(type: "INTEGER", nullable: false),
                     Guesses = table.Column<int>(type: "INTEGER", nullable: false),
                     WrongGuessCounter = table.Column<int>(type: "INTEGER", nullable: false),
-                    BaseGameId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    BaseGameId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

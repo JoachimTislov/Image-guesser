@@ -9,7 +9,8 @@ namespace Image_guesser.Core.Domain.OracleContext.Services
     {
         Task<OneOf<Oracle<User>, Oracle<AI>>> CreateOracle(Guid ChosenOracleId, string imageIdentifier, AI_Type AI_Type, bool OracleIsAI);
         Task<Oracle<AI>> CreateAIOracle(string imageIdentifier, AI_Type AI_Type);
-        Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : BaseEntity;
+        Task<Oracle<T>?> GetOracleById<T>(Guid Id) where T : class;
+        Task<string> GetNameOfOracleById(Guid Id);
         Task<BaseOracle> GetBaseOracleById(Guid Id);
         List<string> GetImageIdentifierOfAllPreviousPlayedGamesInTheSession(Guid sessionId);
         int CalculatePoints(int pieceCount, int numberOfTilesRevealed);

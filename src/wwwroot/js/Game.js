@@ -132,12 +132,10 @@ connection.on("ShowNextPieceForAll", () => {
     ExecuteOracleRevealTile()
 });
 
-const createImgElement = (image, opacity = 1) => {
+const createImgElement = (imagePiecePath, opacity = 1) => {
     const imageElement = document.createElement('img');
 
-    const relativeImagePiecePath = image.replace('wwwroot', '');
-    
-    imageElement.src = `${relativeImagePiecePath}?v=${new Date().getTime()}`; // to prevent caching, lets user change size of image and get new images
+    imageElement.src = `${imagePiecePath}?v=${new Date().getTime()}`; // to prevent caching, lets user change size of image and get new images
     imageElement.style.position = 'absolute';
     imageElement.style.opacity = opacity;
 
@@ -174,18 +172,9 @@ function InitUserAsOracle() { // imageInteractionInitializer
       }
   })
 
-  availablePiecesOfImage.forEach(image => {
-    AddNextImageTile(createImgElement(image, 0.1));
+  availablePiecesOfImage.forEach(imagePath => {
+    AddNextImageTile(createImgElement(imagePath, 0.1));
   });
-}
-
-function AIGetImageTile()
-{
-  const newImagePiece = getRandomImage();
-  if(newImagePiece)
-  {
-    return newImagePiece;
-  }
 }
 
 function ExecuteOracleRevealTile() {
@@ -194,10 +183,12 @@ function ExecuteOracleRevealTile() {
 }
 
 function OracleRevealTile() {
-  var newImagePiece = AIGetImageTile();
-
-  AddNextImageTile(createImgElement(newImagePiece));
-
+  const newImagePiece = getRandomImage();
+  if(newImagePiece)
+  {
+    AddNextImageTile(createImgElement(newImagePiece));
+  }
+  
   return newImagePiece;
 } 
 
@@ -234,11 +225,15 @@ function InitImageLog()
     // Load tile-log from server
     for(var i = 0; i < imageTileOrderLog.length; i++)
     { 
-      var newImagePiece = createImgElement(imageTileOrderLog[i]);
+      var pathToImage = `${urlToCorrectImageTilesDirectory}/${imageTileOrderLog[i]}`;
+
+      var newImagePiece = createImgElement(pathToImage);
       AddNextImageTile(newImagePiece)
 
       // Remove the image from the available pieces
-      var pieceIndex = availablePiecesOfImage.indexOf(imageTileOrderLog[i])
+      var pieceIndex = availablePiecesOfImage.indexOf(pathToImage)
+      console.log(availablePiecesOfImage, pieceIndex)
+      console.log(pathToImage)
       if(pieceIndex != -1)
       {
         // Remove the image tile indexes from the AI array

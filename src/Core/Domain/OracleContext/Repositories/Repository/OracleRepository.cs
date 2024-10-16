@@ -14,9 +14,9 @@ public class OracleRepository(IRepository repository) : IOracleRepository
         await _repository.Add(oracle);
     }
 
-    public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : BaseEntity
+    public async Task<Oracle<T>?> GetOracleById<T>(Guid Id) where T : class
     {
-        return await _repository.GetSingleWhere<Oracle<T>>(o => o.Id == Id) ?? throw new EntityNotFoundException($"Oracle was not found by id: {Id}");
+        return await _repository.WhereAndInclude_SingleOrDefault<Oracle<T>, T>(o => o.Id == Id, o => o.Entity);
     }
 
     public async Task<BaseOracle> GetBaseOracleById(Guid Id)
@@ -33,7 +33,10 @@ public class OracleRepository(IRepository repository) : IOracleRepository
 
     public async Task DeleteOracle<T>(Guid Id) where T : BaseEntity
     {
-        await _repository.Delete(await GetOracleById<T>(Id));
+        var oracle = await GetOracleById<T>(Id);
+        if (oracle is null) return;
+
+        await _repository.Delete(oracle);
     }
 
     public async Task UpdateOracle<T>(T baseOracle) where T : BaseEntity

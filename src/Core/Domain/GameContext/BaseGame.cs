@@ -14,7 +14,6 @@ public class BaseGame : BaseEntity
     public GameMode GameMode { get; set; }
     public GameStatus GameStatus { get; private set; } = GameStatus.Started;
     public List<Guess> GuessLog { get; private set; } = [];
-    public DateTime TimeOfCreation { get; private set; } = DateTime.Now;
 
     public bool AddGuesser(Guesser guesser)
     {
@@ -48,4 +47,5 @@ public class BaseGame : BaseEntity
     public void Terminated() => GameStatus = GameStatus.Terminated;
 
     public bool IsFinished() => GameStatus == GameStatus.Finished;
+    public bool IsTerminated() => GameStatus == GameStatus.Terminated;
 }

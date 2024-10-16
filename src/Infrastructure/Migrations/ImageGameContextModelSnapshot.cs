@@ -26,6 +26,9 @@ namespace Image_guesser.Migrations
                     b.Property<Guid>("BaseOracleId")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("GameMode")
                         .HasColumnType("INTEGER");
 
@@ -38,9 +41,6 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SessionId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("TimeOfCreation")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -61,6 +61,9 @@ namespace Image_guesser.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("BaseGameId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("GuessMessage")
@@ -91,6 +94,9 @@ namespace Image_guesser.Migrations
                     b.Property<Guid?>("BaseGameId")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Guesses")
                         .HasColumnType("INTEGER");
 
@@ -117,8 +123,7 @@ namespace Image_guesser.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FolderWithImagePiecesLink")
-                        .IsRequired()
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Identifier")
@@ -149,6 +154,9 @@ namespace Image_guesser.Migrations
                     b.Property<string>("Oracle")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("GamesPlayed")
                         .HasColumnType("INTEGER");
 
@@ -176,6 +184,9 @@ namespace Image_guesser.Migrations
                     b.Property<int>("AI_Type")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("NumbersForImagePieces")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -189,6 +200,9 @@ namespace Image_guesser.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageIdentifier")
@@ -228,6 +242,9 @@ namespace Image_guesser.Migrations
                     b.Property<Guid>("ChosenOracleId")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid?>("CurrentGameId")
                         .HasColumnType("TEXT");
 
@@ -262,6 +279,10 @@ namespace Image_guesser.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("CurrentPageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomSizedImageTilesDirectoryId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

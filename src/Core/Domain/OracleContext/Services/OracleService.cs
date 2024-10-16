@@ -1,11 +1,9 @@
-using Image_guesser.Core.Domain.GameContext;
 using Image_guesser.Core.Domain.ImageContext.Services;
 using Image_guesser.Core.Domain.OracleContext.AI_Repository;
 using Image_guesser.Core.Domain.OracleContext.Repositories.Repository;
 using Image_guesser.Core.Domain.SessionContext;
 using Image_guesser.Core.Domain.UserContext;
 using Image_guesser.Core.Domain.UserContext.Services;
-using Image_guesser.Core.Exceptions;
 using Image_guesser.SharedKernel;
 using OneOf;
 
@@ -54,9 +52,26 @@ public class OracleService(IAI_Repository AI_Repository, IImageService imageServ
         return CreateGenericOracle(AI, imageIdentifier);
     }
 
-    public async Task<Oracle<T>> GetOracleById<T>(Guid Id) where T : BaseEntity
+    public async Task<Oracle<T>?> GetOracleById<T>(Guid Id) where T : class
     {
         return await _oracleRepository.GetOracleById<T>(Id);
+    }
+
+    public async Task<string> GetNameOfOracleById(Guid Id)
+    {
+        var userOracle = await GetOracleById<User>(Id);
+        if (userOracle != null)
+        {
+            return $"User: {userOracle.Entity.UserName}";
+        }
+
+        var aiOracle = await GetOracleById<AI>(Id);
+        if (aiOracle != null)
+        {
+            return $"AI: {aiOracle.Entity.AI_Type}";
+        }
+
+        return "Unknown";
     }
 
     public async Task<BaseOracle> GetBaseOracleById(Guid Id)

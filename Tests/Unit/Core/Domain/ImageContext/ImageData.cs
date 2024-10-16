@@ -14,7 +14,6 @@ public class ImageRecordTests
         Assert.Equal(string.Empty, ImageRecord.Name);
         Assert.Equal(string.Empty, ImageRecord.Identifier);
         Assert.Equal(string.Empty, ImageRecord.Link);
-        Assert.Equal(string.Empty, ImageRecord.FolderWithImagePiecesLink);
         Assert.Equal(0, ImageRecord.PieceCount);
     }
 
@@ -32,7 +31,6 @@ public class ImageRecordTests
         Assert.Equal(name, ImageRecord.Name);
         Assert.Equal(identifier, ImageRecord.Identifier);
         Assert.Equal(link, ImageRecord.Link);
-        Assert.Equal(folderWithImagePiecesLink, ImageRecord.FolderWithImagePiecesLink);
         Assert.Equal(pieceCount, ImageRecord.PieceCount);
     }
 

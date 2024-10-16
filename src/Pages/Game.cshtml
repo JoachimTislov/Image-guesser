@@ -204,9 +204,9 @@
         var userId = '@Model.Player.Id';
         var guesserId = '@(Model.Guesser != null ? Model.Guesser.Id : "null")';
         var gameId = '@Model.BaseGame.Id';
+        var urlToCorrectImageTilesDirectory = '@Model.UrlToCorrectImageTilesDirectory';
         var imageIdentifier = '@Model.ImageRecord.Identifier';
         var gameMode = '@Model.BaseGame.GameMode';
-        var imagePiecesFolderPath = '@Model.ImageRecord.FolderWithImagePiecesLink.ToString()';
         var oracleIsAI = '@Model.OracleIsAI.ToString().ToLower()' === 'true';
         var oracleId = '@(Model.OracleIsAI ? Model.GameAI!.Oracle.Id : Model.GameUser!.Oracle.Id)';
         var oracleEntityId = '@(Model.OracleIsAI ? Model.GameAI!.Oracle.Entity.Id : Model.GameUser!.Oracle.Entity.Id)';
@@ -214,17 +214,19 @@
         var imageTileOrderLog = @Html.Raw(JsonConvert.SerializeObject(Model.BaseOracle.ImageTileOrderLog));
         var guessLog = @Html.Raw(JsonConvert.SerializeObject(Model.BaseGame.GuessLog));
 
+        console.log("imageTileLog", imageTileOrderLog);
+
         var oracleAI_Array_NumbersForImagePieces = @(Model.GameAI != null ? Html.Raw(JsonConvert.SerializeObject(Model.GameAI.Oracle.Entity.NumbersForImagePieces)) : "null");
-        /*oracleAI_Array_NumbersForImagePieces = oracleAI_Array_NumbersForImagePieces || "Oracle AI Array not found";
-        console.log(oracleAI_Array_NumbersForImagePieces);*/
+        oracleAI_Array_NumbersForImagePieces = oracleAI_Array_NumbersForImagePieces || "Oracle AI Array not found";
+        console.log(oracleAI_Array_NumbersForImagePieces);
 
         var availablePiecesOfImage = @Html.Raw(Model.ImagePieceList);
-        /*availablePiecesOfImage = availablePiecesOfImage || "availablePiecesOfImage not found";
-        console.log(availablePiecesOfImage);*/
+        availablePiecesOfImage = availablePiecesOfImage || "availablePiecesOfImage not found";
+        console.log(availablePiecesOfImage);
 
         var imageCoordinates = @(Model.ImageCoordinates != null ? Html.Raw(Model.ImageCoordinates) : "null");
-        /*imageCoordinates = imageCoordinates || "ImageCoordinates not found";
-        console.log(imageCoordinates);*/
+        imageCoordinates = imageCoordinates || "ImageCoordinates not found";
+        console.log(imageCoordinates);
     </script>
 
     <script type="module" src="~/js/Game.js"></script>

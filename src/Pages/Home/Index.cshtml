@@ -1,71 +1,103 @@
 ﻿@page "/"
 @model IndexModel
+@using Image_guesser.Core.Domain.OracleContext.Services
+@inject IOracleService OracleService
 @{
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center d-flex justify-content-center">
-    <div class="col-8">
+<div class="text-center d-flex flex-column justify-content-center">
 
-        <h1 class="display-4 mb-5"> Welcome to Image Guesser </h1>
+    <h1 class="display-4"> Welcome to Image Guesser </h1>
 
-        @if (User.Identity != null && User.Identity.IsAuthenticated && Model.User_ != null)
-        {
-            <div class="d-flex justify-content-evenly">
-                <form method="post" asp-page-handler="CreateSession">
-                    <input name="Id" value="@Model.SessionId" hidden>
-                    <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"
-                        user-Id="@Model.User_.Id"> Create a Lobby </button>
-                </form>
+    <p class="mb-5 mt-1">Image Guesser is about guessing the name of an image by only viewing parts of the image.</p>
 
-                <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>
-            </div>
-        }
-        else
-        {
-            <p>Image Guesser is about guessing the name of an image while only viewing parts of the image.</p>
-        }
+    @if (User.Identity != null && User.Identity.IsAuthenticated && Model.User_ != null)
+    {
+        <div class="d-flex justify-content-evenly">
+            <form method="post" asp-page-handler="CreateSession">
+                <input name="Id" value="@Model.SessionId" hidden>
+                <button type="submit" class="btn btn-success" id="createSession" session-Id="@Model.SessionId"
+                    user-Id="@Model.User_.Id"> Create a Lobby </button>
+            </form>
 
-        <h2 class="display-8 mt-3">Leaderboard</h2>
+            <a class="btn btn-primary" asp-page="/Lobby/SessionList"> View available Lobbies </a>
+        </div>
+    }
 
-        <table class="table tablestriped table-hover mt-3">
-            <thead>
-                <tr>
-                    <th>Ranking</th>
-                    <th>Score</th>
-                    <th>Guesser</th>
-                    <th>Oracle</th>
-                    <th>Oracle Type</th>
-                    <th>Games Played</th>
-                    <th>Wins</th>
-                    <th>S/G</th>
-                    <th>S/W</th>
-                    <th>Win-Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{
-                    int i = 0;
-                }
-                @foreach (var entry in Model.LeaderboardEntries)
-                {
+    <div class="d-flex m-auto">
+        <div class="m-3">
+            <h2 class="display-8 mt-3">Leaderboard</h2>
+            <table class="table tablestriped table-hover mt-3">
+                <thead>
                     <tr>
-                        <td>#@(i + 1)</td>
-                        <td>@entry.Score</td>
-                        <td>@entry.Name</td>
-                        <td>@entry.Oracle</td>
-                        <td>@entry.OracleType</td>
-                        <td>@entry.GamesPlayed</td>
-                        <td>@entry.GamesWon</td>
-                        <td>@entry.AverageScorePerGame</td>
-                        <td>@entry.AverageScorePerWin</td>
-                        <td>@entry.WinRate %</td>
+                        <th>Ranking</th>
+                        <th>Score</th>
+                        <th>Guesser</th>
+                        <th>Oracle</th>
+                        <th>Oracle Type</th>
+                        <th>Games Played</th>
+                        <th>Wins</th>
+                        <th>S/G</th>
+                        <th>S/W</th>
+                        <th>Win-Rate</th>
                     </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int i = 0;
+                    }
+                    @foreach (var entry in Model.LeaderboardEntries)
+                    {
+                        <tr>
+                            <td>#@(i + 1)</td>
+                            <td>@entry.Score</td>
+                            <td>@entry.Name</td>
+                            <td>@entry.Oracle</td>
+                            <td>@entry.OracleType</td>
+                            <td>@entry.GamesPlayed</td>
+                            <td>@entry.GamesWon</td>
+                            <td>@entry.AverageScorePerGame</td>
+                            <td>@entry.AverageScorePerWin</td>
+                            <td>@entry.WinRate %</td>
+                        </tr>
 
-                    i++;
-                }
-            </tbody>
-        </table>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="m-3">
+            <h2 class="display-8 mt-3">Recent Games</h2>
+            <table class="table tablestriped table-hover mt-3">
+                <thead>
+                    <tr>
+                        <th>Guessers</th>
+                        <th>Mode</th>
+                        <th>Oracle</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model.RecentGames)
+                    {
+
+                        <tr>
+                            <td>
+                                @foreach (var guesser in entry.Guessers)
+                                {
+                                    <span>@guesser.Name</span>
+                                }
+                            </td>
+                            <td>@entry.GameMode</td>
+                            <td>@await OracleService.GetNameOfOracleById(entry.BaseOracleId)
+                            </td>
+                            <td>@entry.CreatedAt</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

@@ -1,3 +1,5 @@
+using Image_guesser.Core.Domain.GameContext;
+using Image_guesser.Core.Domain.GameContext.Services;
 using Image_guesser.Core.Domain.LeaderboardContext;
 using Image_guesser.Core.Domain.LeaderboardContext.Services;
 using Image_guesser.Core.Domain.SessionContext.Services;
@@ -8,10 +10,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Image_guesser.Pages.Home;
 
-public class IndexModel(ILogger<IndexModel> logger, ISessionService sessionService, IUserService userService, ILeaderboardService leaderboardService) : PageModel
+public class IndexModel(ILogger<IndexModel> logger, ISessionService sessionService, IGameService gameService, IUserService userService, ILeaderboardService leaderboardService) : PageModel
 {
     private readonly ILogger<IndexModel> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
+    private readonly IGameService _gameService = gameService ?? throw new ArgumentNullException(nameof(gameService));
     private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
     private readonly ILeaderboardService _leaderboardService = leaderboardService ?? throw new ArgumentNullException(nameof(leaderboardService));
 
@@ -21,7 +24,8 @@ public class IndexModel(ILogger<IndexModel> logger, ISessionService sessionServi
 
     public bool UserIsAlreadySessionHost { get; set; }
 
-    public List<LeaderboardEntry> LeaderboardEntries { get; set; } = null!;
+    public List<LeaderboardEntry> LeaderboardEntries { get; set; } = [];
+    public List<BaseGame> RecentGames { get; set; } = [];
 
     public async Task OnGet()
     {
@@ -30,7 +34,7 @@ public class IndexModel(ILogger<IndexModel> logger, ISessionService sessionServi
             User_ = await _userService.GetUserByClaimsPrincipal(User);
         }
 
-        LoadLeaderboards();
+        await LoadLeaderboards();
     }
 
     public async Task<IActionResult> OnPostCreateSession(Guid Id)
@@ -42,9 +46,10 @@ public class IndexModel(ILogger<IndexModel> logger, ISessionService sessionServi
         return RedirectToPage("/Lobby/ConfigureSessionOptions", new { text = "Create", Id });
     }
 
-    private void LoadLeaderboards()
+    private async Task LoadLeaderboards()
     {
         LeaderboardEntries = _leaderboardService.GetLeaderboardEntries();
+        RecentGames = await _gameService.GetXAmountOfRecentGames(10);
     }
 }
 

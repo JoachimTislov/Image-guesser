@@ -26,6 +26,11 @@ public class Repository(ImageGameContext context) : IRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<List<T>> GetXAmountOfRecentEntries<T, I>(int amount, Expression<Func<T, I>> includeExp) where T : BaseEntity
+    {
+        return await GetEntities<T>().Include(includeExp).OrderBy(e => e.CreatedAt).Take(amount).Reverse().ToListAsync();
+    }
+
     public List<T> GetAll<T>() where T : BaseEntity
     {
         return [.. GetEntities<T>()];

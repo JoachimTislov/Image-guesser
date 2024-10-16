@@ -22,9 +22,6 @@ public class GameTests
 
         //Assert.IsType<Oracle<object>>(game.Oracle);
         Assert.Null(game.Oracle);
-
-        var now = DateTime.Now;
-        Assert.InRange(game.TimeOfCreation, now.AddSeconds(-1), now.AddSeconds(1));
     }
 
     [Fact]

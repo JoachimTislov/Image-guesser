@@ -21,7 +21,7 @@ public class UrlTests(CustomWebApplicationFactory<Program> factory) : IClassFixt
         var response = await client.GetAsync(url);
 
         // Assert
-        //response.EnsureSuccessStatusCode(); // Status Code 200-299
+        response.EnsureSuccessStatusCode(); // Status Code 200-299
 
         Assert.NotNull(response.Content.Headers.ContentType);
 

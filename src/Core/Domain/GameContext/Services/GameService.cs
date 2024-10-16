@@ -98,6 +98,11 @@ public class GameService(IOracleService oracleService, IHubService hubService, I
         return await _gameRepository.GetGameById<T>(Id);
     }
 
+    public async Task<List<BaseGame>> GetXAmountOfRecentGames(int amount)
+    {
+        return await _gameRepository.GetXAmountOfRecentGames(amount);
+    }
+
     public async Task DeleteGuesserById(Guid Id)
     {
         await _gameRepository.DeleteGuesserById(Id);

@@ -40,6 +40,13 @@ public class UserService(UserManager<User> userManager, IRepository repository, 
         return signInResult.Succeeded ? (true, string.Empty) : (false, user != null ? "Wrong password" : "Invalid username");
     }
 
+    public async Task UpdateCurrentImageIdentifier(User user, string imageIdentifier)
+    {
+        user.CustomSizedImageTilesDirectoryId = imageIdentifier;
+
+        await UpdateUser(user);
+    }
+
     public async Task<bool> CheckIfClientHasAnAccount(string userId)
     {
         return await _userManager.FindByIdAsync(userId) != null;
@@ -89,6 +96,6 @@ public class UserService(UserManager<User> userManager, IRepository repository, 
 
     public async Task UpdateUser(User user)
     {
-        await _repository.Update(user);
+        await _userManager.UpdateAsync(user);
     }
 }

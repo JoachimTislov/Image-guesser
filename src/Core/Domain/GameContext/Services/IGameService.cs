@@ -12,6 +12,7 @@ public interface IGameService
     Task AddGuesserFromGame(Guid guesserId, Guid gameId);
     Task RemoveGuesserFromGame(Guid guesserId, Guid gameId);
     Task<Game<T>?> GetGameById<T>(Guid Id) where T : class;
+    Task<List<BaseGame>> GetXAmountOfRecentGames(int amount);
     Task DeleteGuesserById(Guid Id);
     Task<BaseGame> GetBaseGameById(Guid gameId);
     Task<Guesser> GetGuesserById(Guid Id);

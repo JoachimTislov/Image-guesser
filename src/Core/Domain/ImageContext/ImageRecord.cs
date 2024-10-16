@@ -11,7 +11,6 @@ public class ImageRecord : BaseEntity
         Name = name;
         Identifier = identifier;
         Link = link;
-        FolderWithImagePiecesLink = folderWithImagePiecesLink;
         PieceCount = pieceCount;
     }
 
@@ -19,6 +18,5 @@ public class ImageRecord : BaseEntity
     public string Name { get; private set; } = string.Empty;
     public string Identifier { get; private set; } = string.Empty;
     public string Link { get; set; } = string.Empty;
-    public string FolderWithImagePiecesLink { get; set; } = string.Empty;
     public int PieceCount { get; private set; }
 }

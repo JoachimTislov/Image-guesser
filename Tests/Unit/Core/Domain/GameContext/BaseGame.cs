@@ -15,8 +15,5 @@ public class BaseGameTests
         Assert.Empty(game.Guessers);
         Assert.Equal(GameMode.SinglePlayer, game.GameMode);
         Assert.False(game.IsFinished());
-
-        var now = DateTime.Now;
-        Assert.InRange(game.TimeOfCreation, now.AddSeconds(-1), now.AddSeconds(1));
     }
 }

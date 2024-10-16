@@ -50,6 +50,7 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
     public ImageRecord ImageRecord { get; set; } = null!;
     public string ImagePieceList { get; set; } = null!;
     public string? ImageCoordinates { get; set; }
+    public string UrlToCorrectImageTilesDirectory { get; set; } = string.Empty;
 
     /* If statements */
     public bool UserIsOracle { get; set; }
@@ -99,17 +100,17 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
         //await _mediator.Publish(new ChangeImageSizeRequest(imageSize, imageIdentifier, imageContainerWidth, imageContainerHeight));
 
-        await _imageService.SetSizeOfImagePieces(imageIdentifier, imageContainerWidth, imageContainerHeight, imageSize / 100.0);
+        Player = await _userService.GetUserByClaimsPrincipal(User);
+        _imageService.SetSizeOfImagePieces(imageIdentifier, imageContainerWidth, imageContainerHeight, imageSize / 100.0, Player.UserName!, Player.CustomSizedImageTilesDirectoryId);
 
         await _hubService.RedirectGroupToPage(SessionId.ToString(), $"/Lobby/{SessionId}/Game/{GameId}");
     }
-
 
     private async Task<IActionResult> LoadGameData()
     {
         BaseGame = await _gameService.GetBaseGameById(GameId);
 
-        if (BaseGame.IsFinished())
+        if (BaseGame.IsFinished() || BaseGame.IsTerminated())
         {
             _logger.LogWarning("Game with id: {Id} is already finished", GameId);
             return RedirectToPage("/Lobby/Session", new { Id = SessionId });
@@ -117,6 +118,14 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
         Player = await _userService.GetUserByClaimsPrincipal(User);
         BaseOracle = await _oracleService.GetBaseOracleById(BaseGame.BaseOracleId);
+        await _userService.UpdateCurrentImageIdentifier(Player, BaseOracle.ImageIdentifier);
+
+        var pathToUsersCustomSizedImageTiles = _imageService.CheckIfUserHasCustomSizedImageTiles(Player.UserName!, BaseOracle.ImageIdentifier);
+
+        UrlToCorrectImageTilesDirectory = pathToUsersCustomSizedImageTiles
+        ? $"/DataSet/Custom_Sized_Image_Tiles/{Player.UserName!}_{BaseOracle.ImageIdentifier}"
+        : $"/DataSet/Scattered_Images/{BaseOracle.ImageIdentifier}";
+
         SessionHostId = await _sessionService.GetSessionHostIdById(SessionId);
         OracleIsAI = await _sessionService.CheckIfOracleIsAI(SessionId);
         UserIsOracle = await _sessionService.CheckIfUserIsOracle(SessionId, Player.Id);
@@ -142,8 +151,8 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
 
         ImageRecord = await _imageService.GetImageRecordById(BaseOracle.ImageIdentifier);
 
-        var imagePieceList = await _imageService.GetFileNameOfImagePieces(BaseOracle.ImageIdentifier);
-        ImagePieceList = JsonConvert.SerializeObject(imagePieceList);
+        var imagePieceList = _imageService.GetFileNameOfImagePieces(BaseOracle.ImageIdentifier, Player.UserName!, Player.CustomSizedImageTilesDirectoryId);
+        ImagePieceList = JsonConvert.SerializeObject(imagePieceList.Select(pathName => pathName.Split("wwwroot")[1].Replace("\\", "/")));
 
         if (UserIsOracle)
         {

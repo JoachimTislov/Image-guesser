@@ -7,6 +7,7 @@ public interface IRepository
 {
     Task Add<T>(T entity) where T : BaseEntity;
     Task Delete<T>(T entity) where T : BaseEntity;
+    Task<List<T>> GetXAmountOfRecentEntries<T, I>(int amount, Expression<Func<T, I>> includeExp) where T : BaseEntity;
     List<T> GetAll<T>() where T : BaseEntity;
     Task<T> GetById<T, I>(I Id) where T : class;
     List<T> WhereAndInclude<T, I>(Expression<Func<T, bool>> whereExp, Expression<Func<T, I>> includeExp) where T : BaseEntity;
