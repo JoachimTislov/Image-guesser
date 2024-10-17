@@ -90,7 +90,7 @@ public class ImageService(IWebHostEnvironment hostingEnvironment, IImageReposito
 
         foreach (var nameOfImagePath in ImagePieceList)
         {
-            _imageCoordinates.Add((nameOfImagePath, GetNonTransparentPixelCoordinates(nameOfImagePath)));
+            _imageCoordinates.Add((Path.GetFileName(nameOfImagePath), GetNonTransparentPixelCoordinates(nameOfImagePath)));
         }
 
         return _imageCoordinates;

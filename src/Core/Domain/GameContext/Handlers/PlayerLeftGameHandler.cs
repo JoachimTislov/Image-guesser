@@ -25,7 +25,7 @@ public class PlayerLeftGameHandler(IGameService gameService, ISessionService ses
             session.UserIsOracle(Guid.Parse(notification.UserId)) ||
             notification.GuesserId == null ||
             !gameIsFreeForAll ||
-            gameIsFreeForAll && game.Guessers.Count <= 2;
+            gameIsFreeForAll && game.Guessers.Count < 2;
 
         // check if user was oracle, probably not the best way to do it, but oracle won't be a guesser or in other words should'nt be a guesser
         if (GameShouldBeTerminated)

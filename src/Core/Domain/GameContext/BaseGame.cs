@@ -7,7 +7,7 @@ public class BaseGame : BaseEntity
 {
     public BaseGame() { }
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; private set; } = Guid.NewGuid();
     public Guid SessionId { get; protected set; }
     public Guid BaseOracleId { get; set; }
     public List<Guesser> Guessers { get; private set; } = [];

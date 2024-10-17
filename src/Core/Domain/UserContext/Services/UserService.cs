@@ -32,8 +32,10 @@ public class UserService(UserManager<User> userManager, IRepository repository, 
         }
     }
 
-    public async Task<(bool Succeeded, string ErrorMessage)> Login(string username, string password, bool rememberMe)
+    public async Task<(bool Succeeded, string ErrorMessage)> Login(ClaimsPrincipal User, string username, string password, bool rememberMe)
     {
+        if (_signInManager.IsSignedIn(User)) return (false, "Already signed in");
+
         var signInResult = await _signInManager.PasswordSignInAsync(username, password, rememberMe, lockoutOnFailure: false);
         var user = await _userManager.FindByNameAsync(username);
 

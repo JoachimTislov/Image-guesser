@@ -50,10 +50,14 @@ if(userIsAGuesser) {
     }
 };
 
-connection.on("ShowPiece", (piece) => {
-  const chosenImage = availablePiecesOfImage.find(p => p == piece);
+connection.on("ShowPiece", (pieceId) => {
+  //const chosenPieceId = availablePiecesOfImage.find(p => p.split("/").pop() == piece);
 
-  AddNextImageTile(createImgElement(chosenImage))
+  const chosenPiecePath = `${urlToCorrectImageTilesDirectory}/${pieceId}`;
+
+  console.log("Showing piece: " + chosenPiecePath);
+
+  AddNextImageTile(createImgElement(chosenPiecePath))
 });
 
 // Handles functions for receiving and displaying guesses
@@ -232,8 +236,6 @@ function InitImageLog()
 
       // Remove the image from the available pieces
       var pieceIndex = availablePiecesOfImage.indexOf(pathToImage)
-      console.log(availablePiecesOfImage, pieceIndex)
-      console.log(pathToImage)
       if(pieceIndex != -1)
       {
         // Remove the image tile indexes from the AI array

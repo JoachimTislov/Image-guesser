@@ -27,9 +27,9 @@ public class UserLeftSessionHandler(ISessionService sessionService, IMediator me
         else
         {
             await _sessionService.RemoveUserFromSession(userId, sessionId);
+            await _hubService.RemoveFromGroupAsync(sessionId.ToString(), userId);
             await _hubService.RedirectClientToPage(userId, "/");
 
-            await _hubService.RemoveFromGroupAsync(sessionId.ToString(), userId);
             await _hubService.ReloadGroupPage(sessionId.ToString());
         }
     }

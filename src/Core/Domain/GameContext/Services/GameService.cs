@@ -1,5 +1,4 @@
 using Image_guesser.Core.Domain.GameContext.Repository;
-using Image_guesser.Core.Domain.GameContext.Responses;
 using Image_guesser.Core.Domain.OracleContext;
 using Image_guesser.Core.Domain.OracleContext.Services;
 using Image_guesser.Core.Domain.SessionContext;
@@ -19,25 +18,25 @@ public class GameService(IOracleService oracleService, IHubService hubService, I
     private readonly IGameRepository _gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
     private readonly ISessionService _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
 
-    private async Task<InitializeGameResponse> InitializeGame<T>(Session session, Oracle<T> Oracle) where T : class
+    private async Task<Guid> InitializeGame<T>(Session session, Oracle<T> Oracle) where T : class
     {
         var game = new Game<T>(session, Oracle);
 
         await _sessionService.AddGameToSession(session, game);
 
-        return new InitializeGameResponse(game.Id, game.SessionId);
+        return game.Id;
     }
 
     public async Task CreateGame(Session session, string imageIdentifier)
     {
         OneOf<Oracle<User>, Oracle<AI>> Oracle = await _oracleService.CreateOracle(session.ChosenOracleId, imageIdentifier, session.Options.AI_Type, session.Options.IsOracleAI());
 
-        var InitializeGameResult = await Oracle.Match(
+        var gameId = await Oracle.Match(
             async userOracle => await InitializeGame(session, userOracle),
             async aiOracle => await InitializeGame(session, aiOracle)
         );
 
-        await _hubService.RedirectGroupToPage(InitializeGameResult.SessionId.ToString(), $"/Lobby/{session.Id}/Game/{InitializeGameResult.Id}");
+        await _hubService.RedirectGroupToPage(session.Id.ToString(), $"/Lobby/{session.Id}/Game/{gameId}");
     }
 
     public async Task CreateAndAddGuess(string guess, string nameOfGuesser, string timeOfGuess, Guid gameId)

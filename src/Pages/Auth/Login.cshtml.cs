@@ -30,7 +30,7 @@ public class LoginModel(IUserService userService, ILogger<LoginModel> logger) : 
             return Page();
         }
 
-        var (Succeeded, errorMessage) = await _userService.Login(ViewModel.Username, ViewModel.Password, ViewModel.RememberMe);
+        var (Succeeded, errorMessage) = await _userService.Login(User, ViewModel.Username, ViewModel.Password, ViewModel.RememberMe);
 
         if (Succeeded)
         {

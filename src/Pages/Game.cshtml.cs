@@ -103,7 +103,7 @@ public class GameModel(ILogger<ProfileModel> logger, IOracleService oracleServic
         Player = await _userService.GetUserByClaimsPrincipal(User);
         _imageService.SetSizeOfImagePieces(imageIdentifier, imageContainerWidth, imageContainerHeight, imageSize / 100.0, Player.UserName!, Player.CustomSizedImageTilesDirectoryId);
 
-        await _hubService.RedirectGroupToPage(SessionId.ToString(), $"/Lobby/{SessionId}/Game/{GameId}");
+        await _hubService.ReloadClientPage(Player.Id.ToString());
     }
 
     private async Task<IActionResult> LoadGameData()
