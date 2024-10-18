@@ -1,0 +1,30 @@
+@page "/SliceImage/{ImageFile}"
+@model SliceImageModel
+@{
+    ViewData["Title"] = "Upload Image";
+}
+
+<div class="text-center">
+
+    <h1 class="display-4"> Slice Image </h1>
+
+    <div class="d-flex justify-content-center align-items-center flex-column">
+
+        <h4> @Model.NameOfImageWithOutExtension </h4>
+
+        <p> Draw on the image to divide it into tiles </p>
+
+        <canvas id="imageCanvas"></canvas>
+    </div>
+</div>
+
+<style>
+    canvas {
+        border: 3px solid black;
+    }
+</style>
+
+
+@section Scripts {
+    <script src="~/js/SliceImage.js"></script>
+}
