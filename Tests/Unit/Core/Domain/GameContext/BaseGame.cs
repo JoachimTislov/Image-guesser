@@ -10,7 +10,7 @@ public class BaseGameTests
     {
         var game = new BaseGame();
 
-        Assert.Equal(Guid.Empty, game.Id);
+        Assert.NotEqual(Guid.Empty, game.Id);
         Assert.Equal(Guid.Empty, game.SessionId);
         Assert.Empty(game.Guessers);
         Assert.Equal(GameMode.SinglePlayer, game.GameMode);

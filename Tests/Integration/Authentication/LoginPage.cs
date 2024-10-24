@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Image_guesser.Core.Domain.UserContext.Services;
 using Image_guesser.Pages.Auth;
 using Microsoft.AspNetCore.Mvc;

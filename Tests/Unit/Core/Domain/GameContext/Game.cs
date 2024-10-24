@@ -12,7 +12,7 @@ public class GameTests
     {
         var game = new Game<object>();
 
-        Assert.Equal(Guid.Empty, game.Id);
+        Assert.NotEqual(Guid.Empty, game.Id);
         Assert.Equal(Guid.Empty, game.SessionId);
         Assert.Empty(game.Guessers);
         Assert.Equal(GameMode.SinglePlayer, game.GameMode);

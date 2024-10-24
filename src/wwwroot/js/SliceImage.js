@@ -3,11 +3,11 @@ const EL = (Id) => document.getElementById(Id);
 const canvas = EL('imageCanvas');
 const ctx = canvas.getContext('2d');
 let slicing = false;
-const lines = [];
+const points = [];
 
 const img = new Image();
 img.style.objectFit = 'cover';
-img.src = '@Model.ImagePath';
+img.src = imagePath;
 
 const height = 600;
 const width = 600;
@@ -18,7 +18,15 @@ img.onload = () => {
     ctx.drawImage(img, 0, 0, width, height);
 }
 
-canvas.addEventListener('mouseenter', () => {
+function AddPoint(x, y)
+{
+    console.log(x, y);
+    console.log(typeof x, typeof y);
+    console.log(points);
+    points[x] = y;
+}
+
+canvas.addEventListener('mouseenter', (e) => {
     if (slicing) {
         ctx.beginPath();
 
@@ -27,17 +35,16 @@ canvas.addEventListener('mouseenter', () => {
     }
 });
 
-canvas.addEventListener('mouseleave', () => {
+canvas.addEventListener('mouseleave', (e) => {
     if (slicing) {
-        ctx.closePath();
-        slicing = false;
+        stopSlicing(e)
     }
 });
 
 canvas.addEventListener('mousedown', (e) => {
     slicing = true;
     ctx.beginPath();
-    lines.push({ x: e.offsetX, y: e.offsetY });
+    AddPoint(e.offsetX, e.offsetY);
 });
 
 canvas.addEventListener('mousemove', (e) => {
@@ -51,14 +58,7 @@ canvas.addEventListener('mousemove', (e) => {
     ctx.lineTo(e.offsetX, e.offsetY);
     ctx.stroke();
 
-    /*for (let point of lines) {
-        if (point.x == e.offsetX && point.y == e.offsetY) {
-            stopSlicing(e);
-            return;
-        }
-    }*/
-
-    lines.push({ x: e.offsetX, y: e.offsetY });
+    AddPoint(e.offsetX, e.offsetY);
 });
 
 canvas.addEventListener('mouseup', (e) => {
@@ -67,6 +67,9 @@ canvas.addEventListener('mouseup', (e) => {
 
 function stopSlicing(e) {
     slicing = false;
-    lines.push({ x: e.offsetX, y: e.offsetY });
+    AddPoint(e.offsetX, e.offsetY);
     ctx.closePath();
+
+    const pointsInput = EL("points");
+    pointsInput.value = JSON.stringify(points);
 }
